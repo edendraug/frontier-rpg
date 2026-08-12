@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TraitDefinition" load_steps=2 format=3 uid="uid://h88l2lpngxqw"]
+
+[ext_resource type="Script" uid="uid://bnm7mm4jahouc" path="res://systems/character/definitions/trait_definition.gd" id="1_0qogo"]
+
+[resource]
+script = ExtResource("1_0qogo")
+trait_id = "silver_tongue"
+display_name = "Silver Tongue"
+description = "A natural, practiced way of winning people over."
+modifiers = [{
+"target": "persuasion",
+"value": 2
+}]

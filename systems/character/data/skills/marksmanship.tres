@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://dub8dt004ssje"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_4t2qy"]
+
+[resource]
+script = ExtResource("1_4t2qy")
+skill_id = "marksmanship"
+display_name = "Marksmanship"
+description = "Accuracy with rifles, pistols, and thrown weapons."
+governing_stat = 1

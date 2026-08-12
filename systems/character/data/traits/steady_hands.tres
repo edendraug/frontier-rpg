@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TraitDefinition" load_steps=2 format=3 uid="uid://cye461oimi8pc"]
+
+[ext_resource type="Script" uid="uid://bnm7mm4jahouc" path="res://systems/character/definitions/trait_definition.gd" id="1_eu41c"]
+
+[resource]
+script = ExtResource("1_eu41c")
+trait_id = "steady_hands"
+display_name = "Steady Hands"
+description = "Years at the forge or workbench have made for precise, patient work."
+modifiers = [{
+"target": "craft",
+"value": 2
+}]

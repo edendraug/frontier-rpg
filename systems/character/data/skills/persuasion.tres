@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://vbgxfwgkb6ll"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_sm7xs"]
+
+[resource]
+script = ExtResource("1_sm7xs")
+skill_id = "persuasion"
+display_name = "Persuasion"
+description = "Convincing others honestly, through reason or charm."
+governing_stat = 5

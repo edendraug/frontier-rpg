@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TraitDefinition" load_steps=2 format=3 uid="uid://8byyp34djvdp"]
+
+[ext_resource type="Script" uid="uid://bnm7mm4jahouc" path="res://systems/character/definitions/trait_definition.gd" id="1_jssh1"]
+
+[resource]
+script = ExtResource("1_jssh1")
+trait_id = "formally_trained"
+display_name = "Formally Trained"
+description = "Educated in proper medical practice, not just field remedies."
+modifiers = [{
+"target": "medicine",
+"value": 2
+}]

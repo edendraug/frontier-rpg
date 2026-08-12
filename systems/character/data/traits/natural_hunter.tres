@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="TraitDefinition" load_steps=2 format=3 uid="uid://nst8kjjxp2cp"]
+
+[ext_resource type="Script" uid="uid://bnm7mm4jahouc" path="res://systems/character/definitions/trait_definition.gd" id="1_d4jj7"]
+
+[resource]
+script = ExtResource("1_d4jj7")
+trait_id = "natural_hunter"
+display_name = "Natural Hunter"
+description = "Raised tracking game and living off the land. Sharper instincts in the wild."
+modifiers = [{
+"target": "tracking",
+"value": 2
+}, {
+"target": "marksmanship",
+"value": 1
+}]

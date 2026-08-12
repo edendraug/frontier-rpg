@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://dvvshtif57op7"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_iwyb2"]
+
+[resource]
+script = ExtResource("1_iwyb2")
+skill_id = "craft"
+display_name = "Craft"
+description = "Repair, cooking, and building from trained know-how."
+governing_stat = 4

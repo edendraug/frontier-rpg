@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=2 format=3 uid="uid://bscpnofpeppy1"]
+
+[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_tbdae"]
+
+[resource]
+script = ExtResource("1_tbdae")
+occupation_id = "clerk"
+display_name = "Clerk"
+description = "Kept the books at a trading post. Sharp with numbers, hopeless in the wilderness."
+stat_modifiers = {
+2: -1,
+4: 1
+}
+granted_trait_id = "green_horn"
+starting_gear = [{
+"item_id": "ledger",
+"quantity": 1
+}, {
+"item_id": "spectacles",
+"quantity": 1
+}]

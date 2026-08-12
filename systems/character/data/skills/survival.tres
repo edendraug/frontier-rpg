@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://bo6wmdjj6sa4b"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_wlecp"]
+
+[resource]
+script = ExtResource("1_wlecp")
+skill_id = "survival"
+display_name = "Survival"
+description = "Foraging, reading weather, and instinctive wilderness know-how."
+governing_stat = 3

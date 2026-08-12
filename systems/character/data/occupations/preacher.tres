@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=2 format=3 uid="uid://cc3yaapjbt0y6"]
+
+[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_ta1a0"]
+
+[resource]
+script = ExtResource("1_ta1a0")
+occupation_id = "preacher"
+display_name = "Preacher"
+description = "Led a congregation back home. Knows how to hold a room's attention."
+stat_modifiers = {
+0: -1,
+5: 2
+}
+granted_trait_id = "silver_tongue"
+starting_gear = [{
+"item_id": "bible",
+"quantity": 1
+}, {
+"item_id": "robes",
+"quantity": 1
+}]

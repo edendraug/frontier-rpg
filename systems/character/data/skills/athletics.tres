@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://xt8mbjbf0jxv"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_unbld"]
+
+[resource]
+script = ExtResource("1_unbld")
+skill_id = "athletics"
+display_name = "Athletics"
+description = "Climbing, swimming, and general physical exertion."
+governing_stat = 0

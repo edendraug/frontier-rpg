@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://disp8vwxt3xrk"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_l8kwh"]
+
+[resource]
+script = ExtResource("1_l8kwh")
+skill_id = "perception"
+display_name = "Perception"
+description = "Spotting danger, tracks, and details others miss."
+governing_stat = 3

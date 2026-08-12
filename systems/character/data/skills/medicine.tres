@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://cn4c34nslq72c"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_qehm3"]
+
+[resource]
+script = ExtResource("1_qehm3")
+skill_id = "medicine"
+display_name = "Medicine"
+description = "Diagnosing and treating injuries and disease."
+governing_stat = 4

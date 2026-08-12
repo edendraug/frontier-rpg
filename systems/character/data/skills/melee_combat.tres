@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://dp7c5bheiox5t"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_7le8i"]
+
+[resource]
+script = ExtResource("1_7le8i")
+skill_id = "melee_combat"
+display_name = "Melee Combat"
+description = "Fighting with fists, blades, and clubs at close range."
+governing_stat = 0

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://dg2h33vucd2ao"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_kyqtd"]
+
+[resource]
+script = ExtResource("1_kyqtd")
+skill_id = "tracking"
+display_name = "Tracking"
+description = "Following trails and reading signs left by people and animals."
+governing_stat = 3

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="StatSpreadPreset" load_steps=2 format=3 uid="uid://b202hmqkft1ht"]
+
+[ext_resource type="Script" uid="uid://dh6y64v32ht6h" path="res://systems/character/definitions/stat_spread_presets.gd" id="1_cknd6"]
+
+[resource]
+script = ExtResource("1_cknd6")
+preset_id = "brawler"
+display_name = "Brawler"
+description = "Strong and tough, but not much of a thinker or a talker."
+scores = {
+"agility": 12,
+"brawn": 16,
+"grit": 14,
+"knowledge": 8,
+"presence": 9,
+"wits": 9
+}

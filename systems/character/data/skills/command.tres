@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://cmpkrxe023hy2"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_haxfp"]
+
+[resource]
+script = ExtResource("1_haxfp")
+skill_id = "command"
+display_name = "Command"
+description = "Rallying morale and directing others under pressure."
+governing_stat = 5

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=2 format=3 uid="uid://be41awjuxqudp"]
+
+[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_o4vyv"]
+
+[resource]
+script = ExtResource("1_o4vyv")
+occupation_id = "trapper"
+display_name = "Trapper"
+description = "Spent years alone in the wild, living by trap-lines and instinct."
+stat_modifiers = {
+3: 2,
+5: -1
+}
+granted_trait_id = "natural_hunter"
+starting_gear = [{
+"item_id": "rifle",
+"quantity": 1
+}, {
+"item_id": "trap",
+"quantity": 3
+}]

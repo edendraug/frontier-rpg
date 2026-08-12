@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://b50vyap6663bv"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_pcqe0"]
+
+[resource]
+script = ExtResource("1_pcqe0")
+skill_id = "driving"
+display_name = "Driving"
+description = "Handling a wagon team, especially over rough or dangerous terrain."
+governing_stat = 1

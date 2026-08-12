@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=2 format=3 uid="uid://cdui0yjumuvh3"]
+
+[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_o6wbv"]
+
+[resource]
+script = ExtResource("1_o6wbv")
+occupation_id = "blacksmith"
+display_name = "Blacksmith"
+description = "Forged tools and shod horses back home. Strong-armed and steady, if a little slow on their feet."
+stat_modifiers = {
+0: 2,
+1: -1
+}
+granted_trait_id = "steady_hands"
+starting_gear = [{
+"item_id": "hammer",
+"quantity": 1
+}, {
+"item_id": "iron_ingot",
+"quantity": 3
+}]

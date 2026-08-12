@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="StatSpreadPreset" load_steps=2 format=3 uid="uid://b26usbn7cbkph"]
+
+[ext_resource type="Script" uid="uid://dh6y64v32ht6h" path="res://systems/character/definitions/stat_spread_presets.gd" id="1_cg4gu"]
+
+[resource]
+script = ExtResource("1_cg4gu")
+preset_id = "scholar"
+display_name = "Scholar"
+description = "Educated and perceptive, but physically unremarkable."
+scores = {
+"agility": 9,
+"brawn": 8,
+"grit": 10,
+"knowledge": 16,
+"presence": 12,
+"wits": 14
+}

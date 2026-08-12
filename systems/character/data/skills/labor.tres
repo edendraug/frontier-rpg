@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://bmasylpqhtvm7"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_5orm5"]
+
+[resource]
+script = ExtResource("1_5orm5")
+skill_id = "labor"
+display_name = "Labor"
+description = "Hauling, lifting, and heavy physical work — wagon repair, digging, chopping."
+governing_stat = 0

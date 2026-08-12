@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=2 format=3 uid="uid://dbdv2852xk1f5"]
+
+[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_3k8bc"]
+
+[resource]
+script = ExtResource("1_3k8bc")
+occupation_id = "physician"
+display_name = "Physician"
+description = "Trained in proper medicine back east. Book-smart, but no laborer."
+stat_modifiers = {
+0: -1,
+4: 2
+}
+granted_trait_id = "formally_trained"
+starting_gear = [{
+"item_id": "medical_kit",
+"quantity": 1
+}, {
+"item_id": "herbs",
+"quantity": 2
+}]

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://ce772dmbd6q42"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_k7s6x"]
+
+[resource]
+script = ExtResource("1_k7s6x")
+skill_id = "navigation"
+display_name = "Navigation"
+description = "Reading maps, stars, and terrain to plot a safe course."
+governing_stat = 4

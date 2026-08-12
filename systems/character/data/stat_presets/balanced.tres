@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="StatSpreadPreset" load_steps=2 format=3 uid="uid://dkmkxa1sp1nse"]
+
+[ext_resource type="Script" uid="uid://dh6y64v32ht6h" path="res://systems/character/definitions/stat_spread_presets.gd" id="1_njrxo"]
+
+[resource]
+script = ExtResource("1_njrxo")
+preset_id = "balanced"
+display_name = "Balanced"
+description = "No real weaknesses, no real specialty. A safe, flexible starting point."
+scores = {
+"agility": 11,
+"brawn": 11,
+"grit": 12,
+"knowledge": 11,
+"presence": 12,
+"wits": 11
+}

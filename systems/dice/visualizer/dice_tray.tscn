@@ -1,0 +1,149 @@
+[gd_scene load_steps=14 format=3 uid="uid://cp4trhggb1prl"]
+
+[ext_resource type="Script" uid="uid://eub6rn427u0w" path="res://systems/dice/visualizer/dice_tray.gd" id="1_rhx7m"]
+[ext_resource type="Script" uid="uid://dsqgxnf8qcttm" path="res://systems/dice/visualizer/rolling_die.gd" id="2_p2f56"]
+[ext_resource type="Resource" uid="uid://y4p464yjka0q" path="res://systems/dice/data/d6_face_mapping.tres" id="2_twcna"]
+[ext_resource type="PackedScene" uid="uid://dpjp3lr4k2agi" path="res://systems/dice/models/D6.glb" id="3_6i332"]
+[ext_resource type="Resource" uid="uid://dotbv6ri62skr" path="res://systems/dice/data/d4_face_mapping.tres" id="3_gphre"]
+[ext_resource type="Script" uid="uid://c6centivhcfr8" path="res://systems/dice/visualizer/dice_tray_config.gd" id="4_62n68"]
+[ext_resource type="PackedScene" uid="uid://c4g7snse3hjv2" path="res://systems/dice/models/D4.glb" id="4_twcna"]
+[ext_resource type="Shader" uid="uid://bxc8hc6jo6id6" path="res://systems/dice/visualizer/pixel_dice_shader.gdshader" id="5_gphre"]
+
+[sub_resource type="Resource" id="Resource_twcna"]
+script = ExtResource("4_62n68")
+throw_impulse_min = 32.0
+throw_impulse_max = 48.0
+throw_torque_min = 100.0
+throw_torque_max = 120.0
+settle_angular_velocity_threshold = 1.2
+settle_linear_velocity_threshold = 0.3
+correction_strength = 8.0
+correction_damping = 2.0
+freeze_alignment_tolerance_degrees = 3.0
+max_settle_time = 3.5
+metadata/_custom_type_script = "uid://c6centivhcfr8"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_62n68"]
+shader = ExtResource("5_gphre")
+shader_parameter/clr = Color(1, 1, 1, 1)
+shader_parameter/type = 1
+shader_parameter/thickness = 1.0
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_dxm5c"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_twcna"]
+size = Vector3(21, 11, 1)
+
+[sub_resource type="Environment" id="Environment_twcna"]
+ambient_light_source = 3
+ambient_light_color = Color(1, 1, 1, 1)
+
+[node name="DiceTray" type="Control" node_paths=PackedStringArray("viewport", "d6_dice", "d4_dice", "d6_display_slots", "d4_display_slot")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_rhx7m")
+viewport = NodePath("MarginContainer/SubViewportContainer/SubViewport")
+d6_dice = [NodePath("MarginContainer/SubViewportContainer/SubViewport/D6 1"), NodePath("MarginContainer/SubViewportContainer/SubViewport/D6 2")]
+d4_dice = [NodePath("MarginContainer/SubViewportContainer/SubViewport/D4 1"), NodePath("MarginContainer/SubViewportContainer/SubViewport/D4 2")]
+d6_display_slots = [NodePath("MarginContainer/SubViewportContainer/SubViewport/Node/D6_1 Slot"), NodePath("MarginContainer/SubViewportContainer/SubViewport/Node/D6_2 Slot")]
+d4_display_slot = NodePath("MarginContainer/SubViewportContainer/SubViewport/Node/D4 Slots")
+display_tween_duration = 0.75
+d6_mapping = ExtResource("2_twcna")
+d4_mapping = ExtResource("3_gphre")
+config = SubResource("Resource_twcna")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 220
+theme_override_constants/margin_top = 80
+theme_override_constants/margin_right = 220
+theme_override_constants/margin_bottom = 80
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="MarginContainer"]
+material = SubResource("ShaderMaterial_62n68")
+layout_mode = 2
+mouse_filter = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="MarginContainer/SubViewportContainer"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(712, 488)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
+transform = Transform3D(0.25, 0, 0, 0, -1.09278e-08, 0.25, 0, -0.25, -1.09278e-08, 0, 40, 0)
+projection = 1
+fov = 35.0
+size = 24.0
+
+[node name="StaticBody3D" type="StaticBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
+
+[node name="floor" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
+shape = SubResource("WorldBoundaryShape3D_dxm5c")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.64734, -10)
+shape = SubResource("BoxShape3D_twcna")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.64734, 10)
+shape = SubResource("BoxShape3D_twcna")
+
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/StaticBody3D"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 10, 2.64734, 0)
+shape = SubResource("BoxShape3D_twcna")
+
+[node name="CollisionShape3D4" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/StaticBody3D"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -10, 2.64734, 0)
+shape = SubResource("BoxShape3D_twcna")
+
+[node name="D6 1" type="RigidBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
+transform = Transform3D(-1, 8.74228e-08, 0, -8.74228e-08, -1, 0, 0, 0, 1, -2, 1, 0)
+script = ExtResource("2_p2f56")
+
+[node name="D6" parent="MarginContainer/SubViewportContainer/SubViewport/D6 1" instance=ExtResource("3_6i332")]
+
+[node name="D6 2" type="RigidBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
+script = ExtResource("2_p2f56")
+
+[node name="D6" parent="MarginContainer/SubViewportContainer/SubViewport/D6 2" instance=ExtResource("3_6i332")]
+
+[node name="D4 1" type="RigidBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
+transform = Transform3D(-1, 8.74228e-08, 0, -8.74228e-08, -1, 0, 0, 0, 1, 0, 1, 4)
+script = ExtResource("2_p2f56")
+
+[node name="D4" parent="MarginContainer/SubViewportContainer/SubViewport/D4 1" instance=ExtResource("4_twcna")]
+
+[node name="D4 2" type="RigidBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -4)
+script = ExtResource("2_p2f56")
+
+[node name="D4" parent="MarginContainer/SubViewportContainer/SubViewport/D4 2" instance=ExtResource("4_twcna")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="MarginContainer/SubViewportContainer/SubViewport"]
+environment = SubResource("Environment_twcna")
+
+[node name="Node" type="Node" parent="MarginContainer/SubViewportContainer/SubViewport"]
+
+[node name="D6_1 Slot" type="Node3D" parent="MarginContainer/SubViewportContainer/SubViewport/Node"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -2)
+
+[node name="D6_2 Slot" type="Node3D" parent="MarginContainer/SubViewportContainer/SubViewport/Node"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -2)
+
+[node name="D4 Slots" type="Node3D" parent="MarginContainer/SubViewportContainer/SubViewport/Node"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)

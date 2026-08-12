@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="TraitDefinition" load_steps=2 format=3 uid="uid://8nu7iqqn147s"]
+
+[ext_resource type="Script" uid="uid://bnm7mm4jahouc" path="res://systems/character/definitions/trait_definition.gd" id="1_40xik"]
+
+[resource]
+script = ExtResource("1_40xik")
+trait_id = "green_horn"
+display_name = "Green Horn"
+description = "Raised in the city, more comfortable with ledgers than wilderness. Struggles to read the land."
+modifiers = [{
+"target": "tracking",
+"value": -1
+}, {
+"target": "survival",
+"value": -1
+}]

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DieFaceMapping" load_steps=2 format=3 uid="uid://dotbv6ri62skr"]
+
+[ext_resource type="Script" uid="uid://c8i4u0poln0w8" path="res://systems/dice/visualizer/dice_face_mapping.gd" id="1_uhs2n"]
+
+[resource]
+script = ExtResource("1_uhs2n")
+die_id = "d4"
+model_path = "res://systems/dice/models/D4.glb"
+face_count = 4
+face_rotations = {
+1: Vector3(0, 0, 0),
+2: Vector3(0, 0, -90),
+3: Vector3(0, 0, 90),
+4: Vector3(0, 0, 180)
+}

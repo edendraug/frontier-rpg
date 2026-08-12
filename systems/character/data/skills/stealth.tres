@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3 uid="uid://dk3bfvqakib06"]
+
+[ext_resource type="Script" uid="uid://cth76bunvpms3" path="res://systems/character/definitions/skill_definition.gd" id="1_rl1p5"]
+
+[resource]
+script = ExtResource("1_rl1p5")
+skill_id = "stealth"
+display_name = "Stealth"
+description = "Moving unseen and unheard."
+governing_stat = 1
