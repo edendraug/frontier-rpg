@@ -11,7 +11,4 @@ extends Resource
 @export var display_name: String = ""
 @export_multiline var description: String = ""
 
-## Raw Modifier System entries — same open format as Injury/Disease
-## penalties, until the Modifier System itself defines its schema.
-## e.g. [{"target": "tracking_checks", "value": 2}]
-@export var modifiers: Array = []
+@export var modifiers: Array[ModifierEntry] = []

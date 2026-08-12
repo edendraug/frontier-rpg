@@ -21,7 +21,4 @@ enum Severity { MINOR, MODERATE, SEVERE, CRITICAL }
 @export var recovery_requirement: Dictionary = {}
 
 ## Modifier System entries this injury contributes while active.
-## Left as raw data until the Modifier System's own format is
-## defined — this is just a slot for it to read from.
-## e.g. [{"target": "agility_checks", "value": -2}]
-@export var penalties: Array = []
+@export var penalties: Array[ModifierEntry] = []

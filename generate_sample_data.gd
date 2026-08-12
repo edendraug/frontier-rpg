@@ -69,7 +69,16 @@ func _generate_skills() -> void:
 ## ============================================================
 ## TRAITS — deliberately a mix of positive and negative.
 ## ============================================================
-func _make_trait(id: String, name: String, desc: String, modifiers: Array) -> void:
+func _make_modifier(target: String, value: float, source_label: String) -> ModifierEntry:
+	var m := ModifierEntry.new()
+	m.target = target
+	m.value = value
+	m.type = ModifierEntry.Type.ADDITIVE
+	m.source_label = source_label
+	return m
+
+
+func _make_trait(id: String, name: String, desc: String, modifiers: Array[ModifierEntry]) -> void:
 	var t := TraitDefinition.new()
 	t.trait_id = id
 	t.display_name = name
@@ -82,27 +91,33 @@ func _generate_traits() -> void:
 	_make_trait(
 		"natural_hunter", "Natural Hunter",
 		"Raised tracking game and living off the land. Sharper instincts in the wild.",
-		[{"target": "tracking", "value": 2}, {"target": "marksmanship", "value": 1}]
+		[
+			_make_modifier(ModifierResolver.target_for_skill("tracking"), 2, "Natural Hunter"),
+			_make_modifier(ModifierResolver.target_for_skill("marksmanship"), 1, "Natural Hunter"),
+		]
 	)
 	_make_trait(
 		"steady_hands", "Steady Hands",
 		"Years at the forge or workbench have made for precise, patient work.",
-		[{"target": "craft", "value": 2}]
+		[_make_modifier(ModifierResolver.target_for_skill("craft"), 2, "Steady Hands")]
 	)
 	_make_trait(
 		"formally_trained", "Formally Trained",
 		"Educated in proper medical practice, not just field remedies.",
-		[{"target": "medicine", "value": 2}]
+		[_make_modifier(ModifierResolver.target_for_skill("medicine"), 2, "Formally Trained")]
 	)
 	_make_trait(
 		"silver_tongue", "Silver Tongue",
 		"A natural, practiced way of winning people over.",
-		[{"target": "persuasion", "value": 2}]
+		[_make_modifier(ModifierResolver.target_for_skill("persuasion"), 2, "Silver Tongue")]
 	)
 	_make_trait(
 		"green_horn", "Green Horn",
 		"Raised in the city, more comfortable with ledgers than wilderness. Struggles to read the land.",
-		[{"target": "tracking", "value": -1}, {"target": "survival", "value": -1}]
+		[
+			_make_modifier(ModifierResolver.target_for_skill("tracking"), -1, "Green Horn"),
+			_make_modifier(ModifierResolver.target_for_skill("survival"), -1, "Green Horn"),
+		]
 	)
 
 

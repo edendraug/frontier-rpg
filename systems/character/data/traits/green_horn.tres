@@ -1,16 +1,25 @@
-[gd_resource type="Resource" script_class="TraitDefinition" load_steps=2 format=3 uid="uid://8nu7iqqn147s"]
+[gd_resource type="Resource" script_class="TraitDefinition" load_steps=5 format=3 uid="uid://8nu7iqqn147s"]
 
-[ext_resource type="Script" uid="uid://bnm7mm4jahouc" path="res://systems/character/definitions/trait_definition.gd" id="1_40xik"]
+[ext_resource type="Script" uid="uid://c023olycoooxe" path="res://systems/modifier/modifier_entry.gd" id="1_r3mbt"]
+[ext_resource type="Script" uid="uid://bnm7mm4jahouc" path="res://systems/character/definitions/trait_definition.gd" id="2_p04kj"]
+
+[sub_resource type="Resource" id="Resource_52204"]
+script = ExtResource("1_r3mbt")
+target = "skill:tracking"
+value = -1.0
+type = 0
+source_label = "Green Horn"
+
+[sub_resource type="Resource" id="Resource_gu1ok"]
+script = ExtResource("1_r3mbt")
+target = "skill:survival"
+value = -1.0
+type = 0
+source_label = "Green Horn"
 
 [resource]
-script = ExtResource("1_40xik")
+script = ExtResource("2_p04kj")
 trait_id = "green_horn"
 display_name = "Green Horn"
 description = "Raised in the city, more comfortable with ledgers than wilderness. Struggles to read the land."
-modifiers = [{
-"target": "tracking",
-"value": -1
-}, {
-"target": "survival",
-"value": -1
-}]
+modifiers = Array[ExtResource("1_r3mbt")]([SubResource("Resource_52204"), SubResource("Resource_gu1ok")])

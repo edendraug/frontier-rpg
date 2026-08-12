@@ -1,16 +1,25 @@
-[gd_resource type="Resource" script_class="TraitDefinition" load_steps=2 format=3 uid="uid://nst8kjjxp2cp"]
+[gd_resource type="Resource" script_class="TraitDefinition" load_steps=5 format=3 uid="uid://nst8kjjxp2cp"]
 
-[ext_resource type="Script" uid="uid://bnm7mm4jahouc" path="res://systems/character/definitions/trait_definition.gd" id="1_d4jj7"]
+[ext_resource type="Script" uid="uid://c023olycoooxe" path="res://systems/modifier/modifier_entry.gd" id="1_qcdra"]
+[ext_resource type="Script" uid="uid://bnm7mm4jahouc" path="res://systems/character/definitions/trait_definition.gd" id="2_0o0ng"]
+
+[sub_resource type="Resource" id="Resource_q6xwp"]
+script = ExtResource("1_qcdra")
+target = "skill:tracking"
+value = 2.0
+type = 0
+source_label = "Natural Hunter"
+
+[sub_resource type="Resource" id="Resource_2mymy"]
+script = ExtResource("1_qcdra")
+target = "skill:marksmanship"
+value = 1.0
+type = 0
+source_label = "Natural Hunter"
 
 [resource]
-script = ExtResource("1_d4jj7")
+script = ExtResource("2_0o0ng")
 trait_id = "natural_hunter"
 display_name = "Natural Hunter"
 description = "Raised tracking game and living off the land. Sharper instincts in the wild."
-modifiers = [{
-"target": "tracking",
-"value": 2
-}, {
-"target": "marksmanship",
-"value": 1
-}]
+modifiers = Array[ExtResource("1_qcdra")]([SubResource("Resource_q6xwp"), SubResource("Resource_2mymy")])

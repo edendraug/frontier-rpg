@@ -19,4 +19,4 @@ enum Severity { MINOR, MODERATE, SEVERE, CRITICAL }
 @export var day_contracted: int = 0
 
 @export var recovery_requirement: Dictionary = {}
-@export var penalties: Array = []
+@export var penalties: Array[ModifierEntry] = []

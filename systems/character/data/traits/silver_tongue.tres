@@ -1,13 +1,18 @@
-[gd_resource type="Resource" script_class="TraitDefinition" load_steps=2 format=3 uid="uid://h88l2lpngxqw"]
+[gd_resource type="Resource" script_class="TraitDefinition" load_steps=4 format=3 uid="uid://h88l2lpngxqw"]
 
-[ext_resource type="Script" uid="uid://bnm7mm4jahouc" path="res://systems/character/definitions/trait_definition.gd" id="1_0qogo"]
+[ext_resource type="Script" uid="uid://c023olycoooxe" path="res://systems/modifier/modifier_entry.gd" id="1_i67p3"]
+[ext_resource type="Script" uid="uid://bnm7mm4jahouc" path="res://systems/character/definitions/trait_definition.gd" id="2_2bf18"]
+
+[sub_resource type="Resource" id="Resource_pbgwq"]
+script = ExtResource("1_i67p3")
+target = "skill:persuasion"
+value = 2.0
+type = 0
+source_label = "Silver Tongue"
 
 [resource]
-script = ExtResource("1_0qogo")
+script = ExtResource("2_2bf18")
 trait_id = "silver_tongue"
 display_name = "Silver Tongue"
 description = "A natural, practiced way of winning people over."
-modifiers = [{
-"target": "persuasion",
-"value": 2
-}]
+modifiers = Array[ExtResource("1_i67p3")]([SubResource("Resource_pbgwq")])

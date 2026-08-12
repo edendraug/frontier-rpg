@@ -169,3 +169,29 @@ func get_morale_tier() -> MoraleTier:
 ## Likely keyed by other character ids rather than a flat value,
 ## since relationships are BETWEEN characters, not intrinsic to one.
 @export var relationships: Dictionary = {}
+
+
+## ============================================================
+## MODIFIER GATHERING
+## ============================================================
+## Collects this character's own modifier-contributing sources
+## (Traits, Injuries, Diseases) into a flat list of ModifierEntry
+## objects for ModifierResolver to aggregate. The character gathers
+## its OWN entries — ModifierResolver never reaches into a
+## CharacterSheet directly, which is what keeps per-character
+## isolation automatic rather than something enforced by convention.
+func get_modifier_entries(registry: CharacterDataRegistry) -> Array:
+	var entries: Array = []
+
+	for t in traits:
+		var def: TraitDefinition = registry.traits.get(t.trait_id)
+		if def != null:
+			entries.append_array(def.modifiers)
+
+	for i in injuries:
+		entries.append_array(i.penalties)
+
+	for d in diseases:
+		entries.append_array(d.penalties)
+
+	return entries

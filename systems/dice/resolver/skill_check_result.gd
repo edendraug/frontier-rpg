@@ -9,7 +9,12 @@ extends RefCounted
 var base_dice: Array[int] = []       # the 2d6, individually
 var bonus_dice: Array[int] = []      # 0-2 d4s, from skill rank
 var stat_modifier: int = 0
-var flat_bonus: int = 0
+
+## Aggregated additive total from ModifierResolver — every Trait/
+## Injury/Disease entry that applied to this check, already summed.
+var modifier_bonus: int = 0
+var contributing_modifiers: Array = []   # Array[ModifierEntry], for a future breakdown/tooltip
+
 var difficulty: int = 0
 var total: int = 0
 var outcome: DiceResolver.Outcome = DiceResolver.Outcome.FAILURE

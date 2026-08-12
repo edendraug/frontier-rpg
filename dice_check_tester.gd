@@ -24,7 +24,6 @@ var _skill_ids: Array = []
 var character_option: OptionButton
 var skill_option: OptionButton
 var difficulty_option: OptionButton
-var flat_bonus_spin: SpinBox
 var log_output: RichTextLabel
 
 
@@ -95,15 +94,6 @@ func _build_ui() -> void:
 	diff_row.add_child(difficulty_option)
 	root.add_child(diff_row)
 
-	var bonus_row := HBoxContainer.new()
-	bonus_row.add_child(_make_label("Flat Bonus (stand-in for Modifier System)", 14))
-	flat_bonus_spin = SpinBox.new()
-	flat_bonus_spin.min_value = -10
-	flat_bonus_spin.max_value = 10
-	flat_bonus_spin.value = 0
-	bonus_row.add_child(flat_bonus_spin)
-	root.add_child(bonus_row)
-
 	var button_row := HBoxContainer.new()
 	button_row.add_theme_constant_override("separation", 12)
 
@@ -150,9 +140,8 @@ func _on_roll_pressed() -> void:
 
 	var tier: int = difficulty_option.selected
 	var dc := DiceResolver.dc_for_tier(tier)
-	var flat_bonus := int(flat_bonus_spin.value)
 
-	var check := SkillCheck.new(character, skill_id, dc, registry, flat_bonus)
+	var check := SkillCheck.new(character, skill_id, dc, registry)
 	var result := check.resolve()
 
 	# Outcome is already fully decided at this point — the 3D roll
@@ -174,8 +163,12 @@ func _append_result(character: CharacterSheet, def: SkillDefinition, result: Ski
 		lines.append("  Bonus dice: none (Unskilled)")
 
 	lines.append("  Stat modifier (%s): %s" % [def.display_name, _signed(result.stat_modifier)])
-	if result.flat_bonus != 0:
-		lines.append("  Flat bonus: %s" % _signed(result.flat_bonus))
+
+	if not result.contributing_modifiers.is_empty():
+		for entry in result.contributing_modifiers:
+			lines.append("  Modifier — %s: %s" % [entry.source_label, _signed(int(entry.value))])
+	elif result.modifier_bonus != 0:
+		lines.append("  Modifier bonus: %s" % _signed(result.modifier_bonus))
 
 	lines.append("  [b]Total: %d[/b] vs DC %d" % [result.total, result.difficulty])
 	lines.append("  Outcome: [color=%s]%s[/color]" % [_outcome_color(result.outcome), result.outcome_name()])
