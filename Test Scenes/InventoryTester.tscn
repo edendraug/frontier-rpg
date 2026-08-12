@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0dufi2um76xj"]
+
+[ext_resource type="Script" uid="uid://de06c2kqf3os5" path="res://inventory_tester.gd" id="1_oq41n"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_oq41n")

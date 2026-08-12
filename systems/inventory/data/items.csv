@@ -1,0 +1,7 @@
+item_id,display_name,category,weight,value,equippable,required_ammo_id,perishable,spoil_days,meal_type,description
+jerky,Dried Jerky,food,0.5,2,false,,true,14,trail_food,Salted and smoked meat. Keeps well but not forever.
+pickled_eggs,Jar of Pickled Eggs,food,3,4,false,,true,45,camp_meal,A dozen eggs preserved in brine. Better shared around the fire.
+bandages,Bandages,medicine,0.2,3,false,,false,0,,Clean cloth wrappings for treating wounds.
+rifle,Hunting Rifle,trade_goods,9,45,true,rifle_ammo,false,0,,A reliable single-shot rifle.
+rifle_ammo,Rifle Cartridges,ammo,0.05,0.5,false,,false,0,,Standard cartridges for a hunting rifle.
+hide,Animal Hide,crafting_material,4,6,false,,false,0,,Raw hide from a hunted animal. Useful for tanning.

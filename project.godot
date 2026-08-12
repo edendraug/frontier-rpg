@@ -18,6 +18,8 @@ config/icon="res://icon.svg"
 
 DiceVisualizer="*res://systems/dice/visualizer/dice_visualizer.gd"
 TimeSystem="*res://systems/time/time_system.gd"
+ItemRegistry="*res://systems/inventory/item_registry.gd"
+InventorySystem="*res://systems/inventory/inventory_system.gd"
 
 [rendering]
 
