@@ -13,6 +13,14 @@ extends Node
 signal weight_status_changed(new_status: WeightStatus)
 signal money_changed(new_total: float)
 
+## Fires on any successful add_item/remove_item/load_state/reset --
+## i.e. "the item list or a quantity changed," full stop. Distinct
+## from weight_status_changed (which only fires on a TIER crossing)
+## and money_changed (money only) -- neither of those reliably fires
+## on an ordinary item add, so anything displaying the actual item
+## list (the Inventory overlay) needs this instead.
+signal inventory_changed()
+
 enum WeightStatus {
 	UNENCUMBERED,
 	ENCUMBERED,
@@ -62,6 +70,7 @@ func add_item(item_id: String, quantity: int, acquired_minute: int = -1) -> void
 		_stock[item_id] = _stock.get(item_id, 0) + quantity
 
 	_check_weight_status_changed()
+	inventory_changed.emit()
 
 
 ## Batches acquired in the same add_item call (same minute) merge into one --
@@ -101,6 +110,7 @@ func remove_item(item_id: String, quantity: int) -> bool:
 		_stock.erase(item_id)
 
 	_check_weight_status_changed()
+	inventory_changed.emit()
 	return true
 
 
@@ -127,6 +137,7 @@ func _remove_from_batches(item_id: String, quantity: int) -> bool:
 		_batches.erase(item_id)
 
 	_check_weight_status_changed()
+	inventory_changed.emit()
 	return true
 
 
@@ -285,6 +296,13 @@ func has_vehicle() -> bool:
 	return _vehicle_capacity >= 0.0
 
 
+## Raw stored value (-1.0 if none), distinct from get_max_capacity()'s
+## computed result -- SaveManager needs the former to round-trip the
+## actual state, not the latter's derived number.
+func get_vehicle_capacity() -> float:
+	return _vehicle_capacity
+
+
 func get_max_capacity() -> float:
 	if has_vehicle():
 		return _vehicle_capacity
@@ -313,3 +331,54 @@ func _check_weight_status_changed() -> void:
 	if current != _last_weight_status:
 		_last_weight_status = current
 		weight_status_changed.emit(current)
+
+
+# ---------------------------------------------------------------------------
+# Save / Load
+# ---------------------------------------------------------------------------
+
+## Read-only snapshots for SaveManager -- duplicated so the saved copy can
+## never be mutated by later gameplay through a shared reference. _stock and
+## _batches stay private; nothing outside InventorySystem should read or
+## write them directly, including SaveManager.
+func get_stock_snapshot() -> Dictionary:
+	return _stock.duplicate(true)
+
+
+func get_batches_snapshot() -> Dictionary:
+	return _batches.duplicate(true)
+
+
+## Direct restore, used only by SaveManager on load -- deliberately NOT
+## routed through add_item()/add_money(), since those model acquiring
+## something during play, not restoring a prior state. Emits the same
+## signals a normal change would, so anything listening (a future HUD)
+## reacts correctly to a load the same way it would to gameplay.
+func load_state(stock: Dictionary, batches: Dictionary, new_money: float, new_vehicle_capacity: float) -> void:
+	_stock = stock.duplicate(true)
+	_batches = batches.duplicate(true)
+	_money = new_money
+	_vehicle_capacity = new_vehicle_capacity
+
+	money_changed.emit(_money)
+	_last_weight_status = get_weight_status()
+	weight_status_changed.emit(_last_weight_status)
+	inventory_changed.emit()
+
+
+## Clears all state back to defaults -- used alongside
+## PartyManager.reset() when starting a genuinely new expedition, so
+## a PREVIOUS expedition's inventory doesn't carry over. Emits the
+## same signals load_state() does, for the same reason -- anything
+## listening should react to a reset the same way it reacts to a load.
+func reset() -> void:
+	_stock.clear()
+	_batches.clear()
+	_money = 0.0
+	_vehicle_capacity = -1.0
+	_party_size = 0
+
+	money_changed.emit(_money)
+	_last_weight_status = get_weight_status()
+	weight_status_changed.emit(_last_weight_status)
+	inventory_changed.emit()

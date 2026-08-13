@@ -1,9 +1,20 @@
-[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=2 format=3 uid="uid://bscpnofpeppy1"]
+[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=5 format=3 uid="uid://bscpnofpeppy1"]
 
-[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_tbdae"]
+[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_igmj7"]
+[ext_resource type="Script" uid="uid://c7xrc40rgjtn0" path="res://systems/inventory/item_stack.gd" id="2_8sb3b"]
+
+[sub_resource type="Resource" id="Resource_vbfht"]
+script = ExtResource("2_8sb3b")
+item_id = "ledger"
+quantity = 1
+
+[sub_resource type="Resource" id="Resource_720y8"]
+script = ExtResource("2_8sb3b")
+item_id = "spectacles"
+quantity = 1
 
 [resource]
-script = ExtResource("1_tbdae")
+script = ExtResource("1_igmj7")
 occupation_id = "clerk"
 display_name = "Clerk"
 description = "Kept the books at a trading post. Sharp with numbers, hopeless in the wilderness."
@@ -12,10 +23,5 @@ stat_modifiers = {
 4: 1
 }
 granted_trait_id = "green_horn"
-starting_gear = [{
-"item_id": "ledger",
-"quantity": 1
-}, {
-"item_id": "spectacles",
-"quantity": 1
-}]
+starting_gear = Array[ExtResource("2_8sb3b")]([SubResource("Resource_vbfht"), SubResource("Resource_720y8")])
+starting_money = 50

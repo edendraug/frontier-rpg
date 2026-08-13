@@ -1,0 +1,248 @@
+[gd_scene load_steps=3 format=3 uid="uid://dv36i3ivm5svj"]
+
+[ext_resource type="Script" uid="uid://bxj4wvnekjjio" path="res://ui/expedition_hub.gd" id="1_m1pwa"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_m1pwa"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_m1pwa")
+
+[node name="CenterButtons" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -128.0
+offset_top = -88.0
+offset_right = 128.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterButtons"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="InventoryButton" type="Button" parent="CenterButtons/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 48)
+layout_mode = 2
+text = "Inventory"
+
+[node name="PartyButton" type="Button" parent="CenterButtons/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 48)
+layout_mode = 2
+text = "Party"
+
+[node name="TimeOverlayLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="PanelContainer" type="PanelContainer" parent="TimeOverlayLayer"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -230.0
+offset_top = -82.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="TimeOverlayLayer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TimeOverlayLayer/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="TimeLabel" type="Label" parent="TimeOverlayLayer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "00:00 AM"
+horizontal_alignment = 2
+
+[node name="DateLabel" type="Label" parent="TimeOverlayLayer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Thursday, August 13 2026"
+
+[node name="PanelsLayer" type="CanvasLayer" parent="."]
+layer = 11
+
+[node name="PartyOverlay" type="Panel" parent="PanelsLayer"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -568.0
+offset_top = 69.0
+offset_right = -16.0
+offset_bottom = -112.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelsLayer/PartyOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelsLayer/PartyOverlay/MarginContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelsLayer/PartyOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="Label" type="Label" parent="PanelsLayer/PartyOverlay/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Party"
+
+[node name="PartyCloseButton" type="Button" parent="PanelsLayer/PartyOverlay/MarginContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Close"
+
+[node name="PartyTabs" type="TabContainer" parent="PanelsLayer/PartyOverlay/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InventoryOverlay" type="Panel" parent="PanelsLayer"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 69.0
+offset_right = 568.0
+offset_bottom = -112.0
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelsLayer/InventoryOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelsLayer/InventoryOverlay/MarginContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelsLayer/InventoryOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="Label" type="Label" parent="PanelsLayer/InventoryOverlay/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Inventory"
+
+[node name="InventoryCloseButton" type="Button" parent="PanelsLayer/InventoryOverlay/MarginContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Close"
+
+[node name="InventorySummaryLabel" type="Label" parent="PanelsLayer/InventoryOverlay/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "money/weight/status"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelsLayer/InventoryOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ItemList" type="VBoxContainer" parent="PanelsLayer/InventoryOverlay/MarginContainer/VBoxContainer/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="EscapeMenuOverlay" type="Panel" parent="PanelsLayer"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxEmpty_m1pwa")
+
+[node name="PanelContainer" type="PanelContainer" parent="PanelsLayer/EscapeMenuOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -93.5
+offset_top = -80.0
+offset_right = 93.5
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="EscapeResumeButton" type="Button" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Resume"
+
+[node name="HSeparator" type="HSeparator" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="EscapeSaveButton" type="Button" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Save Game"
+
+[node name="EscapeSaveQuitButton" type="Button" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Save and Quit"
+
+[node name="EscapeQuitButton" type="Button" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quit Without Saving"

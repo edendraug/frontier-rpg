@@ -21,18 +21,29 @@ extends Resource
 ## TraitDefinition's trait_id. Leave empty for no granted trait.
 @export var granted_trait_id: String = ""
 
-## Starting gear seeded into the PARTY inventory, not carried by
-## the character individually. Left as a loose array of
-## dictionaries until the Inventory & Resource System defines a
-## proper item id/format.
-## e.g. [{"item_id": "hammer", "quantity": 1}]
-@export var starting_gear: Array = []
+## Starting gear seeded into the PARTY inventory, not carried by the
+## character individually. Formalized now that the Inventory System
+## exists — ItemStack (item_id + quantity) replaces the earlier loose
+## Array[Dictionary] placeholder.
+##
+## Per Party Creator design: only the party's MAIN character's gear
+## gets seeded, even though every character (main or NPC) still gets
+## this Occupation's stat_modifiers and granted_trait_id normally.
+## That distinction is enforced by the caller (PartyManager), not
+## here — apply_to() below still only touches stats/traits and never
+## reaches into Inventory, same as before this change.
+@export var starting_gear: Array[ItemStack] = []
+
+## Starting funds. Same "party inventory, not per-character" and
+## "main character only" rules as starting_gear above.
+@export var starting_money: int = 0
 
 
 ## Applies this occupation's stat bonuses and grants its trait to
 ## the given sheet, and records the occupation reference. Does NOT
-## touch the party inventory — the caller is responsible for handing
-## starting_gear off once that system exists.
+## touch the party inventory or money — the caller (PartyManager) is
+## responsible for seeding starting_gear/starting_money, and only
+## for the main character.
 func apply_to(sheet: CharacterSheet, day_acquired: int = 0) -> void:
 	_apply_stat_modifiers(sheet)
 	_grant_starting_trait(sheet, day_acquired)

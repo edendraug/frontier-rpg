@@ -11,8 +11,8 @@ config_version=5
 [application]
 
 config/name="Frontier RPG"
+run/main_scene="uid://dt0g2ftflc8mg"
 config/features=PackedStringArray("4.4", "GL Compatibility")
-config/icon="res://icon.svg"
 
 [autoload]
 
@@ -20,6 +20,9 @@ DiceVisualizer="*res://systems/dice/visualizer/dice_visualizer.gd"
 TimeSystem="*res://systems/time/time_system.gd"
 ItemRegistry="*res://systems/inventory/item_registry.gd"
 InventorySystem="*res://systems/inventory/inventory_system.gd"
+PartyManager="*res://party/party_manager.gd"
+VitalsSystem="*res://systems/vitals/vitals_system.gd"
+SaveManager="*res://save/save_manager.gd"
 
 [rendering]
 

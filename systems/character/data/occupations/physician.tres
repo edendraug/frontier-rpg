@@ -1,9 +1,25 @@
-[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=2 format=3 uid="uid://dbdv2852xk1f5"]
+[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=6 format=3 uid="uid://dbdv2852xk1f5"]
 
-[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_3k8bc"]
+[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_31anf"]
+[ext_resource type="Script" uid="uid://c7xrc40rgjtn0" path="res://systems/inventory/item_stack.gd" id="2_1pltk"]
+
+[sub_resource type="Resource" id="Resource_2q4bo"]
+script = ExtResource("2_1pltk")
+item_id = "medical_kit"
+quantity = 1
+
+[sub_resource type="Resource" id="Resource_31a5e"]
+script = ExtResource("2_1pltk")
+item_id = "herbs"
+quantity = 2
+
+[sub_resource type="Resource" id="Resource_qvmfo"]
+script = ExtResource("2_1pltk")
+item_id = "bandages"
+quantity = 3
 
 [resource]
-script = ExtResource("1_3k8bc")
+script = ExtResource("1_31anf")
 occupation_id = "physician"
 display_name = "Physician"
 description = "Trained in proper medicine back east. Book-smart, but no laborer."
@@ -12,10 +28,5 @@ stat_modifiers = {
 4: 2
 }
 granted_trait_id = "formally_trained"
-starting_gear = [{
-"item_id": "medical_kit",
-"quantity": 1
-}, {
-"item_id": "herbs",
-"quantity": 2
-}]
+starting_gear = Array[ExtResource("2_1pltk")]([SubResource("Resource_2q4bo"), SubResource("Resource_31a5e"), SubResource("Resource_qvmfo")])
+starting_money = 60

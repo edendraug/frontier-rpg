@@ -1,9 +1,25 @@
-[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=2 format=3 uid="uid://be41awjuxqudp"]
+[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=6 format=3 uid="uid://be41awjuxqudp"]
 
-[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_o4vyv"]
+[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_iej78"]
+[ext_resource type="Script" uid="uid://c7xrc40rgjtn0" path="res://systems/inventory/item_stack.gd" id="2_yqtmy"]
+
+[sub_resource type="Resource" id="Resource_gsqwg"]
+script = ExtResource("2_yqtmy")
+item_id = "rifle"
+quantity = 1
+
+[sub_resource type="Resource" id="Resource_nevwt"]
+script = ExtResource("2_yqtmy")
+item_id = "rifle_ammo"
+quantity = 20
+
+[sub_resource type="Resource" id="Resource_tmu33"]
+script = ExtResource("2_yqtmy")
+item_id = "trap"
+quantity = 3
 
 [resource]
-script = ExtResource("1_o4vyv")
+script = ExtResource("1_iej78")
 occupation_id = "trapper"
 display_name = "Trapper"
 description = "Spent years alone in the wild, living by trap-lines and instinct."
@@ -12,10 +28,5 @@ stat_modifiers = {
 5: -1
 }
 granted_trait_id = "natural_hunter"
-starting_gear = [{
-"item_id": "rifle",
-"quantity": 1
-}, {
-"item_id": "trap",
-"quantity": 3
-}]
+starting_gear = Array[ExtResource("2_yqtmy")]([SubResource("Resource_gsqwg"), SubResource("Resource_nevwt"), SubResource("Resource_tmu33")])
+starting_money = 25

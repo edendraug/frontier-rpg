@@ -1,9 +1,20 @@
-[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=2 format=3 uid="uid://cc3yaapjbt0y6"]
+[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=5 format=3 uid="uid://cc3yaapjbt0y6"]
 
-[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_ta1a0"]
+[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_frmc8"]
+[ext_resource type="Script" uid="uid://c7xrc40rgjtn0" path="res://systems/inventory/item_stack.gd" id="2_vy2ng"]
+
+[sub_resource type="Resource" id="Resource_o2gxb"]
+script = ExtResource("2_vy2ng")
+item_id = "bible"
+quantity = 1
+
+[sub_resource type="Resource" id="Resource_vgmc4"]
+script = ExtResource("2_vy2ng")
+item_id = "robes"
+quantity = 1
 
 [resource]
-script = ExtResource("1_ta1a0")
+script = ExtResource("1_frmc8")
 occupation_id = "preacher"
 display_name = "Preacher"
 description = "Led a congregation back home. Knows how to hold a room's attention."
@@ -12,10 +23,5 @@ stat_modifiers = {
 5: 2
 }
 granted_trait_id = "silver_tongue"
-starting_gear = [{
-"item_id": "bible",
-"quantity": 1
-}, {
-"item_id": "robes",
-"quantity": 1
-}]
+starting_gear = Array[ExtResource("2_vy2ng")]([SubResource("Resource_o2gxb"), SubResource("Resource_vgmc4")])
+starting_money = 30

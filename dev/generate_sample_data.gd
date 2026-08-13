@@ -7,6 +7,14 @@ extends EditorScript
 ##
 ## Adjust the path constants below if your reorganized project
 ## structure differs from the recommended systems/character/... layout.
+##
+## Occupations' starting_gear now uses ItemStack instead of loose
+## Dictionaries -- OccupationDefinition.starting_gear's type changed
+## to Array[ItemStack] once Inventory/Party Creator needed to
+## seed real items. Several gear item_ids referenced below
+## (hammer, iron_ingot, medical_kit, herbs, trap, bible, robes,
+## ledger, spectacles) need rows added to your items.csv -- see
+## items_to_append.csv alongside this file.
 
 const SKILL_DIR := "res://systems/character/data/skills/"
 const TRAIT_DIR := "res://systems/character/data/traits/"
@@ -25,7 +33,7 @@ func _run() -> void:
 	_generate_occupations()
 	_generate_stat_presets()
 
-	print("Sample character data generated: 15 skills, 5 traits, 5 occupations, 3 stat presets.")
+	print("Sample character data generated: 15 skills, 5 traits, 5 occupations (with gear/money), 3 stat presets.")
 
 
 func _ensure_dir(path: String) -> void:
@@ -122,9 +130,24 @@ func _generate_traits() -> void:
 
 
 ## ============================================================
-## OCCUPATIONS — each grants a stat trade-off, a trait, and gear.
+## OCCUPATIONS — each grants a stat trade-off, a trait, starting
+## gear, and starting money.
+##
+## Gear/money are placeholder values, same "tune freely" treatment as
+## everything else marked that way in this project. Seeded into the
+## PARTY inventory ONCE, and only from the MAIN character's Occupation
+## — see PartyManager.begin_expedition(). Every character (main or
+## NPC) still gets stat_modifiers and granted_trait_id normally;
+## gear/money are the one main-character-only exception.
 ## ============================================================
-func _make_occupation(id: String, name: String, desc: String, stat_mods: Dictionary, trait_id: String, gear: Array) -> void:
+func _make_item_stack(item_id: String, quantity: int) -> ItemStack:
+	return ItemStack.new(item_id, quantity)
+
+
+func _make_occupation(
+	id: String, name: String, desc: String, stat_mods: Dictionary,
+	trait_id: String, gear: Array[ItemStack], starting_money: int
+) -> void:
 	var o := OccupationDefinition.new()
 	o.occupation_id = id
 	o.display_name = name
@@ -132,6 +155,7 @@ func _make_occupation(id: String, name: String, desc: String, stat_mods: Diction
 	o.stat_modifiers = stat_mods
 	o.granted_trait_id = trait_id
 	o.starting_gear = gear
+	o.starting_money = starting_money
 	ResourceSaver.save(o, OCCUPATION_DIR + id + ".tres")
 
 
@@ -141,35 +165,40 @@ func _generate_occupations() -> void:
 		"Forged tools and shod horses back home. Strong-armed and steady, if a little slow on their feet.",
 		{CharacterSheet.Stat.BRAWN: 2, CharacterSheet.Stat.AGILITY: -1},
 		"steady_hands",
-		[{"item_id": "hammer", "quantity": 1}, {"item_id": "iron_ingot", "quantity": 3}]
+		[_make_item_stack("hammer", 1), _make_item_stack("iron_ingot", 3)],
+		40
 	)
 	_make_occupation(
 		"physician", "Physician",
 		"Trained in proper medicine back east. Book-smart, but no laborer.",
 		{CharacterSheet.Stat.KNOWLEDGE: 2, CharacterSheet.Stat.BRAWN: -1},
 		"formally_trained",
-		[{"item_id": "medical_kit", "quantity": 1}, {"item_id": "herbs", "quantity": 2}]
+		[_make_item_stack("medical_kit", 1), _make_item_stack("herbs", 2), _make_item_stack("bandages", 3)],
+		60
 	)
 	_make_occupation(
 		"trapper", "Trapper",
 		"Spent years alone in the wild, living by trap-lines and instinct.",
 		{CharacterSheet.Stat.WITS: 2, CharacterSheet.Stat.PRESENCE: -1},
 		"natural_hunter",
-		[{"item_id": "rifle", "quantity": 1}, {"item_id": "trap", "quantity": 3}]
+		[_make_item_stack("rifle", 1), _make_item_stack("rifle_ammo", 20), _make_item_stack("trap", 3)],
+		25
 	)
 	_make_occupation(
 		"preacher", "Preacher",
 		"Led a congregation back home. Knows how to hold a room's attention.",
 		{CharacterSheet.Stat.PRESENCE: 2, CharacterSheet.Stat.BRAWN: -1},
 		"silver_tongue",
-		[{"item_id": "bible", "quantity": 1}, {"item_id": "robes", "quantity": 1}]
+		[_make_item_stack("bible", 1), _make_item_stack("robes", 1)],
+		30
 	)
 	_make_occupation(
 		"clerk", "Clerk",
 		"Kept the books at a trading post. Sharp with numbers, hopeless in the wilderness.",
 		{CharacterSheet.Stat.KNOWLEDGE: 1, CharacterSheet.Stat.GRIT: -1},
 		"green_horn",
-		[{"item_id": "ledger", "quantity": 1}, {"item_id": "spectacles", "quantity": 1}]
+		[_make_item_stack("ledger", 1), _make_item_stack("spectacles", 1)],
+		50
 	)
 
 

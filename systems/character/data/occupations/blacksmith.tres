@@ -1,9 +1,20 @@
-[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=2 format=3 uid="uid://cdui0yjumuvh3"]
+[gd_resource type="Resource" script_class="OccupationDefinition" load_steps=5 format=3 uid="uid://cdui0yjumuvh3"]
 
-[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_o6wbv"]
+[ext_resource type="Script" uid="uid://duq14ase5acm6" path="res://systems/character/definitions/occupation_definition.gd" id="1_soosg"]
+[ext_resource type="Script" uid="uid://c7xrc40rgjtn0" path="res://systems/inventory/item_stack.gd" id="2_m7635"]
+
+[sub_resource type="Resource" id="Resource_j0byt"]
+script = ExtResource("2_m7635")
+item_id = "hammer"
+quantity = 1
+
+[sub_resource type="Resource" id="Resource_rvrdd"]
+script = ExtResource("2_m7635")
+item_id = "iron_ingot"
+quantity = 3
 
 [resource]
-script = ExtResource("1_o6wbv")
+script = ExtResource("1_soosg")
 occupation_id = "blacksmith"
 display_name = "Blacksmith"
 description = "Forged tools and shod horses back home. Strong-armed and steady, if a little slow on their feet."
@@ -12,10 +23,5 @@ stat_modifiers = {
 1: -1
 }
 granted_trait_id = "steady_hands"
-starting_gear = [{
-"item_id": "hammer",
-"quantity": 1
-}, {
-"item_id": "iron_ingot",
-"quantity": 3
-}]
+starting_gear = Array[ExtResource("2_m7635")]([SubResource("Resource_j0byt"), SubResource("Resource_rvrdd")])
+starting_money = 40

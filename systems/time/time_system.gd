@@ -63,9 +63,22 @@ signal hour_passed(hour_of_day: int, day: int)
 ## Fired once for EACH day boundary crossed, same reasoning.
 signal day_passed(day: int)
 
+## Fired on EVERY successful pass_minutes() call, regardless of
+## whether an hour/day boundary was crossed. hour_passed/day_passed
+## are for boundary-triggered GAMEPLAY logic and deliberately don't
+## fire on every call -- but a live clock display needs to update on
+## every minute advance, not just the ones that happen to cross an
+## hour line (a 30-minute skip should still move the displayed clock
+## even though it doesn't always cross an hour boundary). Use this
+## for "refresh a display," hour_passed/day_passed for "something
+## should happen because time passed."
+signal time_advanced(total_minutes_elapsed: int)
+
 ## Source of truth. Everything else (day/hour/week/month/season) is
-## derived from this — never set directly, always go through
-## pass_minutes()/pass_hours()/pass_days().
+## derived from this — never set directly during normal play, always
+## go through pass_minutes()/pass_hours()/pass_days(). The one
+## exception is set_total_minutes_elapsed() below, used only by
+## SaveManager to restore a prior state.
 var _total_minutes_elapsed: int = 0
 
 
@@ -92,6 +105,8 @@ func pass_minutes(minutes: int) -> void:
 	for d in range(old_day_index + 1, new_day_index + 1):
 		day_passed.emit(d + 1)
 
+	time_advanced.emit(_total_minutes_elapsed)
+
 
 func pass_hours(hours: int) -> void:
 	pass_minutes(hours * MINUTES_PER_HOUR)
@@ -99,6 +114,19 @@ func pass_hours(hours: int) -> void:
 
 func pass_days(days: int) -> void:
 	pass_minutes(days * MINUTES_PER_DAY)
+
+
+## ============================================================
+## SAVE / LOAD
+## ============================================================
+## Direct restore, used only by SaveManager on load. Deliberately does
+## NOT go through pass_minutes() -- that would replay every
+## hour_passed/day_passed signal from 0 up to the loaded time, as if
+## that time were actually elapsing right now. A load is a restore,
+## not gameplay time passing, so nothing should react to it the way
+## it would to a real pass_hours() call during play.
+func set_total_minutes_elapsed(minutes: int) -> void:
+	_total_minutes_elapsed = maxi(0, minutes)
 
 
 ## ============================================================

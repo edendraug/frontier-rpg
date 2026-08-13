@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://d3favhykmmjfk"]
 
-[ext_resource type="Script" uid="uid://b3etu8ia7md5f" path="res://dice_check_tester.gd" id="1_31jom"]
+[ext_resource type="Script" uid="uid://b3etu8ia7md5f" path="res://dev/dice_check_tester.gd" id="1_31jom"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
