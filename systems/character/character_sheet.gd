@@ -146,6 +146,15 @@ func get_condition_tier() -> ConditionTier:
 ## ============================================================
 @export_range(0.0, 100.0) var morale: float = 50.0
 
+## Stacked, individually-decaying morale effects -- a witnessed
+## injury, a good meal, an uplifting encounter, etc. VitalsSystem
+## owns all reading/writing of this array: it sums whatever's
+## currently active on top of a neutral baseline to get `morale`
+## each hour, and prunes events once they've fully decayed. This
+## sheet just stores the list; it has no opinion on how morale
+## itself gets computed from it.
+@export var morale_events: Array[MoraleEventInstance] = []
+
 enum MoraleTier { DESPAIRING, LOW, STEADY, HIGH, INSPIRED }
 
 

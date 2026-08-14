@@ -5,6 +5,7 @@ var _member_option: OptionButton
 var _skill_option: OptionButton
 var _skill_ids: Array[String] = []
 var _difficulty_option: OptionButton
+var _roll_button: Button
 var _result_label: RichTextLabel
 
 
@@ -33,10 +34,10 @@ func _ready() -> void:
 	_difficulty_option.select(DiceResolver.DifficultyTier.MEDIUM)
 	root.add_child(_difficulty_option)
 
-	var roll_button := Button.new()
-	roll_button.text = "Roll"
-	roll_button.pressed.connect(_on_roll_pressed)
-	root.add_child(roll_button)
+	_roll_button = Button.new()
+	_roll_button.text = "Roll"
+	_roll_button.pressed.connect(_on_roll_pressed)
+	root.add_child(_roll_button)
 
 	root.add_child(HSeparator.new())
 
@@ -67,6 +68,18 @@ func refresh() -> void:
 	_refresh_member_option(_member_option)
 
 
+## The tray is only meaningful while THIS tab is the one showing —
+## switching to another tab or closing the Debug Menu panel entirely
+## should dismiss it rather than leave it stranded on screen. This is
+## the actual fix for the "never freed" issue: DiceTray/DiceVisualizer
+## already expose everything needed (an awaitable completion via
+## roll_and_show(), plus hide_tray()) — what was missing was a caller
+## that used both. DebugMenu now calls this whenever the tab stops
+## being active; see debug_menu.gd's on_deactivated wiring.
+func on_deactivated() -> void:
+	DiceVisualizer.hide_tray()
+
+
 func _on_roll_pressed() -> void:
 	var sheet := _selected_member(_member_option)
 	if sheet == null:
@@ -82,7 +95,26 @@ func _on_roll_pressed() -> void:
 	var dc := DiceResolver.dc_for_tier(tier)
 	var registry := PartyManager.get_registry()
 
+	# Resolution is instant and complete before any animation plays —
+	# matches SkillCheck's own stated design ("the outcome is already
+	# decided by the time any animation plays"). The visual roll is
+	# purely a presentation of an already-known result, not something
+	# that can change it.
 	var result := SkillCheck.new(sheet, skill_id, dc, registry).resolve()
+
+	# Disabled for the duration so a second click can't kick off an
+	# overlapping await on this same tab -- DiceTray itself actually
+	# handles overlapping rolls gracefully (a newer roll snaps the
+	# previous one's dice straight to their result), but there's no
+	# reason to rely on that here when a simple disable avoids it.
+	_roll_button.disabled = true
+	await DiceVisualizer.roll_and_show(result)
+	_roll_button.disabled = false
+
+	# Text reveal synced to the animation completing -- if
+	# DiceVisualizer/the tray isn't set up yet, roll_and_show() no-ops
+	# immediately (see its own push_warning-and-return), so this still
+	# displays correctly with zero adaptation needed either way.
 	_display_result(result)
 
 
@@ -94,6 +126,15 @@ func _display_result(result: SkillCheckResult) -> void:
 		lines.append("Bonus dice (%dd4): %s = %d" % [result.bonus_dice.size(), str(result.bonus_dice), result.bonus_dice_total()])
 	else:
 		lines.append("Bonus dice: none (Unskilled)")
+
+	if result.morale_tier_label != "":
+		var parts: Array = []
+		if result.morale_base_die_nudge != 0:
+			parts.append("base die %s" % _signed(result.morale_base_die_nudge))
+		if result.morale_bonus_die_nudge != 0:
+			parts.append("bonus die %s" % _signed(result.morale_bonus_die_nudge))
+		if not parts.is_empty():
+			lines.append("Morale (%s): %s" % [result.morale_tier_label, ", ".join(parts)])
 
 	lines.append("Stat modifier: %s" % _signed(result.stat_modifier))
 	lines.append("Modifier bonus: %s" % _signed(result.modifier_bonus))

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://cp4trhggb1prl"]
+[gd_scene load_steps=16 format=3 uid="uid://cp4trhggb1prl"]
 
 [ext_resource type="Script" uid="uid://eub6rn427u0w" path="res://systems/dice/visualizer/dice_tray.gd" id="1_rhx7m"]
 [ext_resource type="Script" uid="uid://dsqgxnf8qcttm" path="res://systems/dice/visualizer/rolling_die.gd" id="2_p2f56"]
@@ -29,7 +29,13 @@ shader_parameter/clr = Color(1, 1, 1, 1)
 shader_parameter/type = 1
 shader_parameter/thickness = 1.0
 
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_gphre"]
+friction = 2.0
+
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_dxm5c"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_62n68"]
+bounce = 0.6
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_twcna"]
 size = Vector3(21, 11, 1)
@@ -70,6 +76,13 @@ theme_override_constants/margin_top = 80
 theme_override_constants/margin_right = 220
 theme_override_constants/margin_bottom = 80
 
+[node name="ColorRect" type="ColorRect" parent="MarginContainer"]
+custom_minimum_size = Vector2(550, 550)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+color = Color(0, 0, 0, 0.364706)
+
 [node name="SubViewportContainer" type="SubViewportContainer" parent="MarginContainer"]
 material = SubResource("ShaderMaterial_62n68")
 layout_mode = 2
@@ -79,7 +92,7 @@ stretch = true
 [node name="SubViewport" type="SubViewport" parent="MarginContainer/SubViewportContainer"]
 transparent_bg = true
 handle_input_locally = false
-size = Vector2i(712, 488)
+size = Vector2i(712, 550)
 render_target_update_mode = 4
 
 [node name="Camera3D" type="Camera3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
@@ -88,25 +101,33 @@ projection = 1
 fov = 35.0
 size = 24.0
 
-[node name="StaticBody3D" type="StaticBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
+[node name="Floor" type="StaticBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
+physics_material_override = SubResource("PhysicsMaterial_gphre")
 
-[node name="floor" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="floor" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/Floor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
 shape = SubResource("WorldBoundaryShape3D_dxm5c")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="ceiling" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/Floor"]
+transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, 0, 3, 0)
+shape = SubResource("WorldBoundaryShape3D_dxm5c")
+
+[node name="Walls" type="StaticBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
+physics_material_override = SubResource("PhysicsMaterial_62n68")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/Walls"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.64734, -10)
 shape = SubResource("BoxShape3D_twcna")
 
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/Walls"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.64734, 10)
 shape = SubResource("BoxShape3D_twcna")
 
-[node name="CollisionShape3D3" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/Walls"]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 10, 2.64734, 0)
 shape = SubResource("BoxShape3D_twcna")
 
-[node name="CollisionShape3D4" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D4" type="CollisionShape3D" parent="MarginContainer/SubViewportContainer/SubViewport/Walls"]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -10, 2.64734, 0)
 shape = SubResource("BoxShape3D_twcna")
 

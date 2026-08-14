@@ -15,6 +15,19 @@ var stat_modifier: int = 0
 var modifier_bonus: int = 0
 var contributing_modifiers: Array = []   # Array[ModifierEntry], for a future breakdown/tooltip
 
+## Morale's dice-nudge effect (Despairing/Inspired only) — raises the
+## floor (lowest base/bonus die pushed up) or lowers the ceiling
+## (highest pushed down), rather than a flat bonus to the total.
+## base_dice/bonus_dice above already hold the POST-nudge values (so
+## a future DiceVisualizer's existing corrective-nudge settling shows
+## the correct face with no extra work) — these fields record the
+## ACTUAL delta applied (which can be smaller than the nominal amount
+## near a die's min/max) purely for a debug breakdown or on-die
+## indicator.
+var morale_tier_label: String = ""    # "Inspired" / "Despairing" / "" if neither
+var morale_base_die_nudge: int = 0
+var morale_bonus_die_nudge: int = 0
+
 var difficulty: int = 0
 var total: int = 0
 var outcome: DiceResolver.Outcome = DiceResolver.Outcome.FAILURE

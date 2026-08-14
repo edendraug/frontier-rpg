@@ -260,12 +260,22 @@ func _build_party_tab_content(sheet: CharacterSheet, registry: CharacterDataRegi
 	))
 	content.add_child(_build_vitals_row(
 		"Morale", sheet.morale, 100.0,
-		"%.1f / 100 — %s" % [sheet.morale, CharacterSheet.MoraleTier.keys()[sheet.get_morale_tier()]]
+		"%.1f / 100 — %s (vitals: %.1f)" % [
+			sheet.morale,
+			CharacterSheet.MoraleTier.keys()[sheet.get_morale_tier()],
+			VitalsSystem.get_vitals_morale_modifier(sheet),
+		]
 	))
 	var condition_tier := sheet.get_condition_tier()
 	var condition_max := CharacterSheet.ConditionTier.keys().size() - 1
+	# Bar direction inverted from the raw tier index -- Healthy (tier 0)
+	# shows FULL, Critical (highest tier) shows EMPTY. Matches the
+	# standard "full bar = good" health-bar convention, rather than
+	# literally mirroring the enum's own ascending-badness order.
+	# Only the bar's fill is inverted here -- get_condition_tier() and
+	# the ConditionTier enum on CharacterSheet are untouched.
 	content.add_child(_build_vitals_row(
-		"Condition", condition_tier, condition_max, CharacterSheet.ConditionTier.keys()[condition_tier]
+		"Condition", condition_max - condition_tier, condition_max, CharacterSheet.ConditionTier.keys()[condition_tier]
 	))
 
 	content.add_child(HSeparator.new())

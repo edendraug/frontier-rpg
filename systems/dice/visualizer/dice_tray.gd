@@ -48,6 +48,26 @@ extends Control
 @export var display_tween_trans: Tween.TransitionType = Tween.TRANS_CUBIC
 @export var display_tween_ease: Tween.EaseType = Tween.EASE_OUT
 
+## Speeds up ONLY the physics-tumbling phase of a roll (thrown ->
+## settled), restored to 1.0 before the settle-to-display tween plays
+## so the finish still reads at normal speed. This is a genuine
+## Engine.time_scale change, not something scoped purely to this
+## SubViewport -- Godot has no built-in way to scale time for just
+## one scene/viewport. In practice nothing else animates during a
+## roll (callers disable their Roll button for the duration), so the
+## risk of this affecting anything else is low, but it's not true
+## isolation. Tune to taste in the Inspector.
+@export var rolling_time_scale: float = 1.5
+
+## Auto-dismiss timing -- after a roll fully resolves (dice settled
+## and tweened to display position), the tray holds the result on
+## screen for hold_duration, then fades its own opacity to 0 over
+## fade_out_duration and hides. Lives entirely inside DiceTray so it
+## applies no matter what calls roll_and_show() -- callers never need
+## to remember to dismiss the tray themselves. Tune to taste.
+@export var hold_duration: float = 0.75
+@export var fade_out_duration: float = 0.3
+
 @export var d6_mapping: DieFaceMapping
 @export var d4_mapping: DieFaceMapping
 @export var config: DiceTrayConfig
@@ -57,6 +77,7 @@ signal roll_finished(result: SkillCheckResult)
 var _active_dice: Array = []
 var _pending_settles: int = 0
 var _roll_id: int = 0
+var _fade_tween: Tween
 
 
 func _ready() -> void:
@@ -92,9 +113,19 @@ func roll_and_show(result: SkillCheckResult) -> void:
 	var this_roll := _roll_id
 	_finish_active_dice_immediately()
 
+	# A previous roll's auto-fade-out may still be running if this
+	# call arrives during its hold/fade window -- kill it and snap
+	# opacity back to full BEFORE showing, so it can't keep animating
+	# modulate.a toward 0 underneath this fresh roll.
+	if _fade_tween != null and _fade_tween.is_valid():
+		_fade_tween.kill()
+	modulate.a = 1.0
+
 	visible = true
 	if viewport != null:
 		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+
+	Engine.time_scale = rolling_time_scale
 
 	_active_dice = []
 
@@ -131,9 +162,14 @@ func roll_and_show(result: SkillCheckResult) -> void:
 		await get_tree().process_frame
 
 	# A newer roll superseded this one while we were waiting — let
-	# THAT call be the one that finishes and emits roll_finished.
+	# THAT call be the one that finishes and emits roll_finished. Also
+	# means THIS call must NOT touch time_scale here — a newer roll
+	# may already be actively tumbling at the sped-up rate, and
+	# resetting it now would incorrectly slow that one down mid-roll.
 	if this_roll != _roll_id:
 		return
+
+	Engine.time_scale = 1.0
 
 	await _tween_dice_to_display(_active_dice)
 	if this_roll != _roll_id:
@@ -142,6 +178,11 @@ func roll_and_show(result: SkillCheckResult) -> void:
 	if viewport != null:
 		viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
 	roll_finished.emit(result)
+
+	# Deliberately NOT awaited -- runs as a detached background task
+	# so the caller gets control back right here, exactly as before
+	# this existed. The hold+fade+hide happens on its own afterward.
+	_auto_hide_after_delay(this_roll)
 
 
 ## Settled dice usually land a little off — slightly out of position,
@@ -226,5 +267,32 @@ func _on_die_settled() -> void:
 	_pending_settles -= 1
 
 
+## Holds the result on screen, fades the tray out, then hides it --
+## fully automatic, no caller has to remember to dismiss anything.
+## Checks this_roll against _roll_id at each stage so a NEWER roll
+## interrupting mid-hold or mid-fade correctly abandons this sequence
+## rather than hiding or fading out dice that aren't its own.
+##
+## Waits out the fade with a plain timer rather than awaiting the
+## tween's own `finished` signal -- killing an in-flight tween (which
+## a newer roll does, see roll_and_show) does NOT fire `finished`, so
+## awaiting that directly would leave this coroutine hanging forever
+## if superseded mid-fade.
+func _auto_hide_after_delay(this_roll: int) -> void:
+	await get_tree().create_timer(hold_duration).timeout
+	if this_roll != _roll_id:
+		return  # a newer roll started during the hold -- leave its dice alone
+
+	_fade_tween = create_tween()
+	_fade_tween.tween_property(self, "modulate:a", 0.0, fade_out_duration)
+
+	await get_tree().create_timer(fade_out_duration).timeout
+	if this_roll != _roll_id:
+		return  # superseded mid-fade -- the newer roll already reclaimed modulate.a
+
+	hide_tray()
+
+
 func hide_tray() -> void:
 	visible = false
+	modulate.a = 1.0  # reset in case this was reached via a fade-out, not a direct call

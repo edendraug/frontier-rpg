@@ -131,6 +131,7 @@ func _on_inflict_injury_pressed() -> void:
 	injury.severity = _injury_severity_option.selected as InjuryInstance.Severity
 	injury.day_acquired = TimeSystem.get_current_day()
 	sheet.injuries.append(injury)
+	VitalsSystem.apply_injury_morale_hit(sheet, injury.severity)
 
 	_injury_name_edit.text = ""
 	_refresh_for_member()
@@ -148,6 +149,7 @@ func _on_inflict_disease_pressed() -> void:
 	disease.contagious = _disease_contagious_check.button_pressed
 	disease.day_contracted = TimeSystem.get_current_day()
 	sheet.diseases.append(disease)
+	VitalsSystem.apply_disease_morale_hit(sheet, disease.severity)
 
 	_disease_name_edit.text = ""
 	_refresh_for_member()

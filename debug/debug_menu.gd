@@ -31,6 +31,7 @@ const TAB_SCRIPTS: Array[String] = [
 var _panel: Panel
 var _tab_container: TabContainer
 var _tabs: Array[DebugTab] = []
+var _last_active_tab_index: int = -1
 
 
 func _ready() -> void:
@@ -98,15 +99,28 @@ func _populate_tabs() -> void:
 		_tabs.append(tab)
 
 	if not _tabs.is_empty():
+		_last_active_tab_index = 0
 		_tabs[0].refresh()
 
 
 func _on_tab_changed(index: int) -> void:
+	if _last_active_tab_index >= 0 and _last_active_tab_index < _tabs.size() and _last_active_tab_index != index:
+		_tabs[_last_active_tab_index].on_deactivated()
+
+	_last_active_tab_index = index
 	if index >= 0 and index < _tabs.size():
 		_tabs[index].refresh()
 
 
 func _on_toggle_pressed() -> void:
 	_panel.visible = not _panel.visible
-	if _panel.visible and _tab_container.current_tab < _tabs.size():
-		_tabs[_tab_container.current_tab].refresh()
+
+	if _panel.visible:
+		if _tab_container.current_tab < _tabs.size():
+			_tabs[_tab_container.current_tab].refresh()
+	else:
+		# Closing the panel deactivates whatever tab was showing, even
+		# though the TabContainer's current_tab index doesn't itself
+		# change -- the tab is no longer VISIBLE, which is what matters.
+		if _last_active_tab_index >= 0 and _last_active_tab_index < _tabs.size():
+			_tabs[_last_active_tab_index].on_deactivated()

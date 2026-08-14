@@ -8,7 +8,10 @@ extends Control
 ##   3. Override get_tab_title() to name the tab.
 ##   4. Optionally override refresh() to pull live data whenever this
 ##      tab becomes active or the menu is reopened.
-##   5. Add your script's path to DebugMenu.TAB_SCRIPTS.
+##   5. Optionally override on_deactivated() for cleanup that
+##      shouldn't linger once this tab is no longer the one showing
+##      (e.g. hiding a 3D dice tray a roll spawned).
+##   6. Add your script's path to DebugMenu.TAB_SCRIPTS.
 ## That's the whole extension point — DebugMenu itself never needs
 ## editing to add a tab. This is the modularity the menu was
 ## explicitly built for: as systems get deeper, new tabs bolt on
@@ -19,6 +22,14 @@ extends Control
 ## to pull fresh data (e.g. re-read PartyManager's roster) rather than
 ## relying on whatever was true when the tab was first constructed.
 func refresh() -> void:
+	pass
+
+
+## Called when this tab STOPS being the active one — either the user
+## switched to a different tab, or closed the Debug Menu panel
+## entirely. Override for cleanup that shouldn't outlive this tab
+## being visible. Default no-op.
+func on_deactivated() -> void:
 	pass
 
 
