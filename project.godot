@@ -23,6 +23,7 @@ InventorySystem="*res://systems/inventory/inventory_system.gd"
 PartyManager="*res://party/party_manager.gd"
 SaveManager="*res://save/save_manager.gd"
 VitalsSystem="*res://systems/vitals/vitals_system.gd"
+RelationsSystem="*res://systems/dialogue/relations_system.gd"
 
 [rendering]
 

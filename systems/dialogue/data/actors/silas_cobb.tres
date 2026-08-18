@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ActorDefinition" load_steps=2 format=3 uid="uid://dcmusra0fexyd"]
+
+[ext_resource type="Script" uid="uid://rc8ddkkp017v" path="res://systems/dialogue/definitions/actor_definition.gd" id="1_7osau"]
+
+[resource]
+script = ExtResource("1_7osau")
+actor_id = "silas_cobb"
+unknown_name = "Grizzled Prospector"
+known_name = "Silas Cobb"
+faction_alignment = {
+"settler": 1
+}
+dialogue_tree_id = "silas_cobb_main"
+portraits = {}
+shop_inventory_id = ""

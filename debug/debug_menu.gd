@@ -38,6 +38,7 @@ const TAB_SCRIPTS: Array[String] = [
 	"res://debug/tabs/health_debug_tab.gd",
 	"res://debug/tabs/skill_check_debug_tab.gd",
 	"res://debug/tabs/inventory_debug_tab.gd",
+	"res://debug/tabs/dialogue_debug_tab.gd",
 	"res://debug/tabs/save_debug_tab.gd",
 ]
 

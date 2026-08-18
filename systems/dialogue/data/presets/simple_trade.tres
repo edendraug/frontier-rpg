@@ -1,0 +1,82 @@
+[gd_resource type="Resource" script_class="DialogueTree" load_steps=17 format=3 uid="uid://r5vueyttvd1f"]
+
+[ext_resource type="Script" uid="uid://da3dguhg15enh" path="res://systems/dialogue/definitions/dialogue_line_node.gd" id="1_wtl04"]
+[ext_resource type="Script" uid="uid://crj5xks7f0ww8" path="res://systems/dialogue/definitions/dialogue_line_variant.gd" id="2_x7v51"]
+[ext_resource type="Script" uid="uid://d3v5hppoicr15" path="res://systems/dialogue/definitions/dialogue_option.gd" id="3_7wmv4"]
+[ext_resource type="Script" uid="uid://bmhixv7ye824l" path="res://systems/dialogue/definitions/dialogue_effect.gd" id="4_57ppq"]
+[ext_resource type="Script" uid="uid://c2p48wo4di55t" path="res://systems/dialogue/definitions/dialogue_condition.gd" id="5_lqh6o"]
+[ext_resource type="Script" uid="uid://cj5rvnyvj6sii" path="res://systems/dialogue/definitions/dialogue_choice_node.gd" id="6_verae"]
+[ext_resource type="Script" uid="uid://cnt5njle0rqey" path="res://systems/dialogue/definitions/dialogue_tree.gd" id="7_tw007"]
+
+[sub_resource type="Resource" id="Resource_cmgpu"]
+script = ExtResource("2_x7v51")
+text = "\"Trade? Maybe. Depends what you got.\""
+
+[sub_resource type="Resource" id="Resource_8bl36"]
+script = ExtResource("1_wtl04")
+node_id = "trade_intro"
+speaker = ""
+variants = Array[ExtResource("2_x7v51")]([SubResource("Resource_cmgpu")])
+variant_mode = 0
+emotion_tag = ""
+next = "trade_hub"
+
+[sub_resource type="Resource" id="Resource_eshoi"]
+script = ExtResource("4_57ppq")
+type = 3
+target = "rope"
+value = 1.0
+
+[sub_resource type="Resource" id="Resource_73bpv"]
+script = ExtResource("3_7wmv4")
+option_id = "buy_rope"
+text = "Buy some rope."
+conditions = []
+consume_once = false
+effects = Array[ExtResource("4_57ppq")]([SubResource("Resource_eshoi")])
+next = ""
+
+[sub_resource type="Resource" id="Resource_0g7r6"]
+script = ExtResource("5_lqh6o")
+type = 4
+target = "rope"
+threshold = 1.0
+
+[sub_resource type="Resource" id="Resource_ut8aq"]
+script = ExtResource("4_57ppq")
+type = 3
+target = "trail_rations"
+value = 2.0
+
+[sub_resource type="Resource" id="Resource_hsquy"]
+script = ExtResource("3_7wmv4")
+option_id = "offer_rope"
+text = "Offer him some rope you're carrying."
+conditions = [SubResource("Resource_0g7r6")]
+consume_once = false
+effects = Array[ExtResource("4_57ppq")]([SubResource("Resource_ut8aq")])
+next = ""
+
+[sub_resource type="Resource" id="Resource_o74y1"]
+script = ExtResource("3_7wmv4")
+option_id = "leave_trade"
+text = "Never mind."
+conditions = []
+consume_once = false
+effects = Array[ExtResource("4_57ppq")]([])
+next = ""
+
+[sub_resource type="Resource" id="Resource_4ever"]
+script = ExtResource("6_verae")
+node_id = "trade_hub"
+conditions = []
+options = Array[ExtResource("3_7wmv4")]([SubResource("Resource_73bpv"), SubResource("Resource_hsquy"), SubResource("Resource_o74y1")])
+
+[resource]
+script = ExtResource("7_tw007")
+tree_id = "simple_trade"
+start_node_id = "trade_intro"
+nodes = {
+"trade_hub": SubResource("Resource_4ever"),
+"trade_intro": SubResource("Resource_8bl36")
+}

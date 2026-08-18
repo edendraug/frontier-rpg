@@ -1,0 +1,228 @@
+[gd_resource type="Resource" script_class="DialogueTree" load_steps=43 format=3 uid="uid://dj6ljra08xei4"]
+
+[ext_resource type="Script" uid="uid://da3dguhg15enh" path="res://systems/dialogue/definitions/dialogue_line_node.gd" id="1_jljqv"]
+[ext_resource type="Script" uid="uid://crj5xks7f0ww8" path="res://systems/dialogue/definitions/dialogue_line_variant.gd" id="2_gqm8g"]
+[ext_resource type="Script" uid="uid://d3v5hppoicr15" path="res://systems/dialogue/definitions/dialogue_option.gd" id="3_kmrsv"]
+[ext_resource type="Script" uid="uid://bmhixv7ye824l" path="res://systems/dialogue/definitions/dialogue_effect.gd" id="4_irwjh"]
+[ext_resource type="Script" uid="uid://c2p48wo4di55t" path="res://systems/dialogue/definitions/dialogue_condition.gd" id="5_vy5bd"]
+[ext_resource type="Script" uid="uid://dt45uujdgtvh1" path="res://systems/dialogue/definitions/skill_check_branch.gd" id="6_x2un1"]
+[ext_resource type="Script" uid="uid://8h6k625ehc8v" path="res://systems/dialogue/definitions/skill_check_gate.gd" id="7_3kdc5"]
+[ext_resource type="Script" uid="uid://moxmbnx01d6h" path="res://systems/dialogue/definitions/condition_set.gd" id="8_kjbf1"]
+[ext_resource type="Script" uid="uid://b8l7svoe8bd5q" path="res://systems/dialogue/data/custom_scripts/sample_custom_dialogue_condition.gd" id="9_he51i"]
+[ext_resource type="Script" uid="uid://b8ita0ps8myx2" path="res://systems/dialogue/data/custom_scripts/sample_custom_dialogue_effect.gd" id="10_pubpl"]
+[ext_resource type="Script" uid="uid://cj5rvnyvj6sii" path="res://systems/dialogue/definitions/dialogue_choice_node.gd" id="11_33i5q"]
+[ext_resource type="Script" uid="uid://cnt5njle0rqey" path="res://systems/dialogue/definitions/dialogue_tree.gd" id="12_jbwbx"]
+
+[sub_resource type="Resource" id="Resource_7e8cy"]
+script = ExtResource("2_gqm8g")
+text = "\"Silas. Silas Cobb. Not that it's any of your business.\""
+
+[sub_resource type="Resource" id="Resource_k28g5"]
+script = ExtResource("1_jljqv")
+node_id = "after_name"
+speaker = "silas_cobb"
+variants = Array[ExtResource("2_gqm8g")]([SubResource("Resource_7e8cy")])
+variant_mode = 0
+emotion_tag = ""
+next = "hub"
+
+[sub_resource type="Resource" id="Resource_sl8h6"]
+script = ExtResource("4_irwjh")
+type = 1
+target = ""
+value = 0.0
+
+[sub_resource type="Resource" id="Resource_d2ty7"]
+script = ExtResource("3_kmrsv")
+option_id = "ask_name"
+text = "Ask for his name."
+conditions = []
+consume_once = true
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_sl8h6")])
+next = "after_name"
+
+[sub_resource type="Resource" id="Resource_fl1l0"]
+script = ExtResource("4_irwjh")
+type = 4
+target = "simple_trade"
+value = 0.0
+
+[sub_resource type="Resource" id="Resource_0uvo6"]
+script = ExtResource("3_kmrsv")
+option_id = "ask_trade"
+text = "Ask if he has anything to trade."
+conditions = []
+consume_once = false
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_fl1l0")])
+next = "hub"
+
+[sub_resource type="Resource" id="Resource_d8xnd"]
+script = ExtResource("5_vy5bd")
+type = 2
+target = ""
+threshold = 0.0
+
+[sub_resource type="Resource" id="Resource_hourc"]
+script = ExtResource("4_irwjh")
+type = 0
+target = "settler"
+value = 20.0
+
+[sub_resource type="Resource" id="Resource_g0or3"]
+script = ExtResource("4_irwjh")
+type = 3
+target = "trail_rations"
+value = 1.0
+
+[sub_resource type="Resource" id="Resource_rolda"]
+script = ExtResource("6_x2un1")
+next = "hub"
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_hourc"), SubResource("Resource_g0or3")])
+
+[sub_resource type="Resource" id="Resource_hn2lw"]
+script = ExtResource("6_x2un1")
+next = "hub"
+effects = Array[ExtResource("4_irwjh")]([])
+
+[sub_resource type="Resource" id="Resource_34mnd"]
+script = ExtResource("4_irwjh")
+type = 0
+target = "settler"
+value = 10.0
+
+[sub_resource type="Resource" id="Resource_ax2cx"]
+script = ExtResource("6_x2un1")
+next = "hub"
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_34mnd")])
+
+[sub_resource type="Resource" id="Resource_ad7kx"]
+script = ExtResource("7_3kdc5")
+skill_id = "medicine"
+dc_mode = 0
+dc_tier = 2
+dc_manual = 10
+success = SubResource("Resource_ax2cx")
+failure = SubResource("Resource_hn2lw")
+critical_success = SubResource("Resource_rolda")
+
+[sub_resource type="Resource" id="Resource_qs036"]
+script = ExtResource("3_kmrsv")
+option_id = "help_with_task"
+text = "Take a look at that cough of his. (Medicine check)"
+conditions = [SubResource("Resource_d8xnd")]
+consume_once = true
+skill_check = SubResource("Resource_ad7kx")
+effects = Array[ExtResource("4_irwjh")]([])
+next = ""
+
+[sub_resource type="Resource" id="Resource_k1rti"]
+script = ExtResource("5_vy5bd")
+type = 0
+target = "settler"
+threshold = 5.0
+
+[sub_resource type="Resource" id="Resource_b6n6u"]
+script = ExtResource("8_kjbf1")
+condition_set_id = "trusted_by_settlers"
+conditions = Array[ExtResource("5_vy5bd")]([SubResource("Resource_k1rti")])
+
+[sub_resource type="Resource" id="Resource_liw6i"]
+script = ExtResource("4_irwjh")
+type = 0
+target = "settler"
+value = 5.0
+
+[sub_resource type="Resource" id="Resource_7jx5x"]
+script = ExtResource("4_irwjh")
+type = 0
+target = "highwaymen"
+value = -5.0
+
+[sub_resource type="Resource" id="Resource_r8oxh"]
+script = ExtResource("3_kmrsv")
+option_id = "mention_bandits"
+text = "Mention the Settlers could use help against bandits."
+conditions = [SubResource("Resource_b6n6u")]
+consume_once = true
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_liw6i"), SubResource("Resource_7jx5x")])
+next = "hub"
+
+[sub_resource type="Resource" id="Resource_wwkk3"]
+script = ExtResource("5_vy5bd")
+type = 3
+target = "Natural Hunter"
+threshold = 0.0
+
+[sub_resource type="Resource" id="Resource_xo5hs"]
+script = ExtResource("3_kmrsv")
+option_id = "trail_talk"
+text = "Ask about trail conditions ahead."
+conditions = [SubResource("Resource_wwkk3")]
+consume_once = false
+effects = Array[ExtResource("4_irwjh")]([])
+next = "hub"
+
+[sub_resource type="Resource" id="Resource_c7vns"]
+script = ExtResource("5_vy5bd")
+type = 6
+target = ""
+threshold = 0.0
+custom_script = ExtResource("9_he51i")
+
+[sub_resource type="Resource" id="Resource_m2p4f"]
+script = ExtResource("4_irwjh")
+type = 6
+target = ""
+value = 0.0
+custom_script = ExtResource("10_pubpl")
+
+[sub_resource type="Resource" id="Resource_o7ma0"]
+script = ExtResource("3_kmrsv")
+option_id = "custom_test"
+text = "[TEST] Custom condition/effect option."
+conditions = [SubResource("Resource_c7vns")]
+consume_once = false
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_m2p4f")])
+next = "hub"
+
+[sub_resource type="Resource" id="Resource_8s3vt"]
+script = ExtResource("3_kmrsv")
+option_id = "leave"
+text = "Leave."
+conditions = []
+consume_once = false
+effects = Array[ExtResource("4_irwjh")]([])
+next = ""
+
+[sub_resource type="Resource" id="Resource_ks1yn"]
+script = ExtResource("11_33i5q")
+node_id = "hub"
+conditions = []
+options = Array[ExtResource("3_kmrsv")]([SubResource("Resource_d2ty7"), SubResource("Resource_0uvo6"), SubResource("Resource_qs036"), SubResource("Resource_r8oxh"), SubResource("Resource_xo5hs"), SubResource("Resource_o7ma0"), SubResource("Resource_8s3vt")])
+
+[sub_resource type="Resource" id="Resource_5xonj"]
+script = ExtResource("2_gqm8g")
+text = "A grizzled old man looks up from his pan, squinting at you."
+
+[sub_resource type="Resource" id="Resource_rqf5b"]
+script = ExtResource("2_gqm8g")
+text = "The prospector eyes you warily, sizing you up before saying anything."
+
+[sub_resource type="Resource" id="Resource_yswp4"]
+script = ExtResource("1_jljqv")
+node_id = "opening"
+speaker = "silas_cobb"
+variants = Array[ExtResource("2_gqm8g")]([SubResource("Resource_5xonj"), SubResource("Resource_rqf5b")])
+variant_mode = 0
+emotion_tag = ""
+next = "hub"
+
+[resource]
+script = ExtResource("12_jbwbx")
+tree_id = "silas_cobb_main"
+start_node_id = "opening"
+nodes = {
+"after_name": SubResource("Resource_k28g5"),
+"hub": SubResource("Resource_ks1yn"),
+"opening": SubResource("Resource_yswp4")
+}
