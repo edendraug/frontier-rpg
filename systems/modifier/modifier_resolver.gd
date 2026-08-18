@@ -39,13 +39,18 @@ static func target_for_system(system_name: String) -> String:
 ##   this specific check (e.g. ["skill:tracking", "stat:wits"] for a
 ##   Tracking check, so a general Wits penalty correctly cascades in
 ##   alongside anything targeting Tracking directly).
+##
+## An entry counts if ANY of its targets overlaps matching_targets —
+## a multi-target entry (e.g. Broken Hand hitting both "skill:craft"
+## and "skill:marksmanship") only needs ONE of those to be relevant
+## to this particular check to contribute.
 static func aggregate(entries: Array, matching_targets: Array) -> ModifierResult:
 	var result := ModifierResult.new()
 
 	for entry in entries:
 		if entry == null:
 			continue
-		if not (entry.target in matching_targets):
+		if not _targets_overlap(entry.targets, matching_targets):
 			continue
 
 		result.contributing_entries.append(entry)
@@ -54,5 +59,17 @@ static func aggregate(entries: Array, matching_targets: Array) -> ModifierResult
 				result.additive_total += entry.value
 			ModifierEntry.Type.MULTIPLICATIVE:
 				result.multiplicative_total *= entry.value
+			ModifierEntry.Type.SUPPRESS_BONUS_DICE:
+				if entry.full_suppression:
+					result.bonus_dice_fully_suppressed = true
+				else:
+					result.bonus_dice_suppression += entry.value
 
 	return result
+
+
+static func _targets_overlap(entry_targets: Array, matching_targets: Array) -> bool:
+	for t in entry_targets:
+		if t in matching_targets:
+			return true
+	return false

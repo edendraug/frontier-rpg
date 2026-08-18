@@ -6,6 +6,10 @@ var _hunger_spin: SpinBox
 var _fatigue_spin: SpinBox
 var _apply_vitals_button: Button
 
+var _skill_option: OptionButton
+var _skill_xp_spin: SpinBox
+var _skill_readout: Label
+
 var _event_label_edit: LineEdit
 var _event_magnitude_spin: SpinBox
 var _event_decay_spin: SpinBox
@@ -37,6 +41,10 @@ func _ready() -> void:
 	_apply_vitals_button.text = "Apply"
 	_apply_vitals_button.pressed.connect(_on_apply_vitals_pressed)
 	root.add_child(_apply_vitals_button)
+
+	root.add_child(HSeparator.new())
+
+	_build_skill_xp_section(root)
 
 	root.add_child(HSeparator.new())
 
@@ -97,6 +105,117 @@ func _build_stat_row(root: VBoxContainer, label_text: String) -> SpinBox:
 	return spin
 
 
+## ============================================================
+## SKILL XP
+## ============================================================
+## Built once at _ready() -- the skill list itself is static data
+## (loaded from .tres via the registry), so unlike _member_option
+## (which rebuilds on roster changes) this option list never needs
+## refreshing, only the readout/spin VALUE does when the selected
+## character or skill changes.
+func _build_skill_xp_section(root: VBoxContainer) -> void:
+	root.add_child(_make_label("Skill XP", 14))
+
+	var registry := PartyManager.get_registry()
+	_skill_option = OptionButton.new()
+	var skill_ids: Array = registry.skills.keys()
+	skill_ids.sort()
+	for id in skill_ids:
+		var def: SkillDefinition = registry.skills[id]
+		_skill_option.add_item("%s (%s)" % [def.display_name, id])
+		_skill_option.set_item_metadata(_skill_option.item_count - 1, id)
+	_skill_option.item_selected.connect(func(_i): _update_skill_readout())
+	root.add_child(_skill_option)
+
+	var xp_row := HBoxContainer.new()
+	xp_row.add_child(_make_label("XP:", 12))
+	_skill_xp_spin = SpinBox.new()
+	_skill_xp_spin.min_value = 0
+	_skill_xp_spin.max_value = 1000
+	_skill_xp_spin.step = 10
+	xp_row.add_child(_skill_xp_spin)
+
+	var set_button := Button.new()
+	set_button.text = "Set XP"
+	set_button.pressed.connect(_on_set_skill_xp_pressed)
+	xp_row.add_child(set_button)
+	root.add_child(xp_row)
+
+	# Quick-jump buttons pulled straight from SkillProgress's own
+	# thresholds rather than hand-typed numbers, so these can't drift
+	# out of sync if the thresholds are ever retuned.
+	var preset_row := HBoxContainer.new()
+	preset_row.add_child(_make_skill_preset_button("Unskilled (0)", 0))
+	var skilled_xp: int = SkillProgress.RANK_THRESHOLDS[SkillProgress.Rank.SKILLED]
+	preset_row.add_child(_make_skill_preset_button("Skilled (%d)" % skilled_xp, skilled_xp))
+	var expert_xp: int = SkillProgress.RANK_THRESHOLDS[SkillProgress.Rank.EXPERT]
+	preset_row.add_child(_make_skill_preset_button("Expert (%d)" % expert_xp, expert_xp))
+	root.add_child(preset_row)
+
+	_skill_readout = _make_label("")
+	root.add_child(_skill_readout)
+
+
+func _make_skill_preset_button(text: String, xp_value: int) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.pressed.connect(func():
+		_skill_xp_spin.value = xp_value
+		_apply_skill_xp(xp_value)
+	)
+	return b
+
+
+func _selected_skill_id() -> String:
+	if _skill_option == null or _skill_option.item_count == 0:
+		return ""
+	return _skill_option.get_item_metadata(_skill_option.selected)
+
+
+func _on_set_skill_xp_pressed() -> void:
+	_apply_skill_xp(int(_skill_xp_spin.value))
+
+
+func _apply_skill_xp(xp: int) -> void:
+	var sheet := _selected_member(_member_option)
+	var skill_id := _selected_skill_id()
+	if sheet == null or skill_id == "":
+		return
+
+	var progress := sheet.get_skill(skill_id)
+	if progress == null:
+		# Character has never touched this skill before -- CharacterSheet
+		# has no add_skill() helper, since normal play always seeds
+		# skills at creation (point-buy skill selection). This is the
+		# one place a SkillProgress gets created outside that flow; a
+		# debug-only shortcut, not a new house pattern to build on.
+		progress = SkillProgress.new()
+		progress.skill_id = skill_id
+		sheet.skills.append(progress)
+
+	progress.xp = xp
+	_update_skill_readout()
+	PartyManager.notify_roster_changed()
+
+
+func _update_skill_readout() -> void:
+	var sheet := _selected_member(_member_option)
+	var skill_id := _selected_skill_id()
+	if sheet == null or skill_id == "":
+		_skill_readout.text = ""
+		return
+
+	var progress := sheet.get_skill(skill_id)
+	var xp: int = progress.xp if progress != null else 0
+	var rank: SkillProgress.Rank = progress.get_rank() if progress != null else SkillProgress.Rank.UNSKILLED
+	var bonus: int = progress.get_bonus_dice() if progress != null else 0
+
+	_skill_xp_spin.set_value_no_signal(xp)
+	_skill_readout.text = "%s: %d xp (%s, +%d bonus dice)" % [
+		skill_id, xp, SkillProgress.Rank.keys()[rank], bonus
+	]
+
+
 func refresh() -> void:
 	if _member_option == null:
 		return
@@ -113,6 +232,7 @@ func _load_selected_member() -> void:
 	_hunger_spin.set_value_no_signal(sheet.hunger)
 	_fatigue_spin.set_value_no_signal(sheet.fatigue)
 	_update_readout(sheet)
+	_update_skill_readout()
 	_rebuild_events_list(sheet)
 
 

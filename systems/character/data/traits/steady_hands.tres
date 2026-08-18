@@ -5,9 +5,10 @@
 
 [sub_resource type="Resource" id="Resource_to5y5"]
 script = ExtResource("1_4ldn0")
-target = "skill:craft"
+targets = Array[String](["skill:craft"])
 value = 2.0
 type = 0
+full_suppression = false
 source_label = "Steady Hands"
 
 [resource]

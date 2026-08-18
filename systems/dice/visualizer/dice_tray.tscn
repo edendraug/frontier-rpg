@@ -58,6 +58,7 @@ d6_dice = [NodePath("MarginContainer/SubViewportContainer/SubViewport/D6 1"), No
 d4_dice = [NodePath("MarginContainer/SubViewportContainer/SubViewport/D4 1"), NodePath("MarginContainer/SubViewportContainer/SubViewport/D4 2")]
 d6_display_slots = [NodePath("MarginContainer/SubViewportContainer/SubViewport/Node/D6_1 Slot"), NodePath("MarginContainer/SubViewportContainer/SubViewport/Node/D6_2 Slot")]
 d4_display_slot = NodePath("MarginContainer/SubViewportContainer/SubViewport/Node/D4 Slots")
+d4_display_spacing = 4.0
 display_tween_duration = 0.75
 d6_mapping = ExtResource("2_twcna")
 d4_mapping = ExtResource("3_gphre")

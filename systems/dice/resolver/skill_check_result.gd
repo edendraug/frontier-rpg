@@ -7,7 +7,17 @@ extends RefCounted
 ## require re-deriving the math from a single number.
 
 var base_dice: Array[int] = []       # the 2d6, individually
-var bonus_dice: Array[int] = []      # 0-2 d4s, from skill rank
+var bonus_dice: Array[int] = []      # 0-2 d4s, from skill rank, AFTER suppression
+
+## Bonus dice count BEFORE suppression -- i.e. what
+## SkillProgress.get_bonus_dice() actually returned for this
+## character's rank. bonus_dice.size() can be smaller than this if a
+## Trait/Injury/Disease (or later, Vitals) SUPPRESS_BONUS_DICE entry
+## applied. Kept separate purely for debug/breakdown visibility, so a
+## suppressed roll can show "2 → 0, Broken Hand" rather than the
+## suppression being invisible.
+var base_bonus_dice: int = 0
+
 var stat_modifier: int = 0
 
 ## Aggregated additive total from ModifierResolver — every Trait/

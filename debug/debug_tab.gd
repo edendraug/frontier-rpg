@@ -38,6 +38,28 @@ func get_tab_title() -> String:
 	return "Tab"
 
 
+## DebugTab is a plain Control, not a Container, so Godot never
+## automatically sizes it to fit its content the way it would for a
+## VBoxContainer -- it reports (0,0) by default regardless of how
+## much is actually inside. That's invisible as long as a tab is a
+## direct TabContainer child (TabContainer just stretches it to the
+## available area, clipping whatever doesn't fit), but it breaks a
+## wrapping ScrollContainer, which needs an honest minimum size to
+## know there's overflow to scroll in the first place (see
+## DebugMenu._populate_tabs()). This just forwards whatever the tab's
+## own root container already computes correctly on its own.
+##
+## Every existing tab's _ready() builds a root VBoxContainer via
+## set_anchors_preset(PRESET_FULL_RECT) -- that's a no-op once this
+## tab sits under a Container (ScrollContainer/TabContainer both
+## ignore child anchors and size children directly instead), so no
+## individual tab file needs to change for this to work.
+func _get_minimum_size() -> Vector2:
+	if get_child_count() == 0:
+		return Vector2.ZERO
+	return get_child(0).get_combined_minimum_size()
+
+
 ## Small shared helper so tabs don't each reimplement it.
 func _make_label(text: String, font_size: int = 13) -> Label:
 	var l := Label.new()

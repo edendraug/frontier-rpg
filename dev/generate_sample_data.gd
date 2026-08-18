@@ -15,6 +15,14 @@ extends EditorScript
 ## (hammer, iron_ingot, medical_kit, herbs, trap, bible, robes,
 ## ledger, spectacles) need rows added to your items.csv -- see
 ## items_to_append.csv alongside this file.
+##
+## ModifierEntry.target (String) became ModifierEntry.targets
+## (Array[String]) this pass -- re-running this script regenerates
+## every trait .tres with the new field populated. Existing trait
+## .tres files on disk from before this change still reference the
+## old `target` field name; Godot will silently drop it on load
+## (empty targets = the entry never matches anything) rather than
+## error, so this script MUST be re-run before traits work again.
 
 const SKILL_DIR := "res://systems/character/data/skills/"
 const TRAIT_DIR := "res://systems/character/data/traits/"
@@ -77,9 +85,25 @@ func _generate_skills() -> void:
 ## ============================================================
 ## TRAITS — deliberately a mix of positive and negative.
 ## ============================================================
+## Single-target convenience wrapper -- the overwhelming majority of
+## authored modifiers only ever need one target, so this keeps every
+## existing call site below unchanged even though ModifierEntry.target
+## became ModifierEntry.targets (Array[String]).
 func _make_modifier(target: String, value: float, source_label: String) -> ModifierEntry:
+	return _make_modifier_multi([target], value, source_label)
+
+
+## For the genuinely-multi-target case -- one conceptual penalty
+## (same type/value/source_label) that's relevant in more than one
+## place, e.g. a future "Broken Hand" injury suppressing both
+## "skill:craft" and "skill:marksmanship" as a single ModifierEntry
+## rather than two near-duplicate ones. Nothing in this file's sample
+## Traits currently needs this (none of them are multi-target), but
+## Injury/Disease authoring (debug tools, or future data-driven
+## content) will.
+func _make_modifier_multi(targets: Array[String], value: float, source_label: String) -> ModifierEntry:
 	var m := ModifierEntry.new()
-	m.target = target
+	m.targets = targets
 	m.value = value
 	m.type = ModifierEntry.Type.ADDITIVE
 	m.source_label = source_label

@@ -40,20 +40,13 @@ func resolve() -> SkillCheckResult:
 
 	result.base_dice = [randi_range(1, 6), randi_range(1, 6)]
 
-	var progress: SkillProgress = character.get_skill(skill_id)
-	var bonus_die_count: int = progress.get_bonus_dice() if progress != null else 0
-	for i in bonus_die_count:
-		result.bonus_dice.append(randi_range(1, 4))
-
-	_apply_morale_dice_nudge(result)
-
 	var def: SkillDefinition = registry.skills.get(skill_id)
-	result.stat_modifier = character.get_base_modifier(def.governing_stat) if def != null else 0
 
-	# Gather every modifier-contributing source THIS character owns,
-	# then aggregate only the entries relevant to this specific
-	# check — the skill directly, plus its governing stat (so a
-	# general stat-level penalty/bonus cascades in automatically).
+	# Gather + aggregate modifiers BEFORE rolling bonus dice now —
+	# suppression needs to know how many bonus dice to remove before
+	# any of them exist, unlike the additive/multiplicative totals
+	# below, which only ever apply to the final sum. One gather+
+	# aggregate call now serves both needs; no need to do this twice.
 	var targets: Array = [ModifierResolver.target_for_skill(skill_id)]
 	if def != null:
 		targets.append(ModifierResolver.target_for_stat(def.governing_stat))
@@ -70,6 +63,26 @@ func resolve() -> SkillCheckResult:
 	# matters."
 	entries.append_array(VitalsSystem.get_vitals_stat_modifier_entries(character))
 	var modifier_result := ModifierResolver.aggregate(entries, targets)
+
+	var progress: SkillProgress = character.get_skill(skill_id)
+	result.base_bonus_dice = progress.get_bonus_dice() if progress != null else 0
+
+	var bonus_die_count: int = 0
+	if modifier_result.bonus_dice_fully_suppressed:
+		bonus_die_count = 0
+	else:
+		bonus_die_count = maxi(0, result.base_bonus_dice - int(modifier_result.bonus_dice_suppression))
+
+	for i in bonus_die_count:
+		result.bonus_dice.append(randi_range(1, 4))
+
+	_apply_morale_dice_nudge(result)
+
+	result.stat_modifier = character.get_base_modifier(def.governing_stat) if def != null else 0
+
+	# Additive/multiplicative totals reuse the SAME gathered entries
+	# and aggregated result computed above for suppression — nothing
+	# needs to be gathered a second time.
 	result.modifier_bonus = int(modifier_result.additive_total)
 	result.contributing_modifiers = modifier_result.contributing_entries
 

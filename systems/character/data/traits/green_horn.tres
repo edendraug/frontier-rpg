@@ -5,16 +5,18 @@
 
 [sub_resource type="Resource" id="Resource_52204"]
 script = ExtResource("1_r3mbt")
-target = "skill:tracking"
+targets = Array[String](["skill:tracking"])
 value = -1.0
 type = 0
+full_suppression = false
 source_label = "Green Horn"
 
 [sub_resource type="Resource" id="Resource_gu1ok"]
 script = ExtResource("1_r3mbt")
-target = "skill:survival"
+targets = Array[String](["skill:survival"])
 value = -1.0
 type = 0
+full_suppression = false
 source_label = "Green Horn"
 
 [resource]
