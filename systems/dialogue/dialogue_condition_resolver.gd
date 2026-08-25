@@ -44,6 +44,19 @@ static func _evaluate_one(condition: DialogueCondition, actor_id: String, state:
 		DialogueCondition.Type.HAS_TRAIT:
 			return context.player_character != null and context.player_character.has_trait(condition.target)
 
+		DialogueCondition.Type.HAS_SKILL_RANK_AT_LEAST:
+			if context.player_character == null:
+				return false
+			var progress: SkillProgress = context.player_character.get_skill(condition.target)
+			# No SkillProgress at all means the character has never
+			# touched this skill - equivalent to the lowest rank
+			# (UNSKILLED), not a missing-reference case worth warning
+			# about, so this just fails the threshold normally rather
+			# than treating it as an error.
+			if progress == null:
+				return false
+			return progress.get_rank() >= int(condition.threshold)
+
 		DialogueCondition.Type.HAS_ITEM:
 			var qty: int = int(condition.threshold) if condition.threshold > 0 else 1
 			return InventorySystem.has_item(condition.target, qty)

@@ -26,7 +26,7 @@ const MAX_VISIBLE_OPTIONS := 4
 
 # --- Tunable placeholders - none of these are considered final ---
 const REVEAL_CHARS_PER_SECOND := 45.0
-const POST_LINE_PAUSE := 0.5
+const POST_LINE_PAUSE := 0.0
 const CHOICES_TWEEN_DURATION := 0.25
 
 @onready var speaker_label: Label = %SpeakerLabel
@@ -105,7 +105,6 @@ func _try_progress() -> bool:
 func _on_line_ready(speaker_actor_id: String, text: String, portrait: Texture2D) -> void:
 	speaker_label.text = RelationsSystem.get_display_name(speaker_actor_id) if not speaker_actor_id.is_empty() else ""
 	portrait_display.set_portrait(portrait)
-	_close_choices_instant()
 	_reveal_line(text)
 
 
@@ -169,6 +168,8 @@ func _skip_reveal() -> void:
 
 func _on_reveal_finished() -> void:
 	_state = State.LINE_SHOWN
+	_clear_choices()
+	_tween_choices_height(0.0)
 	get_tree().create_timer(POST_LINE_PAUSE).timeout.connect(_advance_from_line, CONNECT_ONE_SHOT)
 
 
@@ -186,15 +187,13 @@ func _advance_from_line() -> void:
 func _build_choices(options: Array) -> void:
 	_clear_choices()
 
+	var registry := _player.get_registry()
 	var row_height := 0.0
 	for raw_option in options:
 		var option: DialogueOption = raw_option
 		var row: OptionRow = OPTION_ROW_SCENE.instantiate()
 		choices_list.add_child(row)
-		# tag left empty until the character-sheet-relevant-condition
-		# tagging work is actually settled - OptionRow already supports
-		# it, this window just isn't computing one yet.
-		row.setup(option.option_id, option.text, "", _player.has_taken_option(option.option_id))
+		row.setup(option.option_id, option.text, _derive_condition_tag(option, registry), _player.has_taken_option(option.option_id))
 		row.option_selected.connect(_on_option_selected)
 		row_height = row.custom_minimum_size.y
 
@@ -202,11 +201,62 @@ func _build_choices(options: Array) -> void:
 	_tween_choices_height(row_height * visible_rows)
 
 
+## Surfaces a short bracketed hint on an Option, in priority order:
+## 1. A SkillCheckGate, if the option has one - "[Medicine check]".
+##    Takes priority over any condition-based tag on the same option -
+##    a skill check is the more decision-relevant thing for a player
+##    to know about before choosing it.
+## 2. The first HAS_TRAIT/HAS_SKILL_RANK_AT_LEAST condition found in
+##    the option's gate list (including inside any ConditionSet
+##    references) - "[Natural Hunter]". Every other condition type
+##    stays invisible flow-control.
+## Returns "" (no tag shown) if neither applies.
+func _derive_condition_tag(option: DialogueOption, registry: CharacterDataRegistry) -> String:
+	if option.skill_check != null:
+		var skill_def: SkillDefinition = registry.skills.get(option.skill_check.skill_id)
+		var skill_name: String = skill_def.display_name if skill_def != null else option.skill_check.skill_id
+		return "[%s check]" % skill_name
+
+	var raw_tag := _find_tag_in(option.conditions, registry)
+	if raw_tag.is_empty():
+		return ""
+	return "[%s]" % raw_tag
+
+
+func _find_tag_in(entries: Array, registry: CharacterDataRegistry) -> String:
+	for entry in entries:
+		var tag := ""
+		if entry is ConditionSet:
+			tag = _find_tag_in(entry.conditions, registry)
+		elif entry is DialogueCondition:
+			tag = _tag_for_condition(entry, registry)
+		if not tag.is_empty():
+			return tag
+	return ""
+
+
+## Falls back to the raw id if the definition can't be found, matching
+## the missing-reference-tolerant convention used elsewhere in this
+## project rather than crashing or showing nothing.
+func _tag_for_condition(condition: DialogueCondition, registry: CharacterDataRegistry) -> String:
+	match condition.type:
+		DialogueCondition.Type.HAS_TRAIT:
+			var trait_def: TraitDefinition = registry.traits.get(condition.target)
+			return trait_def.display_name if trait_def != null else condition.target
+		DialogueCondition.Type.HAS_SKILL_RANK_AT_LEAST:
+			var skill_def: SkillDefinition = registry.skills.get(condition.target)
+			return skill_def.display_name if skill_def != null else condition.target
+		_:
+			return ""
+
+
 func _on_option_selected(option_id: String) -> void:
 	if _state != State.CHOICES_SHOWN:
 		return
 	_state = State.IDLE
-	_tween_choices_height(0.0)
+	for row in choices_list.get_children():
+		if row is OptionRow:
+			row.lock()
 	_player.select_option(option_id)
 
 

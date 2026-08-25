@@ -13,23 +13,6 @@
 [ext_resource type="Script" uid="uid://cj5rvnyvj6sii" path="res://systems/dialogue/definitions/dialogue_choice_node.gd" id="11_33i5q"]
 [ext_resource type="Script" uid="uid://cnt5njle0rqey" path="res://systems/dialogue/definitions/dialogue_tree.gd" id="12_jbwbx"]
 
-[sub_resource type="Resource" id="Resource_jljqv"]
-script = ExtResource("2_gqm8g")
-text = "A grizzled old man looks up from his pan, squinting at you."
-
-[sub_resource type="Resource" id="Resource_gqm8g"]
-script = ExtResource("2_gqm8g")
-text = "The prospector eyes you warily, sizing you up before saying anything."
-
-[sub_resource type="Resource" id="Resource_kmrsv"]
-script = ExtResource("1_jljqv")
-node_id = "opening"
-speaker = "silas_cobb"
-variants = Array[ExtResource("2_gqm8g")]([SubResource("Resource_jljqv"), SubResource("Resource_gqm8g")])
-variant_mode = 0
-emotion_tag = ""
-next = "hub"
-
 [sub_resource type="Resource" id="Resource_irwjh"]
 script = ExtResource("2_gqm8g")
 text = "\"Silas. Silas Cobb. Not that it's any of your business.\""
@@ -125,7 +108,7 @@ critical_success = SubResource("Resource_5xonj")
 [sub_resource type="Resource" id="Resource_sl8h6"]
 script = ExtResource("3_kmrsv")
 option_id = "help_with_task"
-text = "Take a look at that cough of his. (Medicine check)"
+text = "Take a look at that cough of his."
 conditions = [SubResource("Resource_pubpl")]
 consume_once = true
 skill_check = SubResource("Resource_k28g5")
@@ -216,6 +199,23 @@ script = ExtResource("11_33i5q")
 node_id = "hub"
 conditions = []
 options = Array[ExtResource("3_kmrsv")]([SubResource("Resource_3kdc5"), SubResource("Resource_he51i"), SubResource("Resource_sl8h6"), SubResource("Resource_d8xnd"), SubResource("Resource_g0or3"), SubResource("Resource_34mnd"), SubResource("Resource_ax2cx")])
+
+[sub_resource type="Resource" id="Resource_jljqv"]
+script = ExtResource("2_gqm8g")
+text = "A grizzled old man looks up from his pan, squinting at you."
+
+[sub_resource type="Resource" id="Resource_gqm8g"]
+script = ExtResource("2_gqm8g")
+text = "The prospector eyes you warily, sizing you up before saying anything."
+
+[sub_resource type="Resource" id="Resource_kmrsv"]
+script = ExtResource("1_jljqv")
+node_id = "opening"
+speaker = "silas_cobb"
+variants = Array[ExtResource("2_gqm8g")]([SubResource("Resource_jljqv"), SubResource("Resource_gqm8g")])
+variant_mode = 0
+emotion_tag = ""
+next = "hub"
 
 [resource]
 script = ExtResource("12_jbwbx")

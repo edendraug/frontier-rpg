@@ -35,6 +35,18 @@ func roll_and_show(result: SkillCheckResult) -> void:
 	if _tray == null:
 		push_warning("DiceVisualizer: tray not loaded, skipping visual roll.")
 		return
+	# DiceTray's own root already has Mouse Filter: Stop, which blocks
+	# mouse/touch input to whatever's underneath while it's visible.
+	# That doesn't cover keyboard/gamepad accept-activation, though -
+	# Godot delivers that straight to whatever Control currently holds
+	# focus, bypassing mouse_filter entirely. If a Button elsewhere
+	# (PartyButton, an InventoryOverlay row, etc.) happened to hold
+	# focus from earlier navigation, an accept-press during a roll
+	# would still activate IT, even though the tray is fully modal for
+	# mouse input. Clearing focus here closes that gap. Not restored
+	# once the tray hides - fine for now, can revisit if it turns out
+	# to matter.
+	get_viewport().gui_release_focus()
 	await _tray.roll_and_show(result)
 
 

@@ -113,6 +113,7 @@ func _build_condition_set() -> ConditionSet:
 func _build_preset() -> DialogueTree:
 	var intro := DialogueLineNode.new()
 	intro.node_id = "trade_intro"
+	intro.speaker = ACTOR_ID
 	intro.variants = [_variant("\"Trade? Maybe. Depends what you got.\"")]
 	intro.next = "trade_hub"
 

@@ -15,6 +15,7 @@ extends Resource
 ##                                  (checked against the actor currently being spoken to)
 ##   ACTOR_KNOWN                   target = actor_id (empty = current speaking actor)
 ##   HAS_TRAIT                     target = trait_id
+##   HAS_SKILL_RANK_AT_LEAST       target = skill_id         threshold = minimum SkillProgress.Rank (int)
 ##   HAS_ITEM                      target = item_id          threshold = minimum quantity (default 1)
 ##   PREVIOUS_OPTION_TAKEN         target = option_id
 ##   CUSTOM                        custom_script.evaluate(actor, player_state) -> bool
@@ -26,6 +27,7 @@ enum Type {
 	ACTOR_ALIGNMENT_IS,
 	ACTOR_KNOWN,
 	HAS_TRAIT,
+	HAS_SKILL_RANK_AT_LEAST,
 	HAS_ITEM,
 	PREVIOUS_OPTION_TAKEN,
 	CUSTOM,

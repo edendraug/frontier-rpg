@@ -51,7 +51,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 script = ExtResource("1_rhx7m")
 viewport = NodePath("MarginContainer/SubViewportContainer/SubViewport")
 d6_dice = [NodePath("MarginContainer/SubViewportContainer/SubViewport/D6 1"), NodePath("MarginContainer/SubViewportContainer/SubViewport/D6 2")]
@@ -133,25 +132,25 @@ transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -10, 2
 shape = SubResource("BoxShape3D_twcna")
 
 [node name="D6 1" type="RigidBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
-transform = Transform3D(-1, 8.74228e-08, 0, -8.74228e-08, -1, 0, 0, 0, 1, -2, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, -2)
 script = ExtResource("2_p2f56")
 
 [node name="D6" parent="MarginContainer/SubViewportContainer/SubViewport/D6 1" instance=ExtResource("3_6i332")]
 
 [node name="D6 2" type="RigidBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, -2)
 script = ExtResource("2_p2f56")
 
 [node name="D6" parent="MarginContainer/SubViewportContainer/SubViewport/D6 2" instance=ExtResource("3_6i332")]
 
 [node name="D4 1" type="RigidBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
-transform = Transform3D(-1, 8.74228e-08, 0, -8.74228e-08, -1, 0, 0, 0, 1, 0, 1, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, 2)
 script = ExtResource("2_p2f56")
 
 [node name="D4" parent="MarginContainer/SubViewportContainer/SubViewport/D4 1" instance=ExtResource("4_twcna")]
 
 [node name="D4 2" type="RigidBody3D" parent="MarginContainer/SubViewportContainer/SubViewport"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 2)
 script = ExtResource("2_p2f56")
 
 [node name="D4" parent="MarginContainer/SubViewportContainer/SubViewport/D4 2" instance=ExtResource("4_twcna")]

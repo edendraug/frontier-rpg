@@ -46,6 +46,16 @@ func has_taken_option(option_id: String) -> bool:
 	return RelationsSystem.get_actor_state(_actor_id).has_taken_option(option_id)
 
 
+## The CharacterDataRegistry this conversation is resolving skill
+## checks/HAS_TRAIT/HAS_SKILL_RANK_AT_LEAST against - exposed so the
+## UI can look up TraitDefinition/SkillDefinition display names for
+## its own presentation purposes (e.g. the condition-tag hint on an
+## Option), without this window needing its own separate registry
+## reference just for that.
+func get_registry() -> CharacterDataRegistry:
+	return _context.registry
+
+
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------

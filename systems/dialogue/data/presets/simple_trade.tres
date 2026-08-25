@@ -15,7 +15,7 @@ text = "\"Trade? Maybe. Depends what you got.\""
 [sub_resource type="Resource" id="Resource_8bl36"]
 script = ExtResource("1_wtl04")
 node_id = "trade_intro"
-speaker = ""
+speaker = "silas_cobb"
 variants = Array[ExtResource("2_x7v51")]([SubResource("Resource_cmgpu")])
 variant_mode = 0
 emotion_tag = ""

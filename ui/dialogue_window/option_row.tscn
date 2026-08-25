@@ -1,28 +1,37 @@
-[gd_scene load_steps=2 format=3 uid="uid://pdpj2st8hbju"]
+[gd_scene load_steps=3 format=3 uid="uid://pdpj2st8hbju"]
 
 [ext_resource type="Script" uid="uid://bju0q82lstlt7" path="res://ui/dialogue_window/option_row.gd" id="1_rq683"]
+[ext_resource type="FontFile" uid="uid://dpir880syb28q" path="res://assets/fonts/pixelplay.ttf" id="2_do3y4"]
 
 [node name="Button" type="Button"]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(160, 35)
 offset_right = 8.0
 offset_bottom = 8.0
 size_flags_horizontal = 3
 script = ExtResource("1_rq683")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+layout_mode = 1
+offset_right = 164.0
+offset_bottom = 35.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = -2
+theme_override_constants/margin_right = 20
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="OptionText" type="Label" parent="MarginContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_do3y4")
+theme_override_font_sizes/font_size = 22
 text = "Option 1"
 
 [node name="ConditionTag" type="Label" parent="MarginContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_do3y4")
+theme_override_font_sizes/font_size = 18
 text = "[Tag]"

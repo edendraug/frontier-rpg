@@ -1,13 +1,15 @@
-[gd_scene load_steps=3 format=3 uid="uid://j48ruwj3inp2"]
+[gd_scene load_steps=5 format=3 uid="uid://j48ruwj3inp2"]
 
 [ext_resource type="Script" uid="uid://cr3hhw7d7skeb" path="res://ui/dialogue_window/dialogue_window.gd" id="1_8upk3"]
 [ext_resource type="PackedScene" uid="uid://cb3xmc7ya4aot" path="res://ui/dialogue_window/portrait_display.tscn" id="2_8upk3"]
+[ext_resource type="FontFile" uid="uid://dhmbgcrcmwf0p" path="res://assets/fonts/old_pixel-7.ttf" id="3_1fnbk"]
+[ext_resource type="FontFile" uid="uid://dpir880syb28q" path="res://assets/fonts/pixelplay.ttf" id="4_edb3t"]
 
 [node name="DialogueWindow" type="Control"]
 layout_mode = 3
-anchor_left = 0.1
+anchor_left = 0.15
 anchor_top = 1.0
-anchor_right = 0.9
+anchor_right = 0.85
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -33,6 +35,7 @@ theme_override_constants/separation = 8
 
 [node name="PortraitDisplay" parent="MarginContainer/Row" instance=ExtResource("2_8upk3")]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 140)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -46,9 +49,10 @@ layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/Row/Box/BoxContent"]
 layout_mode = 2
-theme_override_constants/margin_left = 30
-theme_override_constants/margin_top = 15
-theme_override_constants/margin_right = 30
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 0
 
 [node name="LineRow" type="VBoxContainer" parent="MarginContainer/Row/Box/BoxContent/MarginContainer"]
 unique_name_in_owner = true
@@ -58,19 +62,23 @@ layout_mode = 2
 [node name="SpeakerLabel" type="Label" parent="MarginContainer/Row/Box/BoxContent/MarginContainer/LineRow"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+mouse_filter = 1
+theme_override_fonts/font = ExtResource("3_1fnbk")
+theme_override_font_sizes/font_size = 24
 text = "Name"
 
 [node name="LineText" type="RichTextLabel" parent="MarginContainer/Row/Box/BoxContent/MarginContainer/LineRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 24
-text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+mouse_filter = 1
+theme_override_fonts/normal_font = ExtResource("4_edb3t")
+theme_override_font_sizes/normal_font_size = 26
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore."
+vertical_alignment = 1
 
 [node name="ChoicesScroll" type="ScrollContainer" parent="MarginContainer/Row/Box/BoxContent"]
 unique_name_in_owner = true
-clip_contents = false
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
@@ -80,3 +88,4 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_constants/separation = 0

@@ -44,4 +44,26 @@ func setup(p_option_id: String, text: String, tag: String, already_taken: bool) 
 	condition_tag_label.text = tag
 	condition_tag_label.visible = not tag.is_empty()
 
-	self_modulate = Color(1, 1, 1, MUTED_ALPHA) if already_taken else Color.WHITE
+	_set_muted(already_taken)
+
+
+## Called once a selection has been made elsewhere in the same choice
+## list, so the whole list can stay visible (not cleared) while the
+## response line reveals, per DialogueWindow's design. Distinct from
+## the already_taken muting above: that state is still meant to be
+## clickable (a repeatable option you've picked before); this one
+## genuinely shouldn't respond to anything anymore, since the
+## conversation has already moved on - hence disabled = true here,
+## which already_taken deliberately avoids.
+func lock() -> void:
+	disabled = true
+	_set_muted(true)
+
+
+## Fades just the text content, not the whole button via self_modulate -
+## self_modulate would also fade the button's own background/border
+## stylebox, making it look broken/disabled rather than "already read."
+func _set_muted(muted: bool) -> void:
+	var alpha := MUTED_ALPHA if muted else 1.0
+	option_text_label.modulate.a = alpha
+	condition_tag_label.modulate.a = alpha
