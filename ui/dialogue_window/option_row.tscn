@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3 uid="uid://pdpj2st8hbju"]
+
+[ext_resource type="Script" uid="uid://bju0q82lstlt7" path="res://ui/dialogue_window/option_row.gd" id="1_rq683"]
+
+[node name="Button" type="Button"]
+custom_minimum_size = Vector2(0, 40)
+offset_right = 8.0
+offset_bottom = 8.0
+size_flags_horizontal = 3
+script = ExtResource("1_rq683")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="OptionText" type="Label" parent="MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Option 1"
+
+[node name="ConditionTag" type="Label" parent="MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "[Tag]"

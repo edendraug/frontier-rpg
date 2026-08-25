@@ -13,105 +13,122 @@
 [ext_resource type="Script" uid="uid://cj5rvnyvj6sii" path="res://systems/dialogue/definitions/dialogue_choice_node.gd" id="11_33i5q"]
 [ext_resource type="Script" uid="uid://cnt5njle0rqey" path="res://systems/dialogue/definitions/dialogue_tree.gd" id="12_jbwbx"]
 
-[sub_resource type="Resource" id="Resource_7e8cy"]
+[sub_resource type="Resource" id="Resource_jljqv"]
 script = ExtResource("2_gqm8g")
-text = "\"Silas. Silas Cobb. Not that it's any of your business.\""
+text = "A grizzled old man looks up from his pan, squinting at you."
 
-[sub_resource type="Resource" id="Resource_k28g5"]
+[sub_resource type="Resource" id="Resource_gqm8g"]
+script = ExtResource("2_gqm8g")
+text = "The prospector eyes you warily, sizing you up before saying anything."
+
+[sub_resource type="Resource" id="Resource_kmrsv"]
 script = ExtResource("1_jljqv")
-node_id = "after_name"
+node_id = "opening"
 speaker = "silas_cobb"
-variants = Array[ExtResource("2_gqm8g")]([SubResource("Resource_7e8cy")])
+variants = Array[ExtResource("2_gqm8g")]([SubResource("Resource_jljqv"), SubResource("Resource_gqm8g")])
 variant_mode = 0
 emotion_tag = ""
 next = "hub"
 
-[sub_resource type="Resource" id="Resource_sl8h6"]
+[sub_resource type="Resource" id="Resource_irwjh"]
+script = ExtResource("2_gqm8g")
+text = "\"Silas. Silas Cobb. Not that it's any of your business.\""
+
+[sub_resource type="Resource" id="Resource_vy5bd"]
+script = ExtResource("1_jljqv")
+node_id = "after_name"
+speaker = "silas_cobb"
+variants = Array[ExtResource("2_gqm8g")]([SubResource("Resource_irwjh")])
+variant_mode = 0
+emotion_tag = ""
+next = "hub"
+
+[sub_resource type="Resource" id="Resource_x2un1"]
 script = ExtResource("4_irwjh")
 type = 1
 target = ""
 value = 0.0
 
-[sub_resource type="Resource" id="Resource_d2ty7"]
+[sub_resource type="Resource" id="Resource_3kdc5"]
 script = ExtResource("3_kmrsv")
 option_id = "ask_name"
 text = "Ask for his name."
 conditions = []
 consume_once = true
-effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_sl8h6")])
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_x2un1")])
 next = "after_name"
 
-[sub_resource type="Resource" id="Resource_fl1l0"]
+[sub_resource type="Resource" id="Resource_kjbf1"]
 script = ExtResource("4_irwjh")
 type = 4
 target = "simple_trade"
 value = 0.0
 
-[sub_resource type="Resource" id="Resource_0uvo6"]
+[sub_resource type="Resource" id="Resource_he51i"]
 script = ExtResource("3_kmrsv")
 option_id = "ask_trade"
 text = "Ask if he has anything to trade."
 conditions = []
 consume_once = false
-effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_fl1l0")])
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_kjbf1")])
 next = "hub"
 
-[sub_resource type="Resource" id="Resource_d8xnd"]
+[sub_resource type="Resource" id="Resource_pubpl"]
 script = ExtResource("5_vy5bd")
 type = 2
 target = ""
 threshold = 0.0
 
-[sub_resource type="Resource" id="Resource_hourc"]
+[sub_resource type="Resource" id="Resource_33i5q"]
 script = ExtResource("4_irwjh")
 type = 0
 target = "settler"
 value = 20.0
 
-[sub_resource type="Resource" id="Resource_g0or3"]
+[sub_resource type="Resource" id="Resource_jbwbx"]
 script = ExtResource("4_irwjh")
 type = 3
 target = "trail_rations"
 value = 1.0
 
-[sub_resource type="Resource" id="Resource_rolda"]
+[sub_resource type="Resource" id="Resource_5xonj"]
 script = ExtResource("6_x2un1")
 next = "hub"
-effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_hourc"), SubResource("Resource_g0or3")])
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_33i5q"), SubResource("Resource_jbwbx")])
 
-[sub_resource type="Resource" id="Resource_hn2lw"]
+[sub_resource type="Resource" id="Resource_rqf5b"]
 script = ExtResource("6_x2un1")
 next = "hub"
 effects = Array[ExtResource("4_irwjh")]([])
 
-[sub_resource type="Resource" id="Resource_34mnd"]
+[sub_resource type="Resource" id="Resource_yswp4"]
 script = ExtResource("4_irwjh")
 type = 0
 target = "settler"
 value = 10.0
 
-[sub_resource type="Resource" id="Resource_ax2cx"]
+[sub_resource type="Resource" id="Resource_7e8cy"]
 script = ExtResource("6_x2un1")
 next = "hub"
-effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_34mnd")])
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_yswp4")])
 
-[sub_resource type="Resource" id="Resource_ad7kx"]
+[sub_resource type="Resource" id="Resource_k28g5"]
 script = ExtResource("7_3kdc5")
 skill_id = "medicine"
 dc_mode = 0
 dc_tier = 2
 dc_manual = 10
-success = SubResource("Resource_ax2cx")
-failure = SubResource("Resource_hn2lw")
-critical_success = SubResource("Resource_rolda")
+success = SubResource("Resource_7e8cy")
+failure = SubResource("Resource_rqf5b")
+critical_success = SubResource("Resource_5xonj")
 
-[sub_resource type="Resource" id="Resource_qs036"]
+[sub_resource type="Resource" id="Resource_sl8h6"]
 script = ExtResource("3_kmrsv")
 option_id = "help_with_task"
 text = "Take a look at that cough of his. (Medicine check)"
-conditions = [SubResource("Resource_d8xnd")]
+conditions = [SubResource("Resource_pubpl")]
 consume_once = true
-skill_check = SubResource("Resource_ad7kx")
+skill_check = SubResource("Resource_k28g5")
 effects = Array[ExtResource("4_irwjh")]([])
 next = ""
 
@@ -121,71 +138,71 @@ type = 0
 target = "settler"
 threshold = 5.0
 
-[sub_resource type="Resource" id="Resource_b6n6u"]
+[sub_resource type="Resource" id="Resource_d2ty7"]
 script = ExtResource("8_kjbf1")
 condition_set_id = "trusted_by_settlers"
 conditions = Array[ExtResource("5_vy5bd")]([SubResource("Resource_k1rti")])
 
-[sub_resource type="Resource" id="Resource_liw6i"]
+[sub_resource type="Resource" id="Resource_fl1l0"]
 script = ExtResource("4_irwjh")
 type = 0
 target = "settler"
 value = 5.0
 
-[sub_resource type="Resource" id="Resource_7jx5x"]
+[sub_resource type="Resource" id="Resource_0uvo6"]
 script = ExtResource("4_irwjh")
 type = 0
 target = "highwaymen"
 value = -5.0
 
-[sub_resource type="Resource" id="Resource_r8oxh"]
+[sub_resource type="Resource" id="Resource_d8xnd"]
 script = ExtResource("3_kmrsv")
 option_id = "mention_bandits"
 text = "Mention the Settlers could use help against bandits."
-conditions = [SubResource("Resource_b6n6u")]
+conditions = [SubResource("Resource_d2ty7")]
 consume_once = true
-effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_liw6i"), SubResource("Resource_7jx5x")])
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_fl1l0"), SubResource("Resource_0uvo6")])
 next = "hub"
 
-[sub_resource type="Resource" id="Resource_wwkk3"]
+[sub_resource type="Resource" id="Resource_hourc"]
 script = ExtResource("5_vy5bd")
 type = 3
-target = "Natural Hunter"
+target = "natural_hunter"
 threshold = 0.0
 
-[sub_resource type="Resource" id="Resource_xo5hs"]
+[sub_resource type="Resource" id="Resource_g0or3"]
 script = ExtResource("3_kmrsv")
 option_id = "trail_talk"
 text = "Ask about trail conditions ahead."
-conditions = [SubResource("Resource_wwkk3")]
+conditions = [SubResource("Resource_hourc")]
 consume_once = false
 effects = Array[ExtResource("4_irwjh")]([])
 next = "hub"
 
-[sub_resource type="Resource" id="Resource_c7vns"]
+[sub_resource type="Resource" id="Resource_rolda"]
 script = ExtResource("5_vy5bd")
 type = 6
 target = ""
 threshold = 0.0
 custom_script = ExtResource("9_he51i")
 
-[sub_resource type="Resource" id="Resource_m2p4f"]
+[sub_resource type="Resource" id="Resource_hn2lw"]
 script = ExtResource("4_irwjh")
 type = 6
 target = ""
 value = 0.0
 custom_script = ExtResource("10_pubpl")
 
-[sub_resource type="Resource" id="Resource_o7ma0"]
+[sub_resource type="Resource" id="Resource_34mnd"]
 script = ExtResource("3_kmrsv")
 option_id = "custom_test"
 text = "[TEST] Custom condition/effect option."
-conditions = [SubResource("Resource_c7vns")]
+conditions = [SubResource("Resource_rolda")]
 consume_once = false
-effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_m2p4f")])
+effects = Array[ExtResource("4_irwjh")]([SubResource("Resource_hn2lw")])
 next = "hub"
 
-[sub_resource type="Resource" id="Resource_8s3vt"]
+[sub_resource type="Resource" id="Resource_ax2cx"]
 script = ExtResource("3_kmrsv")
 option_id = "leave"
 text = "Leave."
@@ -194,35 +211,18 @@ consume_once = false
 effects = Array[ExtResource("4_irwjh")]([])
 next = ""
 
-[sub_resource type="Resource" id="Resource_ks1yn"]
+[sub_resource type="Resource" id="Resource_ad7kx"]
 script = ExtResource("11_33i5q")
 node_id = "hub"
 conditions = []
-options = Array[ExtResource("3_kmrsv")]([SubResource("Resource_d2ty7"), SubResource("Resource_0uvo6"), SubResource("Resource_qs036"), SubResource("Resource_r8oxh"), SubResource("Resource_xo5hs"), SubResource("Resource_o7ma0"), SubResource("Resource_8s3vt")])
-
-[sub_resource type="Resource" id="Resource_5xonj"]
-script = ExtResource("2_gqm8g")
-text = "A grizzled old man looks up from his pan, squinting at you."
-
-[sub_resource type="Resource" id="Resource_rqf5b"]
-script = ExtResource("2_gqm8g")
-text = "The prospector eyes you warily, sizing you up before saying anything."
-
-[sub_resource type="Resource" id="Resource_yswp4"]
-script = ExtResource("1_jljqv")
-node_id = "opening"
-speaker = "silas_cobb"
-variants = Array[ExtResource("2_gqm8g")]([SubResource("Resource_5xonj"), SubResource("Resource_rqf5b")])
-variant_mode = 0
-emotion_tag = ""
-next = "hub"
+options = Array[ExtResource("3_kmrsv")]([SubResource("Resource_3kdc5"), SubResource("Resource_he51i"), SubResource("Resource_sl8h6"), SubResource("Resource_d8xnd"), SubResource("Resource_g0or3"), SubResource("Resource_34mnd"), SubResource("Resource_ax2cx")])
 
 [resource]
 script = ExtResource("12_jbwbx")
 tree_id = "silas_cobb_main"
 start_node_id = "opening"
 nodes = {
-"after_name": SubResource("Resource_k28g5"),
-"hub": SubResource("Resource_ks1yn"),
-"opening": SubResource("Resource_yswp4")
+"after_name": SubResource("Resource_vy5bd"),
+"hub": SubResource("Resource_ad7kx"),
+"opening": SubResource("Resource_kmrsv")
 }

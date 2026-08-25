@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3 uid="uid://cb3xmc7ya4aot"]
+
+[ext_resource type="Script" uid="uid://bp4rh1ovyridr" path="res://ui/dialogue_window/portrait_display.gd" id="1_rcf26"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jxwc5"]
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 1, 1, 1)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_jxwc5"]
+
+[node name="PortraitDisplay" type="PanelContainer"]
+custom_minimum_size = Vector2(160, 160)
+offset_right = 120.0
+offset_bottom = 120.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_jxwc5")
+script = ExtResource("1_rcf26")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+
+[node name="PortraitTexture" type="TextureRect" parent="MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+texture = SubResource("PlaceholderTexture2D_jxwc5")

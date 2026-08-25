@@ -29,6 +29,7 @@ extends Control
 ##   %EscapeSaveQuitButton   (Button) — "Save and Quit"
 ##   %EscapeQuitButton       (Button) — "Quit Without Saving"
 ##   %EscapeResumeButton     (Button) — "Resume" — closes the menu without acting; not one of the three you asked for, but needed so opening the menu isn't a one-way trip into a consequential choice.
+##   %DialogueWindow         (Control) — the real player-facing dialogue box (DialogueWindow.gd). Starts hidden; opened externally via DialogueWindow.open(player, actor_id), not through this scene's overlay-toggle mechanism. Anchored Bottom Wide, occupying only the bottom strip - Party/Inventory buttons stay reachable during a conversation by design (checking supplies/party mid-conversation is wanted), not something Mouse Filter needs to block. Visual stacking (Party/Inventory overlay opened while dialogue is also visible) isn't polished yet - deferred, not blocking.
 ##
 ## Opens via the Escape key (Godot's built-in "ui_cancel" action, no
 ## input map setup needed). If Party or Inventory is already open,
@@ -101,6 +102,15 @@ func _refresh_if_active(overlay: Control, refresh_fn: Callable) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("ui_cancel"):
+		return
+
+	if %DialogueWindow.visible:
+		# A conversation is active - Escape is swallowed entirely rather
+		# than opening the pause menu on top of it. Confirmed behavior
+		# for now; a later QOL pass could make Escape end the current
+		# conversation instead of doing nothing, but that's deferred,
+		# not needed for this to work correctly.
+		get_viewport().set_input_as_handled()
 		return
 
 	if _active_overlay != null and _active_overlay != %EscapeMenuOverlay:

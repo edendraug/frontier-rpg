@@ -36,7 +36,7 @@ extends EditorScript
 
 # --- Swap these to match real authored content if they don't exist ---
 const TEST_SKILL_ID := "medicine"            # per the Core Systems GDD's own worked example
-const TEST_TRAIT_ID := "Natural Hunter"      # per the Core Systems GDD's own worked example
+const TEST_TRAIT_ID := "natural_hunter"      # actual trait_id - display name is "Natural Hunter"
 const TEST_ITEM_GRANT_ID := "trail_rations"  # guessed - swap for a real ItemDefinition id
 const TEST_ITEM_GATE_ID := "rope"            # guessed - swap for a real ItemDefinition id
 

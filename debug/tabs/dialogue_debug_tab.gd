@@ -26,6 +26,7 @@ var _log: RichTextLabel
 var _choice_box: VBoxContainer
 var _advance_button: Button
 var _start_button: Button
+var _real_ui_button: Button
 
 var _player: DialoguePlayer
 
@@ -42,9 +43,14 @@ func _ready() -> void:
 	root.add_child(_member_option)
 
 	_start_button = Button.new()
-	_start_button.text = "Start Conversation"
+	_start_button.text = "Start Conversation (log)"
 	_start_button.pressed.connect(_on_start_pressed)
 	root.add_child(_start_button)
+
+	_real_ui_button = Button.new()
+	_real_ui_button.text = "Start Conversation (real UI)"
+	_real_ui_button.pressed.connect(_on_start_real_ui_pressed)
+	root.add_child(_real_ui_button)
 
 	_log = RichTextLabel.new()
 	_log.custom_minimum_size = Vector2(0, 220)
@@ -121,6 +127,32 @@ func _on_start_pressed() -> void:
 
 	_append_log("[b]Starting conversation with %s as %s...[/b]" % [TEST_ACTOR_ID, character.character_name])
 	_player.start_conversation(TEST_ACTOR_ID)
+
+
+## Separate from _on_start_pressed() rather than a shared helper with a
+## branch in it - the two paths build the same DialoguePlayer but do
+## completely different things with it afterward (wire signals to this
+## tab's own log/buttons vs. hand it to a scene that already knows how
+## to drive itself), so a shared function would mostly be an if/else
+## with nothing else in common.
+func _on_start_real_ui_pressed() -> void:
+	var character := _selected_member(_member_option)
+	if character == null:
+		_append_log("[color=orange]No party member selected/available - add one via the Party tab first.[/color]")
+		return
+
+	var dialogue_window := get_tree().get_first_node_in_group("dialogue_window") as DialogueWindow
+	if dialogue_window == null:
+		_append_log("[color=orange]No DialogueWindow found in the scene (group 'dialogue_window') - is one instanced in the current scene?[/color]")
+		return
+
+	var registry := CharacterDataRegistry.new()
+	var tree_registry := DialogueTreeRegistry.new()
+	var context := DialogueContext.new(character, registry)
+	var player := DialoguePlayer.new(tree_registry, context)
+
+	_append_log("[b]Opening real dialogue window with %s as %s...[/b]" % [TEST_ACTOR_ID, character.character_name])
+	dialogue_window.open(player, TEST_ACTOR_ID)
 
 
 # ---------------------------------------------------------------------------

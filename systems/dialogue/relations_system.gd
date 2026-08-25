@@ -86,6 +86,17 @@ func is_actor_known(actor_id: String) -> bool:
 	return _actor_states.has(actor_id) and _actor_states[actor_id].is_known
 
 
+## Debug/testing convenience only - clears one Actor's live state
+## (known status, per-Option memory) without touching Faction
+## Reputation or any other Actor. Lets a debug tab re-test consume_once/
+## reveal behavior against a single Actor without a full
+## RelationsSystem.reset() or game restart. Nothing in normal gameplay
+## should call this - there's no in-fiction equivalent to an NPC
+## "forgetting" they were spoken to.
+func reset_actor_state(actor_id: String) -> void:
+	_actor_states.erase(actor_id)
+
+
 ## General-purpose, per design doc Section 3.1 - anything can call this
 ## (a trader mentioning someone's name, a letter, a journal entry), not
 ## only a dialogue node reaching an "introduce yourself" branch. No-ops
@@ -134,6 +145,18 @@ func apply_faction_reputation_delta(faction_id: String, delta: float) -> void:
 	var new_value: float = get_faction_reputation(faction_id) + delta
 	_faction_reputation[faction_id] = new_value
 	faction_reputation_changed.emit(faction_id, new_value)
+
+
+## Debug/testing convenience only - forces an exact value instead of
+## accumulating a delta, so a debug tab can jump straight to a specific
+## threshold (e.g. exactly the 5.0 a FACTION_REPUTATION_AT_LEAST
+## condition checks) without hand-computing how many deltas that'd
+## take. Real gameplay should always go through
+## apply_faction_reputation_delta() - that's what FACTION_REPUTATION_DELTA
+## effects actually call.
+func set_faction_reputation(faction_id: String, value: float) -> void:
+	_faction_reputation[faction_id] = value
+	faction_reputation_changed.emit(faction_id, value)
 
 
 # ---------------------------------------------------------------------------
