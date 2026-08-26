@@ -1,5 +1,6 @@
+@tool
 class_name SkillCheckGate
-extends Resource
+extends DialogueGraphNode
 
 ## Attached to a DialogueOption when it needs to resolve via a roll
 ## rather than firing immediately. Resolution itself (Vitals, Morale
@@ -8,6 +9,14 @@ extends Resource
 ## shape of the check and its branches. See design doc Section 4.6:
 ## this must run through the real SkillCheck.resolve() pipeline, never
 ## a simplified/separate roll.
+##
+## Extends DialogueGraphNode (inheriting node_id/editor_position) even
+## though DialoguePlayer never looks this up by node_id at runtime - it
+## always reaches a SkillCheckGate directly via option.skill_check, not
+## through DialogueTree.nodes. Decided deliberately (Dialogue Graph
+## Editor design doc, Section 4.1) so the editor can treat every node
+## type it draws uniformly. node_id goes unused on instances of this
+## class; editor_position is used identically to the other two types.
 
 enum DCMode {
 	TIER,    ## Use dc_tier - the normal, recommended path.

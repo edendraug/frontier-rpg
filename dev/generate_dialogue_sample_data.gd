@@ -59,7 +59,19 @@ func _run() -> void:
 		DirAccess.make_dir_recursive_absolute(dir)
 
 	var condition_set := _build_condition_set()
-	ResourceSaver.save(condition_set, CONDITION_SET_DIR + CONDITION_SET_ID + ".tres")
+	var condition_set_path := CONDITION_SET_DIR + CONDITION_SET_ID + ".tres"
+	ResourceSaver.save(condition_set, condition_set_path)
+	# ResourceSaver.save() does NOT retroactively set resource_path on the
+	# object passed in - without this, condition_set still looks like an
+	# anonymous, path-less Resource to anything that embeds it afterward
+	# (here, _build_main_tree()'s mention_bandits option), so ResourceSaver
+	# bakes a duplicated, disconnected copy into the tree file instead of
+	# writing a real ext_resource link to this shared file. take_over_path()
+	# tells the resource (and the loader's cache) it now lives at this path,
+	# same as if it had been load()-ed from disk - confirmed by inspecting
+	# the previously-generated trees/silas_cobb_main.tres, which had no
+	# ext_resource entry for condition_sets/trusted_by_settlers.tres at all.
+	condition_set.take_over_path(condition_set_path)
 
 	var preset := _build_preset()
 	ResourceSaver.save(preset, PRESET_DIR + PRESET_ID + ".tres")
@@ -186,7 +198,7 @@ func _build_main_tree(condition_set: ConditionSet) -> DialogueTree:
 
 	var medicine_check := DialogueOption.new()
 	medicine_check.option_id = "help_with_task"
-	medicine_check.text = "Take a look at that cough of his. (Medicine check)"
+	medicine_check.text = "Take a look at that cough of his."
 	medicine_check.consume_once = true
 	medicine_check.conditions = [_actor_known_condition()]  # must have learned his name first - inline (non-ConditionSet) condition
 	medicine_check.skill_check = _build_medicine_gate()

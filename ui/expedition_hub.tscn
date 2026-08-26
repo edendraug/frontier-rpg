@@ -1,5 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://dv36i3ivm5svj"]
+[gd_scene load_steps=5 format=3 uid="uid://dv36i3ivm5svj"]
 
+[ext_resource type="Theme" uid="uid://beyooei0gsls" path="res://assets/themes/dialogue_window_theme.tres" id="1_m00r5"]
 [ext_resource type="Script" uid="uid://bxj4wvnekjjio" path="res://ui/expedition_hub.gd" id="1_m1pwa"]
 [ext_resource type="PackedScene" uid="uid://j48ruwj3inp2" path="res://ui/dialogue_window/dialogue_window.tscn" id="2_0oqvb"]
 
@@ -12,6 +13,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_m00r5")
 script = ExtResource("1_m1pwa")
 
 [node name="CenterButtons" type="CenterContainer" parent="."]
@@ -95,6 +97,7 @@ offset_right = -16.0
 offset_bottom = -112.0
 grow_horizontal = 0
 grow_vertical = 2
+theme = ExtResource("1_m00r5")
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelsLayer/PartyOverlay"]
 layout_mode = 1
@@ -141,6 +144,7 @@ offset_top = 69.0
 offset_right = 568.0
 offset_bottom = -112.0
 grow_vertical = 2
+theme = ExtResource("1_m00r5")
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelsLayer/InventoryOverlay"]
 layout_mode = 1
@@ -211,6 +215,7 @@ offset_right = 93.5
 offset_bottom = 80.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_m00r5")
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer"]
 layout_mode = 2
@@ -223,9 +228,11 @@ theme_override_constants/margin_bottom = 12
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer/MarginContainer"]
 layout_mode = 2
+theme_override_constants/separation = 5
 
 [node name="EscapeResumeButton" type="Button" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 32)
 layout_mode = 2
 text = "Resume"
 
@@ -234,18 +241,22 @@ layout_mode = 2
 
 [node name="EscapeSaveButton" type="Button" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 32)
 layout_mode = 2
 text = "Save Game"
 
 [node name="EscapeSaveQuitButton" type="Button" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 32)
 layout_mode = 2
 text = "Save and Quit"
 
 [node name="EscapeQuitButton" type="Button" parent="PanelsLayer/EscapeMenuOverlay/PanelContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 32)
 layout_mode = 2
 text = "Quit Without Saving"
 
 [node name="DialogueWindow" parent="PanelsLayer" instance=ExtResource("2_0oqvb")]
 unique_name_in_owner = true
+visible = false

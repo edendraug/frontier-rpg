@@ -14,12 +14,13 @@ text = "\"Trade? Maybe. Depends what you got.\""
 
 [sub_resource type="Resource" id="Resource_8bl36"]
 script = ExtResource("1_wtl04")
-node_id = "trade_intro"
 speaker = "silas_cobb"
 variants = Array[ExtResource("2_x7v51")]([SubResource("Resource_cmgpu")])
 variant_mode = 0
 emotion_tag = ""
 next = "trade_hub"
+node_id = "trade_intro"
+editor_position = Vector2(0, 0)
 
 [sub_resource type="Resource" id="Resource_eshoi"]
 script = ExtResource("4_57ppq")
@@ -38,7 +39,7 @@ next = ""
 
 [sub_resource type="Resource" id="Resource_0g7r6"]
 script = ExtResource("5_lqh6o")
-type = 4
+type = 5
 target = "rope"
 threshold = 1.0
 
@@ -68,9 +69,10 @@ next = ""
 
 [sub_resource type="Resource" id="Resource_4ever"]
 script = ExtResource("6_verae")
-node_id = "trade_hub"
 conditions = []
 options = Array[ExtResource("3_7wmv4")]([SubResource("Resource_73bpv"), SubResource("Resource_hsquy"), SubResource("Resource_o74y1")])
+node_id = "trade_hub"
+editor_position = Vector2(0, 0)
 
 [resource]
 script = ExtResource("7_tw007")

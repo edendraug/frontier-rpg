@@ -1,16 +1,18 @@
+@tool
 class_name DialogueLineNode
-extends Resource
+extends DialogueGraphNode
 
 ## A single narration/speech beat in a dialogue graph. Usually leads
 ## into a Choice node via `next`, but may chain straight into another
 ## Line for an uninterrupted beat.
+##
+## node_id and editor_position are inherited from DialogueGraphNode
+## (Dialogue Graph Editor design doc, Section 4.1).
 
 enum VariantMode {
 	STICKY,  ## Repeat visits show the same variant as last time.
 	REROLL,  ## Repeat visits roll fresh among the pool each time.
 }
-
-@export var node_id: String = ""
 
 ## Actor id. Empty for narration or group scenes with no single speaker.
 @export var speaker: String = ""
