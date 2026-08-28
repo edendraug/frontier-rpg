@@ -25,11 +25,13 @@ extends Resource
 @export var tree_id: String = ""
 @export var start_node_id: String = ""
 
-## node_id -> DialogueLineNode or DialogueChoiceNode. Left as an
-## untyped Resource dictionary, same pattern CharacterDataRegistry
-## uses for its definition dictionaries - whatever walks the graph
-## type-checks each entry (`is DialogueLineNode` / `is DialogueChoiceNode`)
-## to know which behavior to run.
+## node_id -> any DialogueGraphNode subtype (DialogueLineNode,
+## DialogueStructureNode, DialogueConditionNode, DialogueChoiceNode, or
+## DialogueSkillCheckChoiceNode - Dialogue Graph Node Restructure
+## design doc). Left as an untyped Resource dictionary, same pattern
+## CharacterDataRegistry uses for its definition dictionaries -
+## whatever walks the graph type-checks each entry (`is
+## DialogueLineNode`, etc.) to know which behavior to run.
 @export var nodes: Dictionary = {}
 
 

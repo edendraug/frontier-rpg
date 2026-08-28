@@ -6,9 +6,9 @@ extends DebugTab
 ## text log plus dynamically-built buttons - enough to drive a real
 ## DialoguePlayer against the sample content from
 ## dev/generate_dialogue_sample_data.gd and watch every Phase 1 piece
-## actually fire: Line variants, gated/consume_once Options, a
-## SkillCheckGate resolving through the real pipeline (including the
-## DiceVisualizer pause), a Preset call-stack round trip, and the
+## actually fire: Line variants, gated/consume_once choices, a
+## skill-check choice resolving through the real pipeline (including
+## the DiceVisualizer pause), a Preset call-stack round trip, and the
 ## CUSTOM Condition/Effect scripts.
 ##
 ## Rebuilds CharacterDataRegistry/DialogueTreeRegistry fresh every time
@@ -19,7 +19,7 @@ extends DebugTab
 ## conversations would want to build these once and hold onto them
 ## instead.
 
-const TEST_ACTOR_ID := "silas_cobb"  # must match generate_dialogue_sample_data.gd's ACTOR_ID
+const TEST_ACTOR_ID := "pistol_pete"  # must match generate_dialogue_sample_data.gd's ACTOR_ID
 
 var _member_option: OptionButton
 var _log: RichTextLabel
@@ -166,24 +166,29 @@ func _on_line_ready(speaker_actor_id: String, text: String, _portrait: Texture2D
 	_advance_button.visible = true
 
 
+## Builds one button per currently-available choice, in the order
+## DialoguePlayer offered them (already filtered by consume_once/
+## condition - nothing further to check here). node_id replaces the
+## retired option_id as both the display-memory key
+## (has_taken_option) and what gets passed back to select_option().
 func _on_choice_ready(options: Array) -> void:
 	_advance_button.visible = false
 	_clear_choice_buttons()
 
-	for raw_option in options:
-		var option: DialogueOption = raw_option
-		var label: String = option.text
-		if not option.consume_once and _player.has_taken_option(option.option_id):
+	for raw_choice in options:
+		var choice: DialogueChoiceNode = raw_choice
+		var label: String = choice.text
+		if not choice.consume_once and _player.has_taken_option(choice.node_id):
 			label += "  [already asked]"
 		var button := Button.new()
 		button.text = label
-		button.pressed.connect(_on_option_pressed.bind(option.option_id))
+		button.pressed.connect(_on_choice_pressed.bind(choice.node_id))
 		_choice_box.add_child(button)
 
 
-func _on_option_pressed(option_id: String) -> void:
+func _on_choice_pressed(chosen_node_id: String) -> void:
 	_clear_choice_buttons()
-	_player.select_option(option_id)
+	_player.select_option(chosen_node_id)
 
 
 func _on_awaiting_skill_check_started() -> void:

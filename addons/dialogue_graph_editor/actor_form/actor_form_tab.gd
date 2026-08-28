@@ -12,11 +12,12 @@ extends Control
 ## Actor discovery should match the existing convention rather than
 ## inventing a second one).
 ##
-## dialogue_tree_id has a plain text field plus an "Open Tree" button
-## that opens the canvas built in Stage 4 - it opens an EXISTING tree
-## by id only. There's no "create a new tree from here" path yet
-## (Section 3.3's first entry point) since that needs real save
-## support on the canvas, which doesn't exist until a later stage.
+## dialogue_tree_id has a plain text field plus "Open Tree" (an
+## EXISTING tree only) and "New Tree" (creates a blank one at that id
+## and opens it - MainPanel._create_tree_tab) buttons. Note "New Tree"
+## only creates the tree file itself; it does NOT also save this
+## Actor's own dialogue_tree_id - that still needs its own explicit
+## "Save Actor" afterward, same as any other field on this form.
 ##
 ## Explicit save only (Section 6) - edits live in memory until the
 ## Save button is pressed. actor_id determines the save filename
@@ -26,6 +27,7 @@ extends Control
 ## oversight. Revisit if stray duplicate files become a real problem.
 
 signal open_tree_requested(tree_id: String)
+signal create_tree_requested(tree_id: String)
 
 const ActorDefinitionScript := preload("res://systems/dialogue/definitions/actor_definition.gd")
 const ACTOR_DIR := "res://systems/dialogue/data/actors/"
@@ -162,10 +164,16 @@ func _build_right_panel() -> Control:
 	_unknown_name_field = _add_text_field(form, "Unknown Name")
 	_known_name_field = _add_text_field(form, "Known Name")
 	_dialogue_tree_id_field = _add_text_field(form, "Dialogue Tree ID")
+	var tree_buttons_row := HBoxContainer.new()
 	var open_tree_button := Button.new()
 	open_tree_button.text = "Open Tree"
 	open_tree_button.pressed.connect(_on_open_tree_pressed)
-	form.add_child(open_tree_button)
+	tree_buttons_row.add_child(open_tree_button)
+	var new_tree_button := Button.new()
+	new_tree_button.text = "New Tree"
+	new_tree_button.pressed.connect(_on_new_tree_pressed)
+	tree_buttons_row.add_child(new_tree_button)
+	form.add_child(tree_buttons_row)
 
 	_shop_inventory_id_field = _add_text_field(form, "Shop Inventory ID (reference only)")
 
@@ -199,6 +207,14 @@ func _on_open_tree_pressed() -> void:
 		_status_label.text = "Cannot open tree: Dialogue Tree ID is empty."
 		return
 	open_tree_requested.emit(requested_id)
+
+
+func _on_new_tree_pressed() -> void:
+	var requested_id := _dialogue_tree_id_field.text.strip_edges()
+	if requested_id.is_empty():
+		_status_label.text = "Cannot create tree: Dialogue Tree ID is empty."
+		return
+	create_tree_requested.emit(requested_id)
 
 
 func _section_label(text: String) -> Label:

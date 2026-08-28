@@ -1,84 +1,102 @@
-[gd_resource type="Resource" script_class="DialogueTree" load_steps=17 format=3 uid="uid://r5vueyttvd1f"]
+[gd_resource type="Resource" script_class="DialogueTree" load_steps=19 format=3 uid="uid://r5vueyttvd1f"]
 
-[ext_resource type="Script" uid="uid://da3dguhg15enh" path="res://systems/dialogue/definitions/dialogue_line_node.gd" id="1_wtl04"]
-[ext_resource type="Script" uid="uid://crj5xks7f0ww8" path="res://systems/dialogue/definitions/dialogue_line_variant.gd" id="2_x7v51"]
-[ext_resource type="Script" uid="uid://d3v5hppoicr15" path="res://systems/dialogue/definitions/dialogue_option.gd" id="3_7wmv4"]
-[ext_resource type="Script" uid="uid://bmhixv7ye824l" path="res://systems/dialogue/definitions/dialogue_effect.gd" id="4_57ppq"]
-[ext_resource type="Script" uid="uid://c2p48wo4di55t" path="res://systems/dialogue/definitions/dialogue_condition.gd" id="5_lqh6o"]
-[ext_resource type="Script" uid="uid://cj5rvnyvj6sii" path="res://systems/dialogue/definitions/dialogue_choice_node.gd" id="6_verae"]
-[ext_resource type="Script" uid="uid://cnt5njle0rqey" path="res://systems/dialogue/definitions/dialogue_tree.gd" id="7_tw007"]
+[ext_resource type="Script" uid="uid://da3dguhg15enh" path="res://systems/dialogue/definitions/dialogue_line_node.gd" id="1_x7v51"]
+[ext_resource type="Script" uid="uid://crj5xks7f0ww8" path="res://systems/dialogue/definitions/dialogue_line_variant.gd" id="2_7wmv4"]
+[ext_resource type="Script" uid="uid://chxmxnwpcsb8x" path="res://systems/dialogue/definitions/dialogue_structure_node.gd" id="3_57ppq"]
+[ext_resource type="Script" uid="uid://bmhixv7ye824l" path="res://systems/dialogue/definitions/dialogue_effect.gd" id="4_lqh6o"]
+[ext_resource type="Script" uid="uid://cj5rvnyvj6sii" path="res://systems/dialogue/definitions/dialogue_choice_node.gd" id="5_verae"]
+[ext_resource type="Script" uid="uid://c2p48wo4di55t" path="res://systems/dialogue/definitions/dialogue_condition.gd" id="6_tw007"]
+[ext_resource type="Script" uid="uid://clu4464u8dpn4" path="res://systems/dialogue/definitions/dialogue_condition_node.gd" id="7_cmgpu"]
+[ext_resource type="Script" uid="uid://cnt5njle0rqey" path="res://systems/dialogue/definitions/dialogue_tree.gd" id="8_8bl36"]
 
-[sub_resource type="Resource" id="Resource_cmgpu"]
-script = ExtResource("2_x7v51")
-text = "\"Trade? Maybe. Depends what you got.\""
-
-[sub_resource type="Resource" id="Resource_8bl36"]
-script = ExtResource("1_wtl04")
-speaker = "silas_cobb"
-variants = Array[ExtResource("2_x7v51")]([SubResource("Resource_cmgpu")])
-variant_mode = 0
-emotion_tag = ""
-next = "trade_hub"
-node_id = "trade_intro"
-editor_position = Vector2(0, 0)
-
-[sub_resource type="Resource" id="Resource_eshoi"]
-script = ExtResource("4_57ppq")
+[sub_resource type="Resource" id="Resource_lqh6o"]
+script = ExtResource("4_lqh6o")
 type = 3
 target = "rope"
 value = 1.0
 
-[sub_resource type="Resource" id="Resource_73bpv"]
-script = ExtResource("3_7wmv4")
-option_id = "buy_rope"
+[sub_resource type="Resource" id="Resource_verae"]
+script = ExtResource("5_verae")
 text = "Buy some rope."
-conditions = []
 consume_once = false
-effects = Array[ExtResource("4_57ppq")]([SubResource("Resource_eshoi")])
+effects = Array[ExtResource("4_lqh6o")]([SubResource("Resource_lqh6o")])
+condition_node_id = ""
 next = ""
+default_return_id = ""
+node_id = "buy_rope"
+editor_position = Vector2(0, 0)
 
-[sub_resource type="Resource" id="Resource_0g7r6"]
-script = ExtResource("5_lqh6o")
-type = 5
-target = "rope"
-threshold = 1.0
+[sub_resource type="Resource" id="Resource_73bpv"]
+script = ExtResource("5_verae")
+text = "Never mind."
+consume_once = false
+effects = Array[ExtResource("4_lqh6o")]([])
+condition_node_id = ""
+next = ""
+default_return_id = ""
+node_id = "leave_trade"
+editor_position = Vector2(0, 0)
 
-[sub_resource type="Resource" id="Resource_ut8aq"]
-script = ExtResource("4_57ppq")
+[sub_resource type="Resource" id="Resource_8bl36"]
+script = ExtResource("4_lqh6o")
 type = 3
 target = "trail_rations"
 value = 2.0
 
-[sub_resource type="Resource" id="Resource_hsquy"]
-script = ExtResource("3_7wmv4")
-option_id = "offer_rope"
+[sub_resource type="Resource" id="Resource_eshoi"]
+script = ExtResource("5_verae")
 text = "Offer him some rope you're carrying."
-conditions = [SubResource("Resource_0g7r6")]
 consume_once = false
-effects = Array[ExtResource("4_57ppq")]([SubResource("Resource_ut8aq")])
+effects = Array[ExtResource("4_lqh6o")]([SubResource("Resource_8bl36")])
+condition_node_id = "offer_rope_condition"
 next = ""
+default_return_id = ""
+node_id = "offer_rope"
+editor_position = Vector2(0, 0)
 
-[sub_resource type="Resource" id="Resource_o74y1"]
-script = ExtResource("3_7wmv4")
-option_id = "leave_trade"
-text = "Never mind."
-conditions = []
-consume_once = false
-effects = Array[ExtResource("4_57ppq")]([])
-next = ""
+[sub_resource type="Resource" id="Resource_tw007"]
+script = ExtResource("6_tw007")
+type = 5
+target = "rope"
+threshold = 1.0
 
-[sub_resource type="Resource" id="Resource_4ever"]
-script = ExtResource("6_verae")
-conditions = []
-options = Array[ExtResource("3_7wmv4")]([SubResource("Resource_73bpv"), SubResource("Resource_hsquy"), SubResource("Resource_o74y1")])
+[sub_resource type="Resource" id="Resource_cmgpu"]
+script = ExtResource("7_cmgpu")
+mode = 0
+conditions = [SubResource("Resource_tw007")]
+node_id = "offer_rope_condition"
+editor_position = Vector2(0, 0)
+
+[sub_resource type="Resource" id="Resource_57ppq"]
+script = ExtResource("3_57ppq")
+outputs = Array[String](["buy_rope", "offer_rope", "leave_trade"])
 node_id = "trade_hub"
 editor_position = Vector2(0, 0)
 
+[sub_resource type="Resource" id="Resource_x7v51"]
+script = ExtResource("2_7wmv4")
+text = "\"Trade? Maybe. Depends what you got.\""
+
+[sub_resource type="Resource" id="Resource_7wmv4"]
+script = ExtResource("1_x7v51")
+speaker = "silas_cobb"
+variants = Array[ExtResource("2_7wmv4")]([SubResource("Resource_x7v51")])
+variant_mode = 0
+emotion_tag = ""
+next = "trade_hub"
+default_return_id = ""
+node_id = "trade_intro"
+editor_position = Vector2(0, 0)
+
 [resource]
-script = ExtResource("7_tw007")
+script = ExtResource("8_8bl36")
 tree_id = "simple_trade"
 start_node_id = "trade_intro"
 nodes = {
-"trade_hub": SubResource("Resource_4ever"),
-"trade_intro": SubResource("Resource_8bl36")
+"buy_rope": SubResource("Resource_verae"),
+"leave_trade": SubResource("Resource_73bpv"),
+"offer_rope": SubResource("Resource_eshoi"),
+"offer_rope_condition": SubResource("Resource_cmgpu"),
+"trade_hub": SubResource("Resource_57ppq"),
+"trade_intro": SubResource("Resource_7wmv4")
 }

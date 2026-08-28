@@ -1,0 +1,352 @@
+[gd_resource type="Resource" script_class="DialogueTree" load_steps=50 format=3 uid="uid://cgajy5bwyu8yr"]
+
+[ext_resource type="Script" uid="uid://cnt5njle0rqey" path="res://systems/dialogue/definitions/dialogue_tree.gd" id="1_cgxre"]
+[ext_resource type="Script" uid="uid://da3dguhg15enh" path="res://systems/dialogue/definitions/dialogue_line_node.gd" id="1_n06lw"]
+[ext_resource type="Script" uid="uid://crj5xks7f0ww8" path="res://systems/dialogue/definitions/dialogue_line_variant.gd" id="2_tcb0p"]
+[ext_resource type="Script" uid="uid://chxmxnwpcsb8x" path="res://systems/dialogue/definitions/dialogue_structure_node.gd" id="3_iig3s"]
+[ext_resource type="Script" uid="uid://bmhixv7ye824l" path="res://systems/dialogue/definitions/dialogue_effect.gd" id="4_ck67u"]
+[ext_resource type="Script" uid="uid://cj5rvnyvj6sii" path="res://systems/dialogue/definitions/dialogue_choice_node.gd" id="5_qquud"]
+[ext_resource type="Script" uid="uid://c2p48wo4di55t" path="res://systems/dialogue/definitions/dialogue_condition.gd" id="6_iig3s"]
+[ext_resource type="Script" uid="uid://dt45uujdgtvh1" path="res://systems/dialogue/definitions/skill_check_branch.gd" id="6_p1ugh"]
+[ext_resource type="Script" uid="uid://clu4464u8dpn4" path="res://systems/dialogue/definitions/dialogue_condition_node.gd" id="7_ck67u"]
+[ext_resource type="Script" uid="uid://cyc5ja2gx1r1g" path="res://systems/dialogue/definitions/dialogue_skill_check_choice_node.gd" id="7_gyo5v"]
+
+[sub_resource type="Resource" id="Resource_w6l6y"]
+script = ExtResource("2_tcb0p")
+text = "Hmph. They call me Pistol Pete."
+
+[sub_resource type="Resource" id="Resource_iv7gq"]
+script = ExtResource("1_n06lw")
+speaker = "pistol_pete"
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_w6l6y")])
+variant_mode = 0
+emotion_tag = ""
+next = ""
+default_return_id = "structure_1"
+node_id = "actor_intro"
+editor_position = Vector2(1320, -840)
+
+[sub_resource type="Resource" id="Resource_cw4l4"]
+script = ExtResource("5_qquud")
+text = "Ask about nearby landmarks."
+consume_once = false
+effects = Array[ExtResource("4_ck67u")]([])
+condition_node_id = ""
+next = "nearby_river1"
+default_return_id = "structure_1"
+node_id = "ask_about"
+editor_position = Vector2(720, -400)
+
+[sub_resource type="Resource" id="Resource_gyo5v"]
+script = ExtResource("5_qquud")
+text = "Ask about the cave."
+consume_once = false
+effects = Array[ExtResource("4_ck67u")]([])
+condition_node_id = ""
+next = "cave_warning_2"
+default_return_id = "structure_1"
+node_id = "ask_cave"
+editor_position = Vector2(2460, 220)
+
+[sub_resource type="Resource" id="Resource_sx080"]
+script = ExtResource("2_tcb0p")
+text = "Wouldn't go near that cave up stream, though."
+
+[sub_resource type="Resource" id="Resource_qlk8s"]
+script = ExtResource("1_n06lw")
+speaker = "pistol_pete"
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_sx080")])
+variant_mode = 0
+emotion_tag = ""
+next = "landmarks_structure"
+default_return_id = ""
+node_id = "cave_warning"
+editor_position = Vector2(1320, -40)
+
+[sub_resource type="Resource" id="Resource_sad7g"]
+script = ExtResource("2_tcb0p")
+text = "Don't ya be troublin' yerself with that."
+
+[sub_resource type="Resource" id="Resource_vugr3"]
+script = ExtResource("2_tcb0p")
+text = "Shouldn't be askin' so many questions."
+
+[sub_resource type="Resource" id="Resource_gf3bx"]
+script = ExtResource("1_n06lw")
+speaker = ""
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_sad7g"), SubResource("Resource_vugr3")])
+variant_mode = 1
+emotion_tag = ""
+next = ""
+default_return_id = "landmarks_structure"
+node_id = "cave_warning_2"
+editor_position = Vector2(3040, 180)
+
+[sub_resource type="Resource" id="Resource_n8xc6"]
+script = ExtResource("5_qquud")
+text = "Change the subject."
+consume_once = false
+effects = Array[ExtResource("4_ck67u")]([])
+condition_node_id = ""
+next = "change_subject_response"
+default_return_id = "structure_1"
+node_id = "change_subject"
+editor_position = Vector2(2460, 600)
+
+[sub_resource type="Resource" id="Resource_it7gs"]
+script = ExtResource("6_p1ugh")
+next = "give_cut_fail"
+effects = Array[ExtResource("4_ck67u")]([])
+
+[sub_resource type="Resource" id="Resource_gx5b8"]
+script = ExtResource("6_p1ugh")
+next = "give_cut_success"
+effects = Array[ExtResource("4_ck67u")]([])
+
+[sub_resource type="Resource" id="Resource_xk5xv"]
+script = ExtResource("7_gyo5v")
+skill_id = "persuasion"
+dc_mode = 0
+dc_tier = 3
+dc_manual = 10
+success = SubResource("Resource_gx5b8")
+failure = SubResource("Resource_it7gs")
+text = "Ask for some of the cut."
+consume_once = false
+effects = Array[ExtResource("4_ck67u")]([])
+condition_node_id = ""
+next = ""
+default_return_id = "landmarks_structure_1"
+node_id = "give_cut"
+editor_position = Vector2(1660, 440)
+
+[sub_resource type="Resource" id="Resource_0xcuf"]
+script = ExtResource("2_tcb0p")
+text = "I don't see that happening."
+
+[sub_resource type="Resource" id="Resource_a887j"]
+script = ExtResource("1_n06lw")
+speaker = ""
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_0xcuf")])
+variant_mode = 0
+emotion_tag = ""
+next = ""
+default_return_id = "structure_1"
+node_id = "give_cut_fail"
+editor_position = Vector2(2340, 1380)
+
+[sub_resource type="Resource" id="Resource_6ybf1"]
+script = ExtResource("2_tcb0p")
+text = "I got some extra weighin' me down what'n I could spare."
+
+[sub_resource type="Resource" id="Resource_uj4kq"]
+script = ExtResource("1_n06lw")
+speaker = ""
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_6ybf1")])
+variant_mode = 0
+emotion_tag = ""
+next = ""
+default_return_id = "structure_1"
+node_id = "give_cut_success"
+editor_position = Vector2(2340, 980)
+
+[sub_resource type="Resource" id="Resource_dif11"]
+script = ExtResource("6_iig3s")
+type = 0
+target = "highwaymen"
+threshold = 1.0
+
+[sub_resource type="Resource" id="Resource_sbny8"]
+script = ExtResource("7_ck67u")
+mode = 0
+conditions = [SubResource("Resource_dif11")]
+node_id = "highwaymen_rep_condition"
+editor_position = Vector2(340, 380)
+
+[sub_resource type="Resource" id="Resource_6bgmb"]
+script = ExtResource("4_ck67u")
+type = 1
+target = ""
+value = 0.0
+
+[sub_resource type="Resource" id="Resource_c3h1g"]
+script = ExtResource("5_qquud")
+text = "Introduce yourself."
+consume_once = true
+effects = Array[ExtResource("4_ck67u")]([SubResource("Resource_6bgmb")])
+condition_node_id = ""
+next = "actor_intro"
+default_return_id = "structure_1"
+node_id = "introduction"
+editor_position = Vector2(720, -840)
+
+[sub_resource type="Resource" id="Resource_qquud"]
+script = ExtResource("3_iig3s")
+outputs = Array[String](["mark_map", "ask_cave", "change_subject"])
+node_id = "landmarks_structure"
+editor_position = Vector2(1760, -40)
+
+[sub_resource type="Resource" id="Resource_5okms"]
+script = ExtResource("3_iig3s")
+outputs = Array[String](["give_cut", "loot_1"])
+node_id = "landmarks_structure_1"
+editor_position = Vector2(1160, 840)
+
+[sub_resource type="Resource" id="Resource_8g8mn"]
+script = ExtResource("5_qquud")
+text = "Leave."
+consume_once = false
+effects = Array[ExtResource("4_ck67u")]([])
+condition_node_id = ""
+next = ""
+default_return_id = ""
+node_id = "leave"
+editor_position = Vector2(-440, 400)
+
+[sub_resource type="Resource" id="Resource_v6hsn"]
+script = ExtResource("2_tcb0p")
+text = "Something  weighin' on ya?"
+
+[sub_resource type="Resource" id="Resource_a7ej0"]
+script = ExtResource("1_n06lw")
+speaker = "pistol_pete"
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_v6hsn")])
+variant_mode = 0
+emotion_tag = ""
+next = "structure_1"
+default_return_id = ""
+node_id = "line_1"
+editor_position = Vector2(-260, -260)
+
+[sub_resource type="Resource" id="Resource_coksy"]
+script = ExtResource("5_qquud")
+text = "Ask about trade route loot."
+consume_once = true
+effects = Array[ExtResource("4_ck67u")]([])
+condition_node_id = ""
+next = "loot_response"
+default_return_id = "structure_1"
+node_id = "loot"
+editor_position = Vector2(680, 300)
+
+[sub_resource type="Resource" id="Resource_kiqm0"]
+script = ExtResource("5_qquud")
+text = "Nod and change the subject."
+consume_once = false
+effects = Array[ExtResource("4_ck67u")]([])
+condition_node_id = ""
+next = ""
+default_return_id = "structure_1"
+node_id = "loot_1"
+editor_position = Vector2(1660, 1140)
+
+[sub_resource type="Resource" id="Resource_n5mb3"]
+script = ExtResource("2_tcb0p")
+text = "I been makin' some good money off the caravans comin' through here."
+
+[sub_resource type="Resource" id="Resource_ybx7o"]
+script = ExtResource("1_n06lw")
+speaker = ""
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_n5mb3")])
+variant_mode = 0
+emotion_tag = ""
+next = "landmarks_structure_1"
+default_return_id = "structure_1"
+node_id = "loot_response"
+editor_position = Vector2(1180, 380)
+
+[sub_resource type="Resource" id="Resource_p1ugh"]
+script = ExtResource("5_qquud")
+text = "Ask him to mark the river on your map."
+consume_once = true
+effects = Array[ExtResource("4_ck67u")]([])
+condition_node_id = ""
+next = "mark_map_line"
+default_return_id = "structure_1"
+node_id = "mark_map"
+editor_position = Vector2(2460, -160)
+
+[sub_resource type="Resource" id="Resource_nc4ce"]
+script = ExtResource("2_tcb0p")
+text = "Good fishin' in the river just north of here."
+
+[sub_resource type="Resource" id="Resource_injtr"]
+script = ExtResource("1_n06lw")
+speaker = "pistol_pete"
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_nc4ce")])
+variant_mode = 0
+emotion_tag = ""
+next = "cave_warning"
+default_return_id = ""
+node_id = "nearby_river1"
+editor_position = Vector2(1320, -440)
+
+[sub_resource type="Resource" id="Resource_q3nb2"]
+script = ExtResource("3_iig3s")
+outputs = Array[String](["introduction", "ask_about", "loot", "leave"])
+node_id = "structure_1"
+editor_position = Vector2(40, -260)
+
+[sub_resource type="Resource" id="Resource_iisqr"]
+script = ExtResource("2_tcb0p")
+text = "Somethin' you had in mind?"
+
+[sub_resource type="Resource" id="Resource_buu5g"]
+script = ExtResource("2_tcb0p")
+text = "Hm."
+
+[sub_resource type="Resource" id="Resource_4ikme"]
+script = ExtResource("1_n06lw")
+speaker = ""
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_iisqr"), SubResource("Resource_buu5g")])
+variant_mode = 1
+emotion_tag = ""
+next = ""
+default_return_id = "structure_1"
+node_id = "change_subject_response"
+editor_position = Vector2(3040, 660)
+
+[sub_resource type="Resource" id="Resource_gyeco"]
+script = ExtResource("2_tcb0p")
+text = "You got it."
+
+[sub_resource type="Resource" id="Resource_ajjll"]
+script = ExtResource("1_n06lw")
+speaker = ""
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_gyeco")])
+variant_mode = 1
+emotion_tag = ""
+next = ""
+default_return_id = "landmarks_structure"
+node_id = "mark_map_line"
+editor_position = Vector2(3040, -300)
+
+[resource]
+script = ExtResource("1_cgxre")
+tree_id = "pistol_pete_tree"
+start_node_id = "line_1"
+nodes = {
+"actor_intro": SubResource("Resource_iv7gq"),
+"ask_about": SubResource("Resource_cw4l4"),
+"ask_cave": SubResource("Resource_gyo5v"),
+"cave_warning": SubResource("Resource_qlk8s"),
+"cave_warning_2": SubResource("Resource_gf3bx"),
+"change_subject": SubResource("Resource_n8xc6"),
+"change_subject_response": SubResource("Resource_4ikme"),
+"give_cut": SubResource("Resource_xk5xv"),
+"give_cut_fail": SubResource("Resource_a887j"),
+"give_cut_success": SubResource("Resource_uj4kq"),
+"highwaymen_rep_condition": SubResource("Resource_sbny8"),
+"introduction": SubResource("Resource_c3h1g"),
+"landmarks_structure": SubResource("Resource_qquud"),
+"landmarks_structure_1": SubResource("Resource_5okms"),
+"leave": SubResource("Resource_8g8mn"),
+"line_1": SubResource("Resource_a7ej0"),
+"loot": SubResource("Resource_coksy"),
+"loot_1": SubResource("Resource_kiqm0"),
+"loot_response": SubResource("Resource_ybx7o"),
+"mark_map": SubResource("Resource_p1ugh"),
+"mark_map_line": SubResource("Resource_ajjll"),
+"nearby_river1": SubResource("Resource_injtr"),
+"structure_1": SubResource("Resource_q3nb2")
+}

@@ -26,8 +26,8 @@ const MAX_VISIBLE_OPTIONS := 4
 
 # --- Tunable placeholders - none of these are considered final ---
 const REVEAL_CHARS_PER_SECOND := 45.0
-const POST_LINE_PAUSE := 0.0
-const CHOICES_TWEEN_DURATION := 0.25
+const POST_LINE_PAUSE := 0.2
+const CHOICES_TWEEN_DURATION := 0.4
 
 @onready var speaker_label: Label = %SpeakerLabel
 @onready var line_text_label: RichTextLabel = %LineText
@@ -168,14 +168,36 @@ func _skip_reveal() -> void:
 
 func _on_reveal_finished() -> void:
 	_state = State.LINE_SHOWN
-	_clear_choices()
-	_tween_choices_height(0.0)
-	get_tree().create_timer(POST_LINE_PAUSE).timeout.connect(_advance_from_line, CONNECT_ONE_SHOT)
+	# Deliberately does NOT clear/collapse choices_list here, even
+	# though a Line is now being shown "on top of" whatever choices
+	# were visible before. Any previously-picked choice was already
+	# locked (disabled) by _on_option_selected() the instant it was
+	# clicked - what's showing here is a correctly-disabled leftover,
+	# not a live one, and it should stay visible/stable through however
+	# many Lines this branch strings together, only actually getting
+	# replaced once _build_choices() (called from _on_choice_ready)
+	# has a real new set to show. Clearing it here instead - what an
+	# earlier version of this function did - wiped it out the moment
+	# the very FIRST of those Lines finished revealing, well before any
+	# replacement existed, and collapsed/reopened the panel on every
+	# single Line in between for no reason.
+	#
+	# An explicit confirm (ui_accept, or clicking the line - see
+	# _try_progress()) is only required when this Line leads straight
+	# into ANOTHER Line - that's the one transition with no other
+	# signal that the player has actually finished reading. Advancing
+	# into a choice screen (or the conversation ending) still gets a
+	# brief, tunable pause (POST_LINE_PAUSE) rather than snapping
+	# instantly, but no explicit confirm of its own - the player's next
+	# action already IS the choice itself, so requiring a press first
+	# would just be a redundant extra step.
+	if not _player.next_is_another_line():
+		get_tree().create_timer(POST_LINE_PAUSE).timeout.connect(_advance_from_line, CONNECT_ONE_SHOT)
 
 
 func _advance_from_line() -> void:
 	if _state != State.LINE_SHOWN:
-		return  # already progressed some other way (manual skip, etc.) - stray timer firing, ignore
+		return  # defensive guard against a double-call (e.g. two rapid ui_accept presses, or a click landing during POST_LINE_PAUSE's own brief window before the timer also fires) - not expected to matter in normal use, just cheap to keep correct
 	_state = State.IDLE
 	_player.advance()
 
@@ -184,16 +206,21 @@ func _advance_from_line() -> void:
 # Choices
 # ---------------------------------------------------------------------------
 
+## Builds one OptionRow per currently-available choice, in the order
+## DialoguePlayer offered them (already filtered by consume_once/
+## condition - nothing further to check here). node_id replaces the
+## retired option_id as both the display-memory key
+## (has_taken_option) and what gets passed back to select_option().
 func _build_choices(options: Array) -> void:
 	_clear_choices()
 
 	var registry := _player.get_registry()
 	var row_height := 0.0
-	for raw_option in options:
-		var option: DialogueOption = raw_option
+	for raw_choice in options:
+		var choice: DialogueChoiceNode = raw_choice
 		var row: OptionRow = OPTION_ROW_SCENE.instantiate()
 		choices_list.add_child(row)
-		row.setup(option.option_id, option.text, _derive_condition_tag(option, registry), _player.has_taken_option(option.option_id))
+		row.setup(choice.node_id, choice.text, _derive_condition_tag(choice, registry), _player.has_taken_option(choice.node_id))
 		row.option_selected.connect(_on_option_selected)
 		row_height = row.custom_minimum_size.y
 
@@ -201,23 +228,31 @@ func _build_choices(options: Array) -> void:
 	_tween_choices_height(row_height * visible_rows)
 
 
-## Surfaces a short bracketed hint on an Option, in priority order:
-## 1. A SkillCheckGate, if the option has one - "[Medicine check]".
-##    Takes priority over any condition-based tag on the same option -
-##    a skill check is the more decision-relevant thing for a player
-##    to know about before choosing it.
+## Surfaces a short bracketed hint on a choice, in priority order:
+## 1. A skill check, if this is a DialogueSkillCheckChoiceNode -
+##    "[Medicine check]". Takes priority over any condition-based tag,
+##    since a skill check is the more decision-relevant thing for a
+##    player to know about before choosing it.
 ## 2. The first HAS_TRAIT/HAS_SKILL_RANK_AT_LEAST condition found in
-##    the option's gate list (including inside any ConditionSet
+##    the wired DialogueConditionNode's own list, if one is attached
+##    via condition_node_id (including inside any ConditionSet
 ##    references) - "[Natural Hunter]". Every other condition type
-##    stays invisible flow-control.
+##    stays invisible flow-control, same as before the restructure.
 ## Returns "" (no tag shown) if neither applies.
-func _derive_condition_tag(option: DialogueOption, registry: CharacterDataRegistry) -> String:
-	if option.skill_check != null:
-		var skill_def: SkillDefinition = registry.skills.get(option.skill_check.skill_id)
-		var skill_name: String = skill_def.display_name if skill_def != null else option.skill_check.skill_id
+func _derive_condition_tag(choice: DialogueChoiceNode, registry: CharacterDataRegistry) -> String:
+	if choice is DialogueSkillCheckChoiceNode:
+		var skill_check := choice as DialogueSkillCheckChoiceNode
+		var skill_def: SkillDefinition = registry.skills.get(skill_check.skill_id)
+		var skill_name: String = skill_def.display_name if skill_def != null else skill_check.skill_id
 		return "[%s check]" % skill_name
 
-	var raw_tag := _find_tag_in(option.conditions, registry)
+	if choice.condition_node_id.is_empty():
+		return ""
+	var condition_node := _player.get_condition_node(choice.condition_node_id)
+	if condition_node == null:
+		return ""
+
+	var raw_tag := _find_tag_in(condition_node.conditions, registry)
 	if raw_tag.is_empty():
 		return ""
 	return "[%s]" % raw_tag

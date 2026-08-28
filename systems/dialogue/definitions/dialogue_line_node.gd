@@ -29,6 +29,18 @@ enum VariantMode {
 ## another Line directly.
 @export var next: String = ""
 
+## Implicit fallback destination, consulted only when `next` is empty
+## (Dialogue Graph Node Restructure, follow-up addendum) - lets an
+## authored ending like "go back to the hub I came from" not require
+## an explicit wire cluttering the canvas. `next` always wins when set;
+## this is purely a fallback for the empty case, not a replacement for
+## real wiring. Auto-populated the first time this node is wired from
+## a DialogueStructureNode's output (never overwrites an existing
+## value) - see graph_tab.gd's _maybe_set_default_return(). Not yet
+## consumed by DialoguePlayer; that's part of the still-deferred
+## walking-logic refactor.
+@export var default_return_id: String = ""
+
 
 ## Decides which variant index to show, given the last index shown (or
 ## -1 if this Line has never been shown before) and an rng to roll

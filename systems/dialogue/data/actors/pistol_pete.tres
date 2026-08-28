@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ActorDefinition" load_steps=2 format=3 uid="uid://y21p1q4p10if"]
+
+[ext_resource type="Script" uid="uid://rc8ddkkp017v" path="res://systems/dialogue/definitions/actor_definition.gd" id="1_kxk4r"]
+
+[resource]
+script = ExtResource("1_kxk4r")
+actor_id = "pistol_pete"
+unknown_name = "Crazed Gunman"
+known_name = "Pistol Pete"
+faction_alignment = {
+"highwaymen": 1
+}
+dialogue_tree_id = "pistol_pete_tree"
+portraits = {}
+shop_inventory_id = ""
