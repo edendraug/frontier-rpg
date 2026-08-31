@@ -93,6 +93,25 @@ default_return_id = "structure_1"
 node_id = "change_subject"
 editor_position = Vector2(2460, 600)
 
+[sub_resource type="Resource" id="Resource_iisqr"]
+script = ExtResource("2_tcb0p")
+text = "Somethin' you had in mind?"
+
+[sub_resource type="Resource" id="Resource_buu5g"]
+script = ExtResource("2_tcb0p")
+text = "Hm."
+
+[sub_resource type="Resource" id="Resource_4ikme"]
+script = ExtResource("1_n06lw")
+speaker = ""
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_iisqr"), SubResource("Resource_buu5g")])
+variant_mode = 1
+emotion_tag = ""
+next = ""
+default_return_id = "structure_1"
+node_id = "change_subject_response"
+editor_position = Vector2(3040, 660)
+
 [sub_resource type="Resource" id="Resource_it7gs"]
 script = ExtResource("6_p1ugh")
 next = "give_cut_fail"
@@ -266,6 +285,21 @@ default_return_id = "structure_1"
 node_id = "mark_map"
 editor_position = Vector2(2460, -160)
 
+[sub_resource type="Resource" id="Resource_gyeco"]
+script = ExtResource("2_tcb0p")
+text = "You got it."
+
+[sub_resource type="Resource" id="Resource_ajjll"]
+script = ExtResource("1_n06lw")
+speaker = ""
+variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_gyeco")])
+variant_mode = 1
+emotion_tag = ""
+next = ""
+default_return_id = "landmarks_structure"
+node_id = "mark_map_line"
+editor_position = Vector2(3040, -300)
+
 [sub_resource type="Resource" id="Resource_nc4ce"]
 script = ExtResource("2_tcb0p")
 text = "Good fishin' in the river just north of here."
@@ -286,40 +320,6 @@ script = ExtResource("3_iig3s")
 outputs = Array[String](["introduction", "ask_about", "loot", "leave"])
 node_id = "structure_1"
 editor_position = Vector2(40, -260)
-
-[sub_resource type="Resource" id="Resource_iisqr"]
-script = ExtResource("2_tcb0p")
-text = "Somethin' you had in mind?"
-
-[sub_resource type="Resource" id="Resource_buu5g"]
-script = ExtResource("2_tcb0p")
-text = "Hm."
-
-[sub_resource type="Resource" id="Resource_4ikme"]
-script = ExtResource("1_n06lw")
-speaker = ""
-variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_iisqr"), SubResource("Resource_buu5g")])
-variant_mode = 1
-emotion_tag = ""
-next = ""
-default_return_id = "structure_1"
-node_id = "change_subject_response"
-editor_position = Vector2(3040, 660)
-
-[sub_resource type="Resource" id="Resource_gyeco"]
-script = ExtResource("2_tcb0p")
-text = "You got it."
-
-[sub_resource type="Resource" id="Resource_ajjll"]
-script = ExtResource("1_n06lw")
-speaker = ""
-variants = Array[ExtResource("2_tcb0p")]([SubResource("Resource_gyeco")])
-variant_mode = 1
-emotion_tag = ""
-next = ""
-default_return_id = "landmarks_structure"
-node_id = "mark_map_line"
-editor_position = Vector2(3040, -300)
 
 [resource]
 script = ExtResource("1_cgxre")

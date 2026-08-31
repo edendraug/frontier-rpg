@@ -37,6 +37,31 @@ extends RefCounted
 ##    recently emitted choice_ready payload - stale UI state or a
 ##    caller passing something that was never actually offered is
 ##    rejected rather than trusted blindly.
+##
+## advance()/select_option() also both refuse to act while
+## is_awaiting_resolution() is true - a skill check in flight can't be
+## interrupted by further input, regardless of what UI ends up calling
+## them (the current dialogue_window.gd already never exposes a way to
+## do this, so this guard is defense in depth, not a fix for an
+## observed bug).
+##
+## Known, confirmed-but-unaddressed fragility, deliberately not fixed
+## here: this class is RefCounted, and a suspended await does NOT keep
+## a RefCounted instance alive on its own (confirmed, reproduced
+## upstream: godotengine/godot#81210) - if every other reference to a
+## DialoguePlayer instance were dropped while _resolve_skill_check_option()
+## is suspended on `await DiceVisualizer.roll_and_show()` (e.g. the
+## window holding it got force-closed by something external), the
+## instance could be destroyed mid-roll, and resuming into a destroyed
+## object afterward would likely error or crash. Nothing in the current
+## codebase actually drops that reference mid-check, so this isn't a
+## live bug today - but it's a real gap if a future system (a scene
+## change, a "quit to menu" action) ever force-closes a dialogue window
+## without waiting for a check to resolve first. Properly closing it
+## would mean either giving this class a scene-tree-backed lifecycle
+## instead of relying on refcounting, or guaranteeing nothing can
+## force-close the window before is_awaiting_resolution() goes false -
+## both real architectural calls, not made here.
 
 signal line_ready(speaker_actor_id: String, text: String, portrait: Texture2D)
 signal choice_ready(options: Array)  # Array[DialogueChoiceNode] (including the SkillCheckChoiceNode subtype) - the currently-available choices, already filtered by consume_once/condition
@@ -138,6 +163,9 @@ func start_conversation(actor_id: String) -> void:
 
 ## Called by the UI when the player dismisses a currently-shown Line.
 func advance() -> void:
+	if _awaiting_resolution:
+		push_warning("DialoguePlayer: advance() called while awaiting a skill check's resolution - ignoring")
+		return
 	var node := _current_node()
 	if not (node is DialogueLineNode):
 		push_warning("DialoguePlayer: advance() called while not presenting a Line")
@@ -170,6 +198,9 @@ func next_is_another_line() -> bool:
 ## Called by the UI once the player picks one of the ids most recently
 ## offered via choice_ready (judgment call 3 - see file header).
 func select_option(chosen_node_id: String) -> void:
+	if _awaiting_resolution:
+		push_warning("DialoguePlayer: select_option() called while awaiting a skill check's resolution - ignoring")
+		return
 	if not _last_offered_ids.has(chosen_node_id):
 		push_warning("DialoguePlayer: select_option() called with '%s', which wasn't among the last-offered choices - ignoring" % chosen_node_id)
 		return
