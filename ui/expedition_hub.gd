@@ -22,6 +22,14 @@ extends Control
 ##   %InventoryCloseButton   (Button)
 ##   %InventorySummaryLabel  (Label)
 ##   %ItemList               (VBoxContainer) — rows built here at runtime
+##   %DebugAtCampCheckBox    (CheckBox) — TEMPORARY. Stands in for real
+##                            Travel/Camp state, which doesn't exist yet
+##                            anywhere in the project. Drives whether Camp
+##                            Meal food items can be fed via the Feed
+##                            button below (see FoodDefinition.is_edible_now()).
+##                            Remove once a real Travel/Camp system exists
+##                            to supply this instead. Suggest placing it
+##                            next to %InventorySummaryLabel.
 ##   %TimeLabel              (Label)
 ##   %DateLabel              (Label)
 ##   %EscapeMenuOverlay      (Control/Panel) — Mouse Filter: Stop, starts hidden. Suggest a smaller centered box, unlike Party/Inventory's "most of the screen" sizing — this is a compact pause menu, not a content browser.
@@ -56,6 +64,14 @@ func _ready() -> void:
 
 	%PartyOverlay.visible = false
 	%InventoryOverlay.visible = false
+
+	# Rows already open need their Feed buttons' grayed/enabled state
+	# (and the is_at_camp value captured in each row's button closure)
+	# to update the instant this is flipped, not on the next unrelated
+	# inventory change -- a full rebuild is the simplest way to
+	# guarantee that, same "just recompute" approach _refresh_party_overlay
+	# already uses.
+	%DebugAtCampCheckBox.toggled.connect(func(_pressed): _refresh_if_active(%InventoryOverlay, _refresh_inventory_overlay))
 
 	%EscapeResumeButton.pressed.connect(_close_active_overlay)
 	%EscapeSaveButton.pressed.connect(_on_escape_save_pressed)
@@ -357,10 +373,11 @@ func _build_vitals_row(label_text: String, value: float, max_value: float, reado
 
 
 ## ============================================================
-## INVENTORY OVERLAY — user-facing REMOVAL only, per design. Adding
-## items stays reserved to the not-yet-built debug menu; this is the
-## real player-facing view, so it only exposes what a player should
-## actually be able to do: discard some quantity of something.
+## INVENTORY OVERLAY — user-facing REMOVAL, plus (as of the Food
+## Consumption pass) FEEDING, per design. Adding items stays reserved
+## to the not-yet-built debug menu; this is the real player-facing
+## view, so it only exposes what a player should actually be able to
+## do: discard some quantity of something, or eat some of it.
 ## ============================================================
 func _refresh_inventory_overlay() -> void:
 	var status_names := ["Unencumbered", "Encumbered", "OVERLOADED"]
@@ -395,6 +412,9 @@ func _build_item_row(item: ItemDefinition, quantity: int) -> Control:
 	qty_spin.value = 1
 	row.add_child(qty_spin)
 
+	if item is FoodDefinition:
+		row.add_child(_build_feed_button(item as FoodDefinition, qty_spin))
+
 	var remove_button := Button.new()
 	remove_button.text = "Remove"
 	remove_button.pressed.connect(func():
@@ -406,6 +426,96 @@ func _build_item_row(item: ItemDefinition, quantity: int) -> Control:
 	return row
 
 
+## Feed button acts as a dropdown, per design: clicking it pops a menu
+## of the current party roster (_open_feed_menu below), and picking a
+## name feeds qty_spin's CURRENT quantity of this food to that
+## character -- the same spinner the Remove button already uses,
+## reused here rather than introducing a second quantity control per
+## row. Grayed out with an explanatory tooltip when this is a Camp
+## Meal and the party isn't camped -- see FoodDefinition.is_edible_now().
+##
+## is_at_camp is read from %DebugAtCampCheckBox, a temporary stand-in
+## until a real Travel/Camp system exists (design doc Section 2/9) --
+## captured once here at row-build-time and closed over below, which is
+## safe because %DebugAtCampCheckBox.toggled forces a full overlay
+## rebuild (see _ready()), so this value can never go stale while the
+## row is visible.
+func _build_feed_button(food: FoodDefinition, qty_spin: SpinBox) -> Button:
+	var button := Button.new()
+	button.text = "Feed"
+
+	var is_at_camp: bool = %DebugAtCampCheckBox.button_pressed
+	if not food.is_edible_now(is_at_camp):
+		button.disabled = true
+		button.tooltip_text = "Camp Meals can only be eaten while the party is camped."
+		return button
+
+	button.pressed.connect(func(): _open_feed_menu(button, food, qty_spin, is_at_camp))
+	return button
+
+
+func _open_feed_menu(anchor: Button, food: FoodDefinition, qty_spin: SpinBox, is_at_camp: bool) -> void:
+	var roster := PartyManager.get_roster()
+	if roster.is_empty():
+		return
+
+	var menu := PopupMenu.new()
+	for i in roster.size():
+		menu.add_item(roster[i].character_name, i)
+
+	menu.id_pressed.connect(func(id: int):
+		var quantity := int(qty_spin.value)
+		var result := VitalsSystem.feed_character(roster[id], food.item_id, is_at_camp, quantity)
+		_report_feed_result(roster[id], food, result)
+		_refresh_inventory_overlay()
+	)
+	menu.popup_hide.connect(menu.queue_free)
+
+	add_child(menu)
+	# TODO: verify this lands in the right spot once you've got it in
+	# the actual scene tree -- PopupMenu is Window-based in Godot 4, so
+	# global_position here may need adjusting depending on how this
+	# Control's own transform sits relative to the viewport.
+	menu.position = anchor.global_position + Vector2(0, anchor.size.y)
+	menu.popup()
+
+
+## Console-only feedback, matching the existing Save/Quit convention
+## already in this file (_on_escape_save_pressed()) -- this overlay is
+## explicitly a temporary stand-in per its own header framing, so a
+## real in-UI toast/notification is deferred rather than built here.
+##
+## The saving-throw breakdown below is deliberately verbose (full dice/
+## modifier/DC readout, same level of detail SkillCheckDebugTab and
+## DiceCheckTester already show) -- for testing/tuning visibility, not
+## yet a decision about what a player should ever see. Whether any of
+## this belongs in real player-facing UI is explicitly undecided.
+func _report_feed_result(sheet: CharacterSheet, food: FoodDefinition, result: FeedResult) -> void:
+	match result.outcome:
+		FeedResult.Outcome.WRONG_LOCATION:
+			print("%s can't eat %s right now — not camped." % [sheet.character_name, food.display_name])
+		FeedResult.Outcome.INSUFFICIENT_ITEM:
+			print("Not enough %s to feed %s." % [food.display_name, sheet.character_name])
+		FeedResult.Outcome.SUCCESS:
+			var msg := "%s ate %s — restored %.1f nutrition." % [sheet.character_name, food.display_name, result.nutrition_restored]
+			if not result.diseases_applied.is_empty():
+				msg += "  Got sick: %s." % result.diseases_applied[0].disease_name
+			print(msg)
+
+			for save in result.saving_throws:
+				print("  Saving throw (Grit): dice %s = %d, stat %s, modifiers %s → total %d vs DC %d — %s" % [
+					str(save.base_dice), save.base_dice_total(),
+					_signed(save.stat_modifier), _signed(save.modifier_bonus),
+					save.total, save.difficulty, save.outcome_name(),
+				])
+				if save.morale_tier_label != "":
+					print("    Morale (%s) nudged base dice by %s" % [save.morale_tier_label, _signed(save.morale_base_die_nudge)])
+
+
+func _signed(value: int) -> String:
+	return ("+%d" % value) if value >= 0 else str(value)
+
+
 ## Non-perishables: exact weight, no further detail needed. Perishables:
 ## sums each batch's REAL effective weight (spoiled batches already
 ## count at half, per ItemFreshness) rather than naively multiplying
@@ -415,7 +525,10 @@ func _build_item_row(item: ItemDefinition, quantity: int) -> Control:
 ## aggregate reading per item, not one line per batch") rather than
 ## listing every batch here.
 func _item_row_text(item: ItemDefinition, quantity: int) -> String:
-	if not item.perishable:
+	# perishable now lives only on FoodDefinition, not the base
+	# ItemDefinition this parameter is statically typed as -- same fix
+	# applied to InventorySystem's own direct .perishable reads.
+	if not (item is FoodDefinition and (item as FoodDefinition).perishable):
 		return "%s — %d (%.1f lbs)" % [item.display_name, quantity, item.weight * quantity]
 
 	var batches := InventorySystem.get_batches(item.item_id)

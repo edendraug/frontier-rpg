@@ -1,0 +1,17 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://d4mchvfprkick"
+
+[deps]
+
+files=["res://systems/inventory/data/food_definitions.nutrition.translation", "res://systems/inventory/data/food_definitions.morale.translation", "res://systems/inventory/data/food_definitions.morale.translation", "res://systems/inventory/data/food_definitions.perishable.translation", "res://systems/inventory/data/food_definitions.spoil.translation", "res://systems/inventory/data/food_definitions.meal.translation"]
+
+source_file="res://systems/inventory/data/food_definitions.csv"
+dest_files=["res://systems/inventory/data/food_definitions.nutrition.translation", "res://systems/inventory/data/food_definitions.morale.translation", "res://systems/inventory/data/food_definitions.morale.translation", "res://systems/inventory/data/food_definitions.perishable.translation", "res://systems/inventory/data/food_definitions.spoil.translation", "res://systems/inventory/data/food_definitions.meal.translation"]
+
+[params]
+
+compress=true
+delimiter=0

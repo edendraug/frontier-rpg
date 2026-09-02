@@ -1,5 +1,5 @@
 class_name SkillCheck
-extends RefCounted
+extends DiceCheck
 
 ## Resolves a single skill check. Mirrors the Core Systems GDD's own
 ## example almost exactly:
@@ -15,55 +15,41 @@ extends RefCounted
 ## should roll this FIRST, then hand the resulting SkillCheckResult
 ## to a DiceVisualizer to perform visually — the outcome is already
 ## decided by the time any animation plays.
+##
+## Extends DiceCheck -- see that file for the shared roll/aggregate/
+## outcome pipeline and the full morale-dice-clamp reasoning. Everything
+## below is only what's actually specific to a skill-governed check:
+## looking up which stat the skill uses, and rolling bonus dice from
+## the character's trained rank.
 
-var character: CharacterSheet
 var skill_id: String
-var difficulty: int
-var registry: CharacterDataRegistry
+
+## Looked up once here rather than inside each override below --
+## both _get_targets() and _get_stat_modifier() need it, and a
+## skill_id that doesn't resolve to a real SkillDefinition is a
+## valid, permissively-handled case (both overrides null-check this),
+## not an error.
+var _def: SkillDefinition
 
 
-func _init(
-	p_character: CharacterSheet,
-	p_skill_id: String,
-	p_difficulty: int,
-	p_registry: CharacterDataRegistry
-) -> void:
-	character = p_character
+func _init(p_character: CharacterSheet, p_skill_id: String, p_difficulty: int, p_registry: CharacterDataRegistry) -> void:
+	super._init(p_character, p_difficulty, p_registry)
 	skill_id = p_skill_id
-	difficulty = p_difficulty
-	registry = p_registry
+	_def = p_registry.skills.get(p_skill_id)
 
 
-func resolve() -> SkillCheckResult:
-	var result := SkillCheckResult.new()
-	result.difficulty = difficulty
-
-	result.base_dice = [randi_range(1, 6), randi_range(1, 6)]
-
-	var def: SkillDefinition = registry.skills.get(skill_id)
-
-	# Gather + aggregate modifiers BEFORE rolling bonus dice now —
-	# suppression needs to know how many bonus dice to remove before
-	# any of them exist, unlike the additive/multiplicative totals
-	# below, which only ever apply to the final sum. One gather+
-	# aggregate call now serves both needs; no need to do this twice.
+func _get_targets() -> Array:
 	var targets: Array = [ModifierResolver.target_for_skill(skill_id)]
-	if def != null:
-		targets.append(ModifierResolver.target_for_stat(def.governing_stat))
+	if _def != null:
+		targets.append(ModifierResolver.target_for_stat(_def.governing_stat))
+	return targets
 
-	var entries := character.get_modifier_entries(registry)
-	# Vitals-derived penalties (low Hunger, high Fatigue) are NOT part
-	# of CharacterSheet.get_modifier_entries() -- that function only
-	# concatenates arrays already sitting on sub-objects (Traits,
-	# Injuries, Diseases), which is data-gathering, not decision-
-	# making. Threshold evaluation ("if hunger < X, apply Y") is
-	# exactly the kind of decision CharacterSheet's own design
-	# explicitly stays out of -- see VitalsSystem instead, which
-	# already owns "how do vitals values translate to something that
-	# matters."
-	entries.append_array(VitalsSystem.get_vitals_stat_modifier_entries(character))
-	var modifier_result := ModifierResolver.aggregate(entries, targets)
 
+func _get_stat_modifier() -> int:
+	return character.get_base_modifier(_def.governing_stat) if _def != null else 0
+
+
+func _roll_bonus_dice(result: SkillCheckResult, modifier_result: ModifierResult) -> void:
 	var progress: SkillProgress = character.get_skill(skill_id)
 	result.base_bonus_dice = progress.get_bonus_dice() if progress != null else 0
 
@@ -75,89 +61,3 @@ func resolve() -> SkillCheckResult:
 
 	for i in bonus_die_count:
 		result.bonus_dice.append(randi_range(1, 4))
-
-	_apply_morale_dice_nudge(result)
-
-	result.stat_modifier = character.get_base_modifier(def.governing_stat) if def != null else 0
-
-	# Additive/multiplicative totals reuse the SAME gathered entries
-	# and aggregated result computed above for suppression — nothing
-	# needs to be gathered a second time.
-	result.modifier_bonus = int(modifier_result.additive_total)
-	result.contributing_modifiers = modifier_result.contributing_entries
-
-	result.total = result.base_dice_total() + result.bonus_dice_total() + result.stat_modifier + result.modifier_bonus
-	result.outcome = DiceResolver.determine_outcome(result.total, difficulty)
-
-	return result
-
-
-## ============================================================
-## MORALE DICE CLAMP
-## ============================================================
-## Inspired sets an absolute FLOOR on every base/bonus die; Despairing
-## sets an absolute CEILING — applied INDEPENDENTLY to each die, not
-## just whichever happens to be lowest/highest in that particular
-## roll. A roll of [1, 2] under Inspired becomes [3, 3], not [3, 2] —
-## no individual die can ever show below the floor (or above the
-## ceiling for Despairing), regardless of what any other die in the
-## same roll shows. An earlier version nudged only the single
-## min/max die, which meant a non-extreme low die (or a tied one)
-## could still slip through showing a raw 1 or 2 despite Inspired —
-## this version has no such gap, since every die is checked against
-## the threshold independently.
-##
-## Deliberately NOT a flat bonus to the total (mathematically
-## identical to a stat modifier regardless of theming, since
-## DiceResolver only ever sees the final sum) and NOT full
-## advantage/disadvantage (reroll-and-take-best/worst, a much harder
-## swing). Only the two true extreme tiers get any effect —
-## Low/Steady/High are untouched here.
-##
-## Mutates result.base_dice/bonus_dice directly rather than tracking
-## a separate invisible bonus -- see the fields on SkillCheckResult
-## for why.
-const DESPAIRING_BASE_DIE_NUDGE := -2
-const DESPAIRING_BONUS_DIE_NUDGE := -1
-const INSPIRED_BASE_DIE_NUDGE := 2
-const INSPIRED_BONUS_DIE_NUDGE := 1
-
-
-func _apply_morale_dice_nudge(result: SkillCheckResult) -> void:
-	var tier := character.get_morale_tier()
-	if tier != CharacterSheet.MoraleTier.DESPAIRING and tier != CharacterSheet.MoraleTier.INSPIRED:
-		return
-
-	var is_inspired := tier == CharacterSheet.MoraleTier.INSPIRED
-	result.morale_tier_label = "Inspired" if is_inspired else "Despairing"
-
-	if not result.base_dice.is_empty():
-		var delta: int = INSPIRED_BASE_DIE_NUDGE if is_inspired else DESPAIRING_BASE_DIE_NUDGE
-		result.morale_base_die_nudge = _clamp_each_die(result.base_dice, delta, 1, 6)
-
-	if not result.bonus_dice.is_empty():
-		var delta: int = INSPIRED_BONUS_DIE_NUDGE if is_inspired else DESPAIRING_BONUS_DIE_NUDGE
-		result.morale_bonus_die_nudge = _clamp_each_die(result.bonus_dice, delta, 1, 4)
-
-
-## Applies an absolute floor (positive delta) or ceiling (negative
-## delta) to EVERY die in the array independently. E.g. delta=2,
-## min_face=1 means every die below 1+2=3 gets raised to exactly 3 --
-## regardless of what any other die in the array shows. Dice already
-## past the threshold are left completely untouched. Returns the SUM
-## of individual deltas actually applied across every affected die
-## (0 if none needed clamping), for display purposes -- when multiple
-## dice each start a different distance from the threshold, they can
-## receive different actual deltas, so this is a total, not a
-## per-die amount.
-func _clamp_each_die(dice: Array[int], delta: int, min_face: int, max_face: int) -> int:
-	var total_applied := 0
-	for i in dice.size():
-		var before: int = dice[i]
-		if delta > 0:
-			dice[i] = maxi(before, min_face + delta)
-		elif delta < 0:
-			dice[i] = mini(before, max_face + delta)
-		dice[i] = clampi(dice[i], min_face, max_face)
-		total_applied += dice[i] - before
-	return total_applied

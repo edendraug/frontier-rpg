@@ -1,0 +1,3 @@
+item_id,nutrition_value,morale_value,morale_decay_per_hour,perishable,spoil_days,meal_type
+jerky,20,0,0,TRUE,14,trail_food
+pickled_eggs,18,3,2,TRUE,45,trail_food

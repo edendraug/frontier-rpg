@@ -60,7 +60,7 @@ func add_item(item_id: String, quantity: int, acquired_minute: int = -1) -> void
 		push_warning("InventorySystem: unknown item_id '%s'" % item_id)
 		return
 
-	if item.perishable:
+	if _is_perishable(item):
 		# TODO: confirm the exact getter name on your TimeSystem autoload --
 		# assumed here as get_total_minutes_elapsed(). Swap to match whatever
 		# TimeSystem actually exposes for "current total elapsed minutes."
@@ -99,7 +99,7 @@ func remove_item(item_id: String, quantity: int) -> bool:
 	if item == null:
 		return false
 
-	if item.perishable:
+	if _is_perishable(item):
 		return _remove_from_batches(item_id, quantity)
 
 	var have: int = _stock.get(item_id, 0)
@@ -153,13 +153,22 @@ func get_quantity(item_id: String) -> int:
 	if item == null:
 		return 0
 
-	if item.perishable:
+	if _is_perishable(item):
 		var total := 0
 		for batch in _batches.get(item_id, []):
 			total += batch.quantity
 		return total
 
 	return _stock.get(item_id, 0)
+
+
+## perishable now lives only on FoodDefinition (see food_definition.gd),
+## not the base ItemDefinition every item here is statically typed as --
+## this is the one place InventorySystem needs to check it directly,
+## independent of anything ItemFreshness does. Non-food items are never
+## perishable, same as before FoodDefinition existed.
+static func _is_perishable(item: ItemDefinition) -> bool:
+	return item is FoodDefinition and (item as FoodDefinition).perishable
 
 
 ## equipped_elsewhere_count is supplied by the caller -- InventorySystem never

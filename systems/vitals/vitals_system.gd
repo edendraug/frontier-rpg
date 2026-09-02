@@ -16,10 +16,9 @@ extends Node
 ## crossed. Proportional scaling closes that gap and updates on every
 ## tick, however small.
 ##
-## Deliberately does NOT model eating/feeding -- Hunger only ever
-## drains here. Consuming Food to restore it, and to eventually
-## trigger a positive Morale Event, is a distinct, larger piece left
-## for a later pass.
+## Feeding/consumption (feed_character(), below) closes the gap this
+## comment used to describe as deferred -- see
+## Frontier_RPG_Food_Consumption_Design_Doc.md for the full design.
 ##
 ## Register in Project Settings > Autoload AFTER PartyManager and
 ## SaveManager, since _ready() connects to both.
@@ -222,12 +221,12 @@ func _resolve_fatigue_accrual(sheet: CharacterSheet, registry: CharacterDataRegi
 ## ============================================================
 ## Public entry point -- any system calls this to add a stacked
 ## morale effect. HealthDebugTab uses it today (via
-## apply_injury_morale_hit/apply_disease_morale_hit below); Food and
-## Encounters are the real future callers once those exist. Multiple
-## calls stack as separate entries rather than overwriting each
-## other. Recomputes Morale immediately (not just decay-per-hour),
-## so an applied event is reflected right away rather than waiting
-## up to an hour for the next tick.
+## apply_injury_morale_hit/apply_disease_morale_hit below); feed_character()
+## below is now a real caller too. Multiple calls stack as separate
+## entries rather than overwriting each other. Recomputes Morale
+## immediately (not just decay-per-hour), so an applied event is
+## reflected right away rather than waiting up to an hour for the
+## next tick.
 func apply_morale_event(sheet: CharacterSheet, source_label: String, magnitude: float, decay_per_hour: float) -> void:
 	if magnitude == 0.0:
 		return
@@ -365,7 +364,11 @@ func get_vitals_stat_modifier_entries(sheet: CharacterSheet) -> Array[ModifierEn
 
 func _make_stat_penalty(stat: CharacterSheet.Stat, value: int, source_label: String) -> ModifierEntry:
 	var m := ModifierEntry.new()
-	m.target = ModifierResolver.target_for_stat(stat)
+	# targets (plural, Array[String]) -- ModifierEntry has no singular
+	# `target` property. This was a pre-existing bug, not something
+	# introduced by the Food Consumption work; see chat for how it
+	# surfaced.
+	m.targets = [ModifierResolver.target_for_stat(stat)]
 	m.value = value
 	m.type = ModifierEntry.Type.ADDITIVE
 	m.source_label = source_label
@@ -385,3 +388,179 @@ func _tick_morale_events(sheet: CharacterSheet, hours_elapsed: float) -> void:
 			still_active.append(event)
 	sheet.morale_events = still_active
 	_recompute_morale(sheet)
+
+
+## ============================================================
+## FOOD CONSUMPTION
+## ============================================================
+## Bridges Inventory <-> Vitals. See
+## Frontier_RPG_Food_Consumption_Design_Doc.md for the full design.
+##
+## is_at_camp is caller-supplied rather than queried from any real
+## Travel/Camp state, because no such state exists anywhere in the
+## project yet -- a debug toggle is the only real caller until one does
+## (design doc Section 2/9).
+##
+## Eating does not consume game time (design doc Section 9, Q1) --
+## feed_character() never touches TimeSystem's clock.
+
+## Placeholder multipliers/penalties/DCs -- see design doc Section 5.2,
+## confirmed as acceptable first-guess numbers pending playtesting.
+## Applied PER UNIT consumed, not once per feed_character() call (design
+## doc Section 9, Q2) -- quantity can span batches of different
+## freshness, so each unit resolves independently against its own
+## batch's tier.
+const SPOILING_NUTRITION_MULTIPLIER := 0.5
+const SPOILING_MORALE_PENALTY := -5.0
+const SPOILING_MORALE_DECAY_PER_HOUR := 1.0
+const SPOILING_SICKNESS_DC_TIER := DiceResolver.DifficultyTier.EASY
+
+const SPOILED_NUTRITION_MULTIPLIER := 0.25
+const SPOILED_MORALE_PENALTY := -15.0
+const SPOILED_MORALE_DECAY_PER_HOUR := 2.0
+const SPOILED_SICKNESS_DC_TIER := DiceResolver.DifficultyTier.MEDIUM
+
+
+## quantity <= 0 is a permissive no-op, same convention
+## InventorySystem.remove_item()/consume_items() already use for a
+## degenerate input -- returns a default (SUCCESS, all-empty) FeedResult
+## rather than doing any work or validation.
+func feed_character(sheet: CharacterSheet, item_id: String, is_at_camp: bool, quantity: int = 1) -> FeedResult:
+	var result := FeedResult.new()
+	if quantity <= 0:
+		return result
+
+	var item := ItemRegistry.get_item(item_id)
+	if not (item is FoodDefinition):
+		result.outcome = FeedResult.Outcome.INSUFFICIENT_ITEM
+		return result
+	var food := item as FoodDefinition
+
+	if not food.is_edible_now(is_at_camp):
+		result.outcome = FeedResult.Outcome.WRONG_LOCATION
+		return result
+
+	if not InventorySystem.has_item(item_id, quantity):
+		result.outcome = FeedResult.Outcome.INSUFFICIENT_ITEM
+		return result
+
+	var registry := PartyManager.get_registry()
+	var current_minute := TimeSystem.get_total_minutes_elapsed()
+
+	# Predicted consumption order, oldest batch first -- same sort
+	# InventorySystem._remove_from_batches() already applies internally.
+	# IMPORTANT: get_batches() only shallow-duplicates the array: the
+	# InventoryBatch objects inside are the SAME live objects still
+	# sitting in InventorySystem's real state. Tracking units_left_in_batch
+	# as a separate local counter below (rather than decrementing
+	# batch.quantity directly) is deliberate -- mutating the batch
+	# objects here would corrupt real inventory state before
+	# consume_items() even runs.
+	var batches: Array = InventorySystem.get_batches(item_id)
+	batches.sort_custom(func(a, b): return a.acquired_minute < b.acquired_minute)
+
+	var units_left_in_batch = batches[0].quantity if not batches.is_empty() else 0
+	var batch_index := 0
+	var remaining := quantity
+
+	while remaining > 0:
+		# Non-perishable food (perishable = false in food_definitions.csv)
+		# has no batches at all -- batch_index >= batches.size() for
+		# every unit, so this just falls through to FRESH, unconditionally.
+		var tier := ItemFreshness.FreshnessTier.FRESH
+		if batch_index < batches.size():
+			var batch: InventoryBatch = batches[batch_index]
+			tier = ItemFreshness.get_freshness_tier(batch, food, current_minute)
+			units_left_in_batch -= 1
+			if units_left_in_batch <= 0:
+				batch_index += 1
+				if batch_index < batches.size():
+					units_left_in_batch = batches[batch_index].quantity
+
+		result.freshness_tiers.append(tier)
+		_apply_food_unit(sheet, food, tier, registry, result)
+		remaining -= 1
+
+	# Actual removal -- one atomic call, same predicted order as above.
+	InventorySystem.consume_items({item_id: quantity})
+
+	# Guarantees roster observers hear about the hunger/disease changes
+	# above even on a unit whose morale magnitude was zero (e.g. Fresh
+	# Jerky) -- apply_morale_event() only notifies when it actually runs,
+	# and it's skipped entirely for a zero-magnitude unit.
+	PartyManager.notify_roster_changed()
+
+	result.outcome = FeedResult.Outcome.SUCCESS
+	return result
+
+
+## One unit's worth of nutrition/morale/sickness, per the tier table in
+## Frontier_RPG_Food_Consumption_Design_Doc.md Section 5.2. Mutates
+## `result` and applies real Hunger/Morale/Disease changes directly to
+## `sheet` -- called once per unit consumed (design doc Section 9, Q2).
+func _apply_food_unit(sheet: CharacterSheet, food: FoodDefinition, tier: ItemFreshness.FreshnessTier, registry: CharacterDataRegistry, result: FeedResult) -> void:
+	var nutrition := food.nutrition_value
+	var morale_magnitude := food.morale_value
+	var morale_decay := food.morale_decay_per_hour
+	var morale_label := food.display_name
+	var sickness_dc_tier: int = -1  # -1 means "no saving throw this tier"
+
+	match tier:
+		ItemFreshness.FreshnessTier.SPOILING:
+			nutrition *= SPOILING_NUTRITION_MULTIPLIER
+			morale_magnitude = SPOILING_MORALE_PENALTY
+			morale_decay = SPOILING_MORALE_DECAY_PER_HOUR
+			morale_label = "Spoiling Food"
+			sickness_dc_tier = SPOILING_SICKNESS_DC_TIER
+		ItemFreshness.FreshnessTier.SPOILED:
+			nutrition *= SPOILED_NUTRITION_MULTIPLIER
+			morale_magnitude = SPOILED_MORALE_PENALTY
+			morale_decay = SPOILED_MORALE_DECAY_PER_HOUR
+			morale_label = "Spoiled Food"
+			sickness_dc_tier = SPOILED_SICKNESS_DC_TIER
+		# FRESH falls through untouched -- the item's own authored
+		# nutrition_value/morale_value/morale_decay_per_hour stand as-is,
+		# and no saving throw is rolled at all (sickness_dc_tier stays -1).
+
+	sheet.hunger = clampf(sheet.hunger + nutrition, 0.0, 100.0)
+	result.nutrition_restored += nutrition
+
+	if morale_magnitude != 0.0:
+		# Two separate MoraleEventInstance objects by design -- one for
+		# result.morale_events (reporting only), one built internally by
+		# apply_morale_event() for the real sheet.morale_events append.
+		# Not the same reference; both describe the same event.
+		result.morale_events.append(
+			MoraleEventInstance.new(morale_label, morale_magnitude, absf(morale_decay), TimeSystem.get_current_day())
+		)
+		apply_morale_event(sheet, morale_label, morale_magnitude, morale_decay)
+
+	if sickness_dc_tier >= 0:
+		var dc := DiceResolver.dc_for_tier(sickness_dc_tier)
+		var save_result := SavingThrow.new(sheet, CharacterSheet.Stat.GRIT, dc, registry).resolve()
+		result.saving_throws.append(save_result)
+
+		var severity := -1
+		if save_result.outcome == DiceResolver.Outcome.FAILURE:
+			severity = DiseaseInstance.Severity.MINOR
+		elif save_result.outcome == DiceResolver.Outcome.CRITICAL_FAILURE:
+			severity = DiseaseInstance.Severity.MODERATE
+		# SUCCESS / CRITICAL_SUCCESS: resisted, severity stays -1, nothing applied.
+
+		if severity >= 0:
+			var disease := _make_food_poisoning(severity)
+			sheet.diseases.append(disease)
+			result.diseases_applied.append(disease)
+
+
+## No DiseaseDefinition registry exists yet, and this doesn't build one --
+## a small hardcoded factory next to this file's own severity tables
+## above, same treatment as INJURY_SELF_MAGNITUDE/DISEASE_SELF_MAGNITUDE.
+## See design doc Section 4.6.
+func _make_food_poisoning(severity: DiseaseInstance.Severity) -> DiseaseInstance:
+	var disease := DiseaseInstance.new()
+	disease.disease_name = "Food Poisoning"
+	disease.severity = severity
+	disease.contagious = false
+	disease.day_contracted = TimeSystem.get_current_day()
+	return disease
