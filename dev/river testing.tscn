@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dg8u2g5pcet0k"]
+
+[ext_resource type="Script" uid="uid://cdiv158ty8poi" path="res://dev/river testing.gd" id="1_lv1c4"]
+
+[node name="Node" type="Node"]
+script = ExtResource("1_lv1c4")

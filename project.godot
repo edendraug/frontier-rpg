@@ -24,6 +24,7 @@ PartyManager="*res://party/party_manager.gd"
 SaveManager="*res://save/save_manager.gd"
 VitalsSystem="*res://systems/vitals/vitals_system.gd"
 RelationsSystem="*res://systems/dialogue/relations_system.gd"
+WorldRegistry="*res://systems/world_generation/world_registry.gd"
 
 [editor_plugins]
 
@@ -31,5 +32,6 @@ enabled=PackedStringArray("res://addons/dialogue_graph_editor/plugin.cfg")
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=3
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
