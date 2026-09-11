@@ -155,6 +155,15 @@ const DISEASE_ONGOING_PENALTY := {
 ## hour_passed-based version did. -1 means "not yet initialized."
 var _last_processed_minute: int = -1
 
+## Registered by external systems (e.g. TravelSystem, for Pace's
+## fatigue-accrual contribution) to supply per-character
+## ModifierEntry objects into the hourly tick below, without this
+## file ever needing to know those systems exist -- pull-based
+## registration, keeping the dependency pointing FROM the caller TO
+## Vitals rather than the reverse, since Vitals is a Phase-1
+## foundation system. See Travel System Design Doc v0.2, Section 3.3.
+var _environmental_sources: Array[Callable] = []  # Callable(CharacterSheet) -> Array[ModifierEntry]
+
 
 func _ready() -> void:
 	TimeSystem.time_advanced.connect(_on_time_advanced)
@@ -171,6 +180,17 @@ func _ready() -> void:
 	_last_processed_minute = TimeSystem.get_total_minutes_elapsed()
 
 
+## Lets an external system (e.g. TravelSystem) contribute per-character
+## modifiers into the hourly Hunger/Fatigue resolution below. `source`
+## is called once per character per tick with that character's
+## CharacterSheet, and must return Array[ModifierEntry] -- the same
+## shape CharacterSheet.get_modifier_entries() already returns. Vitals
+## never calls back into whatever registered this; it only invokes the
+## Callable it was handed.
+func register_environmental_source(source: Callable) -> void:
+	_environmental_sources.append(source)
+
+
 func _on_time_advanced(total_minutes_elapsed: int) -> void:
 	var elapsed_minutes := total_minutes_elapsed - _last_processed_minute
 	_last_processed_minute = total_minutes_elapsed
@@ -181,8 +201,9 @@ func _on_time_advanced(total_minutes_elapsed: int) -> void:
 	var registry := PartyManager.get_registry()
 
 	for sheet in PartyManager.get_roster():
-		sheet.hunger = clampf(sheet.hunger - _resolve_hunger_drain(sheet, registry) * hours_elapsed, 0.0, 100.0)
-		sheet.fatigue = clampf(sheet.fatigue + _resolve_fatigue_accrual(sheet, registry) * hours_elapsed, 0.0, 100.0)
+		var environmental_entries := _gather_environmental_entries(sheet)
+		sheet.hunger = clampf(sheet.hunger - _resolve_hunger_drain(sheet, registry, environmental_entries) * hours_elapsed, 0.0, 100.0)
+		sheet.fatigue = clampf(sheet.fatigue + _resolve_fatigue_accrual(sheet, registry, environmental_entries) * hours_elapsed, 0.0, 100.0)
 		_tick_morale_events(sheet, hours_elapsed)
 
 	# Same notify-after-mutating pattern the debug tools already use --
@@ -192,15 +213,31 @@ func _on_time_advanced(total_minutes_elapsed: int) -> void:
 	PartyManager.notify_roster_changed()
 
 
+## Folds every registered environmental source's contribution for this
+## one character into a single array -- called once per character per
+## tick (not once per hunger/fatigue resolution) so a source with real
+## work behind it is never invoked twice for the same tick. The result
+## is filtered by target string inside ModifierResolver.aggregate()
+## itself, so a Pace entry targeting only FATIGUE_ACCRUAL_TARGET has no
+## effect when this same array is also passed into
+## _resolve_hunger_drain below.
+func _gather_environmental_entries(sheet: CharacterSheet) -> Array[ModifierEntry]:
+	var entries: Array[ModifierEntry] = []
+	for source in _environmental_sources:
+		entries.append_array(source.call(sheet))
+	return entries
+
+
 ## ============================================================
 ## HUNGER / FATIGUE
 ## ============================================================
-## environmental_entries: Array[ModifierEntry], reserved for a future
-## World/Hex system to supply terrain-based modifiers (e.g. a
-## mountainous hex increasing drain for everyone currently traveling
-## it). Nothing populates this yet -- empty default -- but the
-## parameter exists now so this function doesn't need restructuring
-## once World does exist, same "reserve the seam" treatment as
+## environmental_entries: Array[ModifierEntry], fed by whatever's
+## currently registered via register_environmental_source() above
+## (e.g. a future World/Hex system, or TravelSystem's Pace contribution
+## today) and gathered once per character per tick by
+## _gather_environmental_entries. Defaults to empty so this function
+## still works standalone (tests, a caller with nothing registered)
+## without restructuring, same "reserve the seam" treatment as
 ## InventorySystem's party_size/vehicle_capacity inputs.
 func _resolve_hunger_drain(sheet: CharacterSheet, registry: CharacterDataRegistry, environmental_entries: Array = []) -> float:
 	var entries := sheet.get_modifier_entries(registry)
@@ -387,7 +424,6 @@ func _tick_morale_events(sheet: CharacterSheet, hours_elapsed: float) -> void:
 		if event.magnitude != 0.0:
 			still_active.append(event)
 	sheet.morale_events = still_active
-	_recompute_morale(sheet)
 
 
 ## ============================================================

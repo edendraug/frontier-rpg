@@ -92,6 +92,19 @@ func get_hex(coord: String) -> HexInstance:
 	return _hexes.get(coord, null)
 
 
+## Enumerates every baked hex's coord string. Added for the
+## player-facing Travel map renderer, which needs to iterate the whole
+## baked map rather than look up one hex at a time -- nothing before
+## this needed that. Order is Dictionary key order (bake/insertion
+## order), not geometrically meaningful; a caller needing a specific
+## order (e.g. for deterministic rendering) should sort it themselves.
+func get_all_hex_coords() -> Array[String]:
+	var coords: Array[String] = []
+	for coord in _hexes.keys():
+		coords.append(coord)
+	return coords
+
+
 ## Thin wrapper -- looks up the hex's terrain type and returns its
 ## is_passable (design doc Section 5.4).
 ##

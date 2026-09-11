@@ -25,6 +25,7 @@ SaveManager="*res://save/save_manager.gd"
 VitalsSystem="*res://systems/vitals/vitals_system.gd"
 RelationsSystem="*res://systems/dialogue/relations_system.gd"
 WorldRegistry="*res://systems/world_generation/world_registry.gd"
+TravelSystem="*res://systems/travel/travel_system.gd"
 
 [editor_plugins]
 

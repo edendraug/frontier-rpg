@@ -1,8 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://dv36i3ivm5svj"]
+[gd_scene load_steps=7 format=3 uid="uid://dv36i3ivm5svj"]
 
 [ext_resource type="Theme" uid="uid://beyooei0gsls" path="res://assets/themes/dialogue_window_theme.tres" id="1_m00r5"]
 [ext_resource type="Script" uid="uid://bxj4wvnekjjio" path="res://ui/expedition_hub.gd" id="1_m1pwa"]
 [ext_resource type="PackedScene" uid="uid://j48ruwj3inp2" path="res://ui/dialogue_window/dialogue_window.tscn" id="2_0oqvb"]
+[ext_resource type="Script" uid="uid://8hbyeb6ediqj" path="res://ui/travel_map_panel.gd" id="3_erf46"]
+[ext_resource type="PackedScene" uid="uid://buyqvajop1glw" path="res://systems/world_generation/scenes/world_map_authoring.tscn" id="4_24yum"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_m1pwa"]
 
@@ -45,6 +47,12 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 48)
 layout_mode = 2
 text = "Party"
+
+[node name="TravelMapButton" type="Button" parent="CenterButtons/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Travel Map"
 
 [node name="TimeOverlayLayer" type="CanvasLayer" parent="."]
 layer = 10
@@ -93,7 +101,6 @@ layer = 11
 
 [node name="PartyOverlay" type="Panel" parent="PanelsLayer"]
 unique_name_in_owner = true
-visible = false
 anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
@@ -143,7 +150,6 @@ size_flags_vertical = 3
 
 [node name="InventoryOverlay" type="Panel" parent="PanelsLayer"]
 unique_name_in_owner = true
-visible = false
 anchors_preset = 9
 anchor_bottom = 1.0
 offset_left = 12.0
@@ -198,8 +204,66 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
+[node name="TravelMapOverlay" type="Panel" parent="PanelsLayer"]
+unique_name_in_owner = true
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 536.0
+grow_horizontal = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelsLayer/TravelMapOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelsLayer/TravelMapOverlay/MarginContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Travel Map"
+
+[node name="TravelMapCloseButton" type="Button" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Close"
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+script = ExtResource("3_erf46")
+
+[node name="WorldMapViewport" type="SubViewport" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer/SubViewportContainer"]
+unique_name_in_owner = true
+transparent_bg = true
+handle_input_locally = false
+canvas_item_default_texture_filter = 3
+size = Vector2i(1128, 477)
+render_target_update_mode = 4
+
+[node name="MapCamera" type="Camera2D" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer/SubViewportContainer/WorldMapViewport"]
+unique_name_in_owner = true
+
+[node name="WorldMapInstance" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer/SubViewportContainer/WorldMapViewport" instance=ExtResource("4_24yum")]
+unique_name_in_owner = true
+position = Vector2(12, 47)
+
 [node name="EscapeMenuOverlay" type="Panel" parent="PanelsLayer"]
 unique_name_in_owner = true
+visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

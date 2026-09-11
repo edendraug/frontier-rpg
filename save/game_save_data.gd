@@ -30,9 +30,12 @@ extends Resource
 ## --- Time ---
 @export var total_minutes_elapsed: int = 0
 
-## --- Expedition progress (not yet implemented) ---
-## World position, visited locations, which Events have already
-## fired, etc. will live here once World Generation / Event System
-## exist. Deliberately left unadded rather than stubbed with guessed
-## fields -- easier to add real fields later than to guess wrong now
-## and carry dead ones.
+## --- Expedition progress ---
+## Fills the slot this file previously reserved for world position/
+## route/visited-hex data -- see Travel System Design Doc v0.2,
+## Section 6. Defaults to a fresh TravelState (AT_CAMP, Normal pace,
+## empty route/history) rather than null, so a save predating this
+## field or a brand-new expedition always has a valid state to read.
+## Which Events have already fired will need its own field once an
+## Event/Encounter system exists -- not this one's job.
+@export var travel_state: TravelState = TravelState.new()

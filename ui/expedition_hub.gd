@@ -38,6 +38,10 @@ extends Control
 ##   %EscapeQuitButton       (Button) — "Quit Without Saving"
 ##   %EscapeResumeButton     (Button) — "Resume" — closes the menu without acting; not one of the three you asked for, but needed so opening the menu isn't a one-way trip into a consequential choice.
 ##   %DialogueWindow         (Control) — the real player-facing dialogue box (DialogueWindow.gd). Starts hidden; opened externally via DialogueWindow.open(player, actor_id), not through this scene's overlay-toggle mechanism. Anchored Bottom Wide, occupying only the bottom strip - Party/Inventory buttons stay reachable during a conversation by design (checking supplies/party mid-conversation is wanted), not something Mouse Filter needs to block. Visual stacking (Party/Inventory overlay opened while dialogue is also visible) isn't polished yet - deferred, not blocking.
+##   %TravelMapButton        (Button) — place alongside %PartyButton/%InventoryButton.
+##   %TravelMapOverlay       (Control/Panel) — Mouse Filter: Stop, starts hidden. Step one only shows a rendered map, no interaction yet — suggest sizing this noticeably bigger than Party/Inventory's side-panel treatment, since a map needs the room to stay legible. Consider wrapping its content in a ScrollContainer now even though the ~60-hex test patch probably fits without one — the eventual ~640-700 hex real map almost certainly won't.
+##   %TravelMapCloseButton   (Button) — same close-button pattern as Party/Inventory.
+##   Inside %TravelMapOverlay: a SubViewportContainer with travel_map_panel.gd attached and `stretch = true` set in the Inspector, sized to fill most of the overlay (anchors or a fixed custom_minimum_size — your call). Contains a SubViewport (%WorldMapViewport) with an instance of world_map_authoring.tscn (%WorldMapInstance) and a Camera2D (%MapCamera) both inside it. Renders the real authored map (terrain/trail/river art), scaled and pannable via the camera — no ScrollContainer needed, the camera handles zoom/pan instead of scrollbars.
 ##
 ## Opens via the Escape key (Godot's built-in "ui_cancel" action, no
 ## input map setup needed). If Party or Inventory is already open,
@@ -59,11 +63,14 @@ func _make_label(text: String, font_size: int = 13) -> Label:
 func _ready() -> void:
 	%PartyButton.pressed.connect(_on_party_button_pressed)
 	%InventoryButton.pressed.connect(_on_inventory_button_pressed)
+	%TravelMapButton.pressed.connect(_on_travel_map_button_pressed)
 	%PartyCloseButton.pressed.connect(_close_active_overlay)
 	%InventoryCloseButton.pressed.connect(_close_active_overlay)
+	%TravelMapCloseButton.pressed.connect(_close_active_overlay)
 
 	%PartyOverlay.visible = false
 	%InventoryOverlay.visible = false
+	%TravelMapOverlay.visible = false
 
 	# Rows already open need their Feed buttons' grayed/enabled state
 	# (and the is_at_camp value captured in each row's button closure)
@@ -154,6 +161,15 @@ func _on_party_button_pressed() -> void:
 
 func _on_inventory_button_pressed() -> void:
 	_toggle_overlay(%InventoryOverlay, _refresh_inventory_overlay)
+
+
+## No refresh callback needed -- travel_map_view.gd draws itself
+## entirely on its own via _ready()/_draw() the instant the scene
+## loads, and the baked map it reads from doesn't change at runtime.
+## Same no-op pattern _unhandled_input() already uses for
+## %EscapeMenuOverlay below.
+func _on_travel_map_button_pressed() -> void:
+	_toggle_overlay(%TravelMapOverlay, func(): pass)
 
 
 func _toggle_overlay(overlay: Control, refresh_fn: Callable) -> void:
