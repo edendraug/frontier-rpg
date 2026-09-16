@@ -34,27 +34,12 @@ const SIDECAR_PATH := "res://systems/world_generation/data/world_sidecar.tres"
 const OUTPUT_PATH := "res://systems/world_generation/data/baked_hex_map.tres"
 
 # The hex painted at Godot's native offset (0,0) is always assigned
-# axial "0,0" -- a fixed anchor rather than "whichever cell the walk
-# happens to start from," so re-baking never shifts existing
-# coordinates. Confirmed with Cameron: a hex is always kept painted
-# here.
-const ANCHOR_OFFSET := Vector2i(0, 0)
-
-# Confirmed empirically via the hex-neighbor diagnostic script against
-# the actual TileSet (pointy-top, per Cameron's art -- flat-top was the
-# original working assumption and was corrected). This is a fixed,
-# arbitrary-but-consistent pairing with AXIAL_DIRECTIONS' own index
-# order below -- what matters is that this script and WorldRegistry
-# agree on the pairing, not that any particular pairing is "the"
-# natural one.
-const CELL_NEIGHBOR_BY_AXIAL_INDEX := [
-	TileSet.CELL_NEIGHBOR_RIGHT_SIDE,        # index 0 -- AXIAL_DIRECTIONS[0] (1,0)  E
-	TileSet.CELL_NEIGHBOR_TOP_RIGHT_SIDE,    # index 1 -- AXIAL_DIRECTIONS[1] (1,-1) NE
-	TileSet.CELL_NEIGHBOR_TOP_LEFT_SIDE,     # index 2 -- AXIAL_DIRECTIONS[2] (0,-1) NW
-	TileSet.CELL_NEIGHBOR_LEFT_SIDE,         # index 3 -- AXIAL_DIRECTIONS[3] (-1,0) W
-	TileSet.CELL_NEIGHBOR_BOTTOM_LEFT_SIDE,  # index 4 -- AXIAL_DIRECTIONS[4] (-1,1) SW
-	TileSet.CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE, # index 5 -- AXIAL_DIRECTIONS[5] (0,1)  SE
-]
+# axial "0,0", and CELL_NEIGHBOR_BY_AXIAL_INDEX pairs Godot's native
+# CellNeighbor enum with this project's own AXIAL_DIRECTIONS index
+# order -- both now live in HexBakeConstants (hex_bake_constants.gd),
+# shared with world_map_authoring.gd's runtime click-resolution mirror
+# of this same graph-walk. See that file's own comment for why sharing
+# these two specifically (unlike AXIAL_DIRECTIONS below) is safe.
 
 # Must match WorldRegistry.AXIAL_DIRECTIONS exactly -- duplicated here
 # rather than imported so this script has no runtime dependency on the
@@ -73,23 +58,23 @@ func _run() -> void:
 	var trail_layer: TileMapLayer = root.get_node("%TrailLayer")
 	var river_layer: TileMapLayer = root.get_node("%RiverLayer")
 
-	if terrain_layer.get_cell_source_id(ANCHOR_OFFSET) == -1:
-		push_error("Bake aborted: no terrain painted at anchor cell %s. A hex must always be painted here so axial coordinates stay stable across re-bakes." % ANCHOR_OFFSET)
+	if terrain_layer.get_cell_source_id(HexBakeConstants.ANCHOR_OFFSET) == -1:
+		push_error("Bake aborted: no terrain painted at anchor cell %s. A hex must always be painted here so axial coordinates stay stable across re-bakes." % HexBakeConstants.ANCHOR_OFFSET)
 		root.queue_free()
 		return
 
 	# --- Pass 1: graph-walk from the anchor, assigning every reachable
 	# painted terrain cell a stable axial coordinate. ---
 	var axial_by_offset: Dictionary = {}  # Vector2i (offset) -> Vector2i (axial q,r)
-	axial_by_offset[ANCHOR_OFFSET] = Vector2i.ZERO
+	axial_by_offset[HexBakeConstants.ANCHOR_OFFSET] = Vector2i.ZERO
 
-	var queue: Array[Vector2i] = [ANCHOR_OFFSET]
+	var queue: Array[Vector2i] = [HexBakeConstants.ANCHOR_OFFSET]
 	while not queue.is_empty():
 		var current_offset: Vector2i = queue.pop_front()
 		var current_axial: Vector2i = axial_by_offset[current_offset]
 
 		for i in 6:
-			var neighbor_offset: Vector2i = terrain_layer.get_neighbor_cell(current_offset, CELL_NEIGHBOR_BY_AXIAL_INDEX[i])
+			var neighbor_offset: Vector2i = terrain_layer.get_neighbor_cell(current_offset, HexBakeConstants.CELL_NEIGHBOR_BY_AXIAL_INDEX[i])
 			if terrain_layer.get_cell_source_id(neighbor_offset) == -1:
 				continue  # not painted -- no hex here
 			if axial_by_offset.has(neighbor_offset):
@@ -106,7 +91,7 @@ func _run() -> void:
 	var unreachable := total_painted - axial_by_offset.size()
 	if unreachable > 0:
 		push_warning("Bake: %d painted terrain cell(s) are disconnected from the anchor and were excluded. Check for stray painted cells." % unreachable)
-	print("Bake: %d terrain cells reachable from anchor %s" % [axial_by_offset.size(), ANCHOR_OFFSET])
+	print("Bake: %d terrain cells reachable from anchor %s" % [axial_by_offset.size(), HexBakeConstants.ANCHOR_OFFSET])
 
 	# --- Load sidecar. Missing file means no settlements/special
 	# events authored yet -- not an error. ---
@@ -143,7 +128,7 @@ func _run() -> void:
 		var river_edges: Array[int] = []
 		if river_layer.get_cell_source_id(offset_coord) != -1:
 			for i in 6:
-				var river_neighbor_offset: Vector2i = terrain_layer.get_neighbor_cell(offset_coord, CELL_NEIGHBOR_BY_AXIAL_INDEX[i])
+				var river_neighbor_offset: Vector2i = terrain_layer.get_neighbor_cell(offset_coord, HexBakeConstants.CELL_NEIGHBOR_BY_AXIAL_INDEX[i])
 				if river_layer.get_cell_source_id(river_neighbor_offset) != -1:
 					river_edges.append(i)
 		hex.river_edges = river_edges

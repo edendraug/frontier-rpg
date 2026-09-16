@@ -11,7 +11,11 @@ extends Node
 ##
 ## Register in Project Settings > Autoload AFTER TimeSystem,
 ## ItemRegistry, and InventorySystem — begin_expedition() calls into
-## InventorySystem directly.
+## InventorySystem directly. Registration order relative to
+## TravelSystem doesn't matter, despite begin_expedition() also calling
+## into it now -- that call happens during actual gameplay, long after
+## every autoload's own _ready() has already run, not during this
+## autoload's own initialization.
 
 signal character_added(index: int)
 signal character_updated(index: int)
@@ -197,6 +201,14 @@ func begin_expedition() -> bool:
 
 	InventorySystem.set_party_size(get_party_size())
 	_seed_starting_gear_and_money()
+	# TravelSystem is a process-lifetime autoload, same as everything
+	# else here -- without this, starting a genuinely new expedition
+	# without closing the game window first would inherit whatever
+	# travel state (position, queue, progress) is left over from
+	# whatever was happening a moment ago. Same class of gap
+	# load_travel_state()/get_travel_state() not being wired into
+	# SaveManager was; this is the "New Game" side of that same fix.
+	TravelSystem.reset_to_fresh_expedition()
 
 	expedition_begun.emit()
 	return true

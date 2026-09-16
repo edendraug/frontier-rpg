@@ -1,13 +1,14 @@
 extends Node
 
 ## Autoload. Owns Pace, the route queue, real-time travel progress,
-## and the four-state travel state machine (Design Doc v0.2, Section
-## 3.9) -- the party's single "what is Travel doing right now" source
-## of truth. Live in-memory state is a TravelState Resource
-## (_travel_state below), the same shape GameSaveData.travel_state
-## saves/loads -- SaveManager reads/writes it via get_travel_state()/
-## load_travel_state() rather than TravelSystem inventing a separate
-## save shape of its own.
+## and the travel state machine (originally four states, design doc
+## Section 3.9; a fifth, ROUTE_COMPLETE, was added after -- see
+## TravelState.State's own comment) -- the party's single "what is
+## Travel doing right now" source of truth. Live in-memory state is a
+## TravelState Resource (_travel_state below), the same shape
+## GameSaveData.travel_state saves/loads -- SaveManager reads/writes it
+## via get_travel_state()/load_travel_state() rather than TravelSystem
+## inventing a separate save shape of its own.
 ##
 ## Register in Project Settings > Autoload LAST, after WorldRegistry --
 ## _ready() registers with VitalsSystem (must already exist), and a
@@ -20,12 +21,17 @@ extends Node
 ## speed+hazard modifier contributions (Phase 4, Section 3.2), route
 ## queueing/pathfinding (Phase 5, Section 3.4-3.5), the real-time
 ## progress tick + visited-hex logging (Phase 6, Section 3.6/3.8), and
-## the river-crossing stub (Phase 7, Section 3.7). What the design doc
-## itself defers beyond this file's scope stays deferred here too --
-## actual event triggering against computed hazard, the river-crossing
-## minigame's real resolution, Assignment System integration, the
-## Camp/downtime system, and all final UI/UX (Section 9) are still
-## nobody's job but a later, separate design pass.
+## the river-crossing stub (Phase 7, Section 3.7). Beyond the original 7
+## phases, Cameron's later additions: ROUTE_COMPLETE as a standstill
+## state distinct from PAUSED_BY_PLAYER (TravelState.State's own
+## comment), and direction-reversal when a genuinely different exit
+## gets queued after progress already committed past center toward
+## another one (TravelState.reversing_to_center, _advance_travel()).
+## What the design doc itself defers beyond this file's scope stays
+## deferred here too -- actual event triggering against computed
+## hazard, the river-crossing minigame's real resolution, Assignment
+## System integration, the Camp/downtime system, and all final UI/UX
+## (Section 9) are still nobody's job but a later, separate design pass.
 
 ## Reserved now, consumed starting Phase 4 -- see design doc Section
 ## 3.2/4.2. Matches ModifierResolver's own doc-comment example for the
@@ -111,29 +117,6 @@ const CAMP_PACKUP_MINUTES := 30
 ## guess. See get_current_hex() below.
 const STARTING_HEX_COORD := "0,0"
 
-## Confirmed by Cameron: the party stops at a hex's CENTER upon
-## reaching the final hex of a queued route, rather than continuing on
-## to exit through a far edge the way every other hex in the route
-## does -- so the final hex's real travel cost is edge-to-center, not
-## edge-to-edge, and should cost less than a fully-crossed hex. Modeled
-## as a flat fraction of the hex's normal terrain cost rather than
-## charging the destination hex in full. Untuned placeholder -- half
-## of a full crossing is a reasonable first geometric guess (a regular
-## hexagon's center sits roughly halfway between any two of its
-## edges), not a value derived from real hex geometry or the
-## chord-crossing math WorldRegistry uses elsewhere. Applied in
-## get_eta_minutes() below, and in Phase 6's
-## _get_hex_travel_minutes() for the live real-time tick -- both check
-## the same condition (is this coord the current queue's actual last
-## entry) independently, since get_eta_minutes() takes an arbitrary
-## `route` array while _get_hex_travel_minutes() always checks against
-## the live queued_route. Deliberately NOT applied inside
-## _edge_cost()/_find_path() -- those operate on a generic hex that
-## might end up being an intermediate step if more hexes get queued
-## afterward, not necessarily the route's actual final destination;
-## "final hex" is only a meaningful concept at the whole-route level.
-const FINAL_HEX_ARRIVAL_FRACTION := 0.5
-
 ## How many in-game minutes one real-world second represents at
 ## playback_speed = 1.0. Confirmed by Cameron: roughly 15 real seconds
 ## to cross a 360-in-game-minute Grassland hex at Normal pace, hence
@@ -142,16 +125,19 @@ const FINAL_HEX_ARRIVAL_FRACTION := 0.5
 ## once actual playtesting shows travel feeling too fast/slow.
 const BASE_MINUTES_PER_REAL_SECOND := 24.0
 
-## Legal transitions per the state-machine diagram in Section 3.9.
-## AT_CAMP's only legal exit is to TRAVELING, and only via
-## begin_travel() below -- there's no public method that lets a caller
-## jump straight to PAUSED_BY_PLAYER/PAUSED_BY_EVENT from AT_CAMP,
-## since pausing something that was never moving doesn't mean anything.
+## Legal transitions per the state-machine diagram in Section 3.9, plus
+## ROUTE_COMPLETE (Cameron's later addition -- see TravelState.State's
+## own comment). AT_CAMP's and ROUTE_COMPLETE's only legal exit is to
+## TRAVELING, and only via begin_travel() below -- there's no public
+## method that lets a caller jump straight to PAUSED_BY_PLAYER/
+## PAUSED_BY_EVENT from either, since pausing something that was never
+## moving doesn't mean anything.
 const _LEGAL_TRANSITIONS := {
 	TravelState.State.AT_CAMP: [TravelState.State.TRAVELING],
-	TravelState.State.TRAVELING: [TravelState.State.PAUSED_BY_PLAYER, TravelState.State.PAUSED_BY_EVENT],
+	TravelState.State.TRAVELING: [TravelState.State.PAUSED_BY_PLAYER, TravelState.State.PAUSED_BY_EVENT, TravelState.State.ROUTE_COMPLETE],
 	TravelState.State.PAUSED_BY_PLAYER: [TravelState.State.TRAVELING],
 	TravelState.State.PAUSED_BY_EVENT: [TravelState.State.TRAVELING],
+	TravelState.State.ROUTE_COMPLETE: [TravelState.State.TRAVELING],
 }
 
 ## Fired whenever _set_state() completes a legal transition -- lets a
@@ -196,7 +182,6 @@ var _travel_state: TravelState = TravelState.new()
 ## this is pure real-time frame-timing bookkeeping, not meaningful save
 ## data.
 var _pending_game_minutes: float = 0.0
-
 
 func _ready() -> void:
 	VitalsSystem.register_environmental_source(_get_pace_fatigue_entries)
@@ -322,13 +307,15 @@ func get_travel_hazard_multiplier(_coord: String) -> float:
 # point carve-out; adjacency validation now always runs.
 
 ## The party's current physical location (Section 3.8) -- the last
-## entry in visited_hex_path once Phase 6's tick starts logging real
-## entries, or STARTING_HEX_COORD for a brand-new expedition that
-## hasn't moved yet. The starting settlement itself is never logged as
-## a "visited" entry (Section 3.8 only logs a hex the instant the
-## party ENTERS it via travel, and the party didn't travel to reach
-## their own starting settlement) -- this getter's fallback covers
-## that gap without needing a fake log entry.
+## entry in visited_hex_path, or STARTING_HEX_COORD as a fallback for
+## the brief window before that's true. Under the current model
+## (queued_route defaults to ["0,0"], current_hex_progress to 0.5 --
+## see TravelState's own comments), the starting settlement DOES get
+## logged like any other hex, the first time _advance_travel()'s own
+## _ensure_hex_logged() call runs for it -- which only happens once
+## begin_travel() actually transitions to TRAVELING. Before that (still
+## AT_CAMP, nothing queued beyond the settlement itself), this getter's
+## fallback is what covers the gap.
 func get_current_hex() -> String:
 	var path := _travel_state.visited_hex_path
 	return path.back() if not path.is_empty() else STARTING_HEX_COORD
@@ -341,8 +328,16 @@ func get_queued_route() -> Array[String]:
 ## Not explicitly named in the design doc, but a trivial and obviously
 ## useful pairing with queue_hex()/unqueue_from() below -- flagging the
 ## small scope addition rather than sneaking it in unremarked.
+##
+## Truncates back to JUST the current hex (index 0) rather than fully
+## emptying the array -- queued_route should never actually be empty
+## under normal play (see its own comment). unqueue_from() now refuses
+## to remove index 0 for exactly this reason; clear_queue() has to get
+## it right too, or it would reopen the same hole from a different
+## angle. Equivalent to "cancel every queued destination, keep resting
+## where I already am."
 func clear_queue() -> void:
-	_travel_state.queued_route.clear()
+	_travel_state.queued_route = [_travel_state.queued_route[0]] if not _travel_state.queued_route.is_empty() else []
 
 
 ## Left-click add (Section 3.4). Refuses (returns false, no mutation)
@@ -362,14 +357,23 @@ func queue_hex(coord: String) -> bool:
 		push_warning("TravelSystem: queue_hex('%s') refused -- hex is not passable" % coord)
 		return false
 
-	# If the queue was empty, `coord` is about to become the NEW front
-	# hex -- reset progress rather than risk carrying over stale
-	# progress from whatever hex previously occupied the front (e.g.
-	# unqueue_from() having removed the in-progress hex out from under
-	# an active crossing).
+	# queued_route should never actually be empty under normal play --
+	# with unqueue_from() now refusing to remove index 0, and
+	# clear_queue() always preserving it, this branch should genuinely
+	# be UNREACHABLE rather than merely unlikely. Kept as cheap
+	# insurance, not because a real path to it is known.
 	if _travel_state.queued_route.is_empty():
 		_travel_state.current_hex_progress = 0.0
+
+	# queued_route[1] can only ever CHANGE VALUE by this append if it
+	# didn't exist before -- append() only touches the end of the
+	# array, so an ALREADY-existing index 1 is never touched by this
+	# call. That's exactly the case _on_new_exit_direction_known() needs
+	# to know about (see its own comment).
+	var gaining_first_real_destination := _travel_state.queued_route.size() < 2
 	_travel_state.queued_route.append(coord)
+	if gaining_first_real_destination and _travel_state.queued_route.size() >= 2:
+		_on_new_exit_direction_known(coord)
 	return true
 
 
@@ -377,9 +381,27 @@ func queue_hex(coord: String) -> bool:
 ## queued after it, so the queue always stays one continuous path with
 ## no orphaned branch. No-op (returns false) if `coord` isn't actually
 ## in the queue.
+##
+## Refuses (returns false, warns) if `coord` is queued_route[0] --
+## the hex CURRENTLY being crossed, not a future destination that can
+## be cancelled. "Unqueue" was only ever meant for plans not yet
+## walked; queued_route[0] is where the party physically IS, possibly
+## mid-crossing with real, already-walked progress. Removing it would
+## make queued_route empty, which nothing in this system can recover
+## a truthful position from afterward -- the very next queue_hex()
+## call would treat whatever gets queued next as a BRAND NEW index 0,
+## silently discarding the real progress/direction data that still
+## correctly describes where the party actually is. What the player
+## almost certainly wants instead -- "don't go anywhere past where I
+## am right now" -- is already fully expressible: unqueue index 1
+## (the actual next destination), which correctly truncates the queue
+## back to just the current hex, preserving its position exactly.
 func unqueue_from(coord: String) -> bool:
 	var index := _travel_state.queued_route.find(coord)
 	if index == -1:
+		return false
+	if index == 0:
+		push_warning("TravelSystem: unqueue_from('%s') refused -- that's the current hex, not a queued destination. To stop after the current crossing, unqueue the NEXT hex instead." % coord)
 		return false
 	_travel_state.queued_route.resize(index)
 	return true
@@ -398,40 +420,92 @@ func queue_autopath_to(coord: String) -> bool:
 		push_warning("TravelSystem: queue_autopath_to('%s') found no path from '%s'" % [coord, start])
 		return false
 
-	# Same reasoning as queue_hex() above -- an empty queue means
-	# `path`'s first entry is about to become the new front hex.
+	# Purely defensive now, same reasoning as queue_hex() above --
+	# should be genuinely unreachable, not just unlikely.
 	if _travel_state.queued_route.is_empty():
 		_travel_state.current_hex_progress = 0.0
+
+	var gaining_first_real_destination := _travel_state.queued_route.size() < 2
 	_travel_state.queued_route.append_array(path)
+	if gaining_first_real_destination and _travel_state.queued_route.size() >= 2:
+		_on_new_exit_direction_known(_travel_state.queued_route[1])
 	return true
+
+
+## Called whenever a queue that had NO real destination (just the
+## current hex) gains its first one -- new_exit is that hex.
+##
+## If current_hex_progress is still <= 0.5 (hasn't committed to any
+## direction yet), or last_known_exit_hex already agrees with new_exit
+## (the SAME direction, re-queued), this is a completely ordinary
+## assignment -- adopt new_exit immediately.
+##
+## But if progress is ALREADY past center toward a DIFFERENT remembered
+## direction, that distance was genuinely walked toward the OLD exit --
+## it doesn't transfer to a new one for free. Cameron: reversing it
+## costs real time, at the hex's own terrain rate, same as walking it
+## did. So last_known_exit_hex is deliberately NOT updated here in that
+## case -- it stays pointing at the OLD direction throughout the
+## reversal (current_hex_progress DECREASING is what a reversal IS; see
+## _advance_travel()), and only adopts new_exit once progress actually
+## reaches center. reversing_to_center is the flag that tells the tick
+## loop which mode it's in.
+##
+## Either way, whenever the direction is ACTUALLY changing (not a
+## same-direction re-queue), midpoint_event_checked gets reset here too
+## -- a river-crossing check already run was evaluated against the OLD
+## direction, and a genuinely different one needs its own, independent
+## check. This matters even outside the reversal case: a river-crossing
+## pause always freezes progress at EXACTLY 0.5, not past it, so
+## swapping the queued destination while paused (allowed -- the
+## triggering hex is queued_route[1], a cancellable destination, not
+## the current hex) hits this non-reversal branch, not the one above --
+## missing the reset here specifically would have let a real crossing
+## check for the new direction go silently unevaluated.
+func _on_new_exit_direction_known(new_exit: String) -> void:
+	var direction_changing := _travel_state.last_known_exit_hex != "" and _travel_state.last_known_exit_hex != new_exit
+	var committed_elsewhere := _travel_state.current_hex_progress > 0.5 and direction_changing
+
+	if committed_elsewhere:
+		_travel_state.reversing_to_center = true
+	else:
+		if direction_changing:
+			_travel_state.midpoint_event_checked = false
+		_travel_state.last_known_exit_hex = new_exit
 
 
 ## Estimated total travel time for `route`, in minutes -- Section 3.5's
 ## pre-travel confirmation ETA. Sums each hex's terrain
 ## base_travel_minutes divided by that hex's own speed multiplier
 ## (Phase 4's get_travel_speed_multiplier() -- higher multiplier means
-## faster, hence division, not multiplication). The LAST hex in
-## `route` is charged only FINAL_HEX_ARRIVAL_FRACTION of its normal
-## cost -- the party stops at its center rather than exiting through a
-## far edge like every other hex (see that constant's comment above).
+## faster, hence division, not multiplication).
+##
+## No longer discounts the last hex -- there IS no "final hex" anymore
+## as a special case (Cameron): every hex costs its full entry->center-
+## >exit crossing time, whether or not a next hex is currently known.
+## Running out of route just freezes progress at the halfway (center)
+## point rather than skipping the second half's cost entirely.
+##
+## Does NOT account for `route[0]` possibly already being partway
+## through its own crossing (a resumed rest hex, typically frozen at
+## progress 0.5) -- this sums each hex's FULL cost regardless of
+## current_hex_progress, so it can overstate remaining time for
+## whichever hex is currently in progress. Pre-existing limitation, not
+## something this pass fixes; flagged rather than silently accepted.
+##
 ## Silently skips any coord WorldRegistry doesn't recognize rather
 ## than aborting the whole estimate -- consistent with this project's
 ## permissive-by-default handling of missing/unauthored data elsewhere.
 func get_eta_minutes(route: Array) -> int:
 	var total_minutes := 0.0
-	var last_index := route.size() - 1
-	for i in route.size():
-		var coord: String = route[i]
+	for coord in route:
 		var hex := WorldRegistry.get_hex(coord)
 		if hex == null:
 			continue
 		var terrain := WorldRegistry.get_terrain(hex.terrain_type_id)
 		if terrain == null:
 			continue
-		var hex_minutes: float = terrain.base_travel_minutes / get_travel_speed_multiplier(coord)
-		if i == last_index:
-			hex_minutes *= FINAL_HEX_ARRIVAL_FRACTION
-		total_minutes += hex_minutes
+		total_minutes += terrain.base_travel_minutes / get_travel_speed_multiplier(coord)
 	return int(round(total_minutes))
 
 
@@ -518,28 +592,45 @@ func get_current_state() -> TravelState.State:
 	return _travel_state.state
 
 
-## "Begin Travel" (Section 3.5) -- the one way out of AT_CAMP, per the
-## _LEGAL_TRANSITIONS entry added specifically for this method. Refuses
-## (returns false, no state change, no time cost) if the queue is
-## empty -- there's nowhere to begin traveling TO -- or if not
-## currently AT_CAMP. Unconditionally charges CAMP_PACKUP_MINUTES via
-## TimeSystem when it succeeds, since AT_CAMP always means "currently
-## camped" (Section 3.9) -- there's no path through this method that
-## skips the pack-up cost.
+## "Begin Travel" (Section 3.5) -- the way out of a standstill, either
+## AT_CAMP or ROUTE_COMPLETE (Cameron's later addition -- both mean
+## "not moving, need a destination to start"; PAUSED_BY_PLAYER/
+## PAUSED_BY_EVENT are a DIFFERENT kind of "not moving" -- an
+## interrupted crossing -- and use resume_travel() instead, never this
+## method). Refuses (returns false, no state change, no time cost) if
+## there's no real destination beyond the resting hex, or if not
+## currently in one of the two standstill states.
+##
+## The empty-queue check is `size() < 2`, not `is_empty()` --
+## queued_route[0] is ALWAYS the hex currently being rested in or
+## crossed now (Cameron: this is never actually empty under normal
+## play, even at the very start), so an "empty" queue in the old sense
+## now looks like a single entry with nowhere further to go.
+##
+## CAMP_PACKUP_MINUTES is charged ONLY when leaving AT_CAMP specifically
+## -- AT_CAMP always means "currently camped" (Section 3.9), so leaving
+## it always means breaking camp, but ROUTE_COMPLETE never means a camp
+## was pitched (Cameron: no auto-camping until a real Camp system
+## exists), so there's nothing to pack up leaving THAT state.
+##
+## Does NOT need to log queued_route[0] -- unlike the old model, that
+## hex was ALREADY current (and already logged, whenever it first
+## became so) before this method ever runs; nothing new becomes current
+## here. The first genuinely NEW hex only appears once
+## _complete_current_hex() pops the resting hex after it's fully
+## crossed, and that already calls _ensure_hex_logged() on the next
+## iteration of _advance_travel()'s own loop.
 func begin_travel() -> bool:
-	if _travel_state.queued_route.is_empty():
-		push_warning("TravelSystem: begin_travel() refused -- queue is empty")
+	if _travel_state.queued_route.size() < 2:
+		push_warning("TravelSystem: begin_travel() refused -- no destination queued beyond the current hex")
 		return false
-	if _travel_state.state != TravelState.State.AT_CAMP:
-		push_warning("TravelSystem: begin_travel() refused -- not currently AT_CAMP")
+	if _travel_state.state != TravelState.State.AT_CAMP and _travel_state.state != TravelState.State.ROUTE_COMPLETE:
+		push_warning("TravelSystem: begin_travel() refused -- not currently AT_CAMP or ROUTE_COMPLETE")
 		return false
 
-	TimeSystem.pass_minutes(CAMP_PACKUP_MINUTES)
+	if _travel_state.state == TravelState.State.AT_CAMP:
+		TimeSystem.pass_minutes(CAMP_PACKUP_MINUTES)
 	_set_state(TravelState.State.TRAVELING)
-	# Logged synchronously here, not left to _advance_travel()'s own
-	# _ensure_hex_logged() call -- otherwise get_current_hex() would
-	# read stale for however long until this frame's _process() runs.
-	_ensure_hex_logged(_travel_state.queued_route[0])
 	return true
 
 
@@ -609,20 +700,79 @@ func get_visited_hex_path() -> Array[String]:
 	return _travel_state.visited_hex_path.duplicate()
 
 
+## The neighbor hex current_hex_progress's "beyond center" half is
+## measured toward -- see TravelState.last_known_exit_hex's own
+## comment. This is the consumer-facing getter for it; "" means no
+## direction has ever been established for whichever hex is current
+## right now (it hasn't advanced past center yet, or never had a next
+## hex queued at all).
+func get_last_known_exit_hex() -> String:
+	return _travel_state.last_known_exit_hex
+
+
+## Whether the current hex is currently being walked BACKWARD toward
+## center, having committed progress toward a direction that got
+## replaced by a genuinely different one -- see
+## TravelState.reversing_to_center's own comment.
+func is_reversing_to_center() -> bool:
+	return _travel_state.reversing_to_center
+
+
 ## Drives real-time progress through queued_route's front entry.
-## queued_route[0] IS the hex currently being crossed -- confirmed
-## reading of TravelState's data shape; there's no separate "current
-## hex" field. Runs as a while-loop rather than a single step so a
-## large delta (a lag spike, or a high playback_speed) can correctly
-## finish crossing MULTIPLE hexes in one call without losing or
-## double-spending any of this frame's time.
+## queued_route[0] IS the hex currently being crossed (or rested in) --
+## confirmed reading of TravelState's data shape; there's no separate
+## "current hex" field, and it's never actually empty under normal play
+## now (see TravelState.queued_route's own comment). Runs as a
+## while-loop rather than a single step so a large delta (a lag spike,
+## or a high playback_speed) can correctly finish crossing MULTIPLE
+## hexes in one call without losing or double-spending any of this
+## frame's time.
+##
+## Each hex has a CAP on how far progress can advance: 1.0 (full
+## crossing) if a next hex is currently known (queued_route.size() >= 2),
+## or 0.5 (center) if not. Cameron: every hex crossing always routes
+## through its own center, and represents the SAME geometric distance
+## either way (a regular hexagon's center-to-edge-midpoint distance,
+## the apothem, is identical for every edge) -- so there's no more
+## "final hex" discount. A hex that runs out of road just has progress
+## FROZEN at 0.5 rather than being popped and reset; the moment a real
+## next hex gets queued and travel resumes, the SAME hex picks up
+## exactly where it left off and continues normally toward that hex's
+## actual exit edge, at that hex's own full, undiscounted terrain cost.
+## This is what makes leaving a rest stop (including the very start of
+## the whole expedition) an ordinary crossing rather than a special
+## case needing its own visual/timing hack.
+##
+## Each step ALSO targets progress 0.5 specifically (not straight to
+## whatever the cap is) whenever the midpoint river-crossing check
+## hasn't run yet for this hex -- this is what guarantees the check
+## actually fires at the midpoint rather than being silently skipped
+## over by a single large step. If no next hex is known yet when
+## progress reaches 0.5, the check is correctly DEFERRED (not skipped,
+## not marked done) until a real exit edge is actually knowable --
+## requires_river_crossing_now() already returns false with no next hex
+## known, so evaluating it too early would silently skip a real
+## crossing once the true destination is finally queued.
+##
+## REVERSAL (Cameron): if a genuinely different direction gets queued
+## while progress is already past center toward a remembered one
+## (TravelState.reversing_to_center, set by _on_new_exit_direction_known()),
+## this is checked and handled FIRST, before any of the forward logic
+## above even runs -- progress DECREASES back toward 0.5 at the same
+## per-hex terrain rate forward movement uses (reversing costs real
+## time too, it isn't free), and only once it reaches exactly 0.5 does
+## last_known_exit_hex adopt the new direction and ordinary forward
+## processing resume. The overlay needs no changes at all for this --
+## it already just renders whatever current_hex_progress says, and a
+## decreasing value already reads as walking backward toward center.
 func _advance_travel(delta: float) -> void:
 	if _travel_state.queued_route.is_empty():
-		# Shouldn't happen -- begin_travel() refuses an empty queue,
-		# and _complete_current_hex() below pauses the instant the
-		# queue empties -- but stay defensive rather than crash on the
-		# queued_route[0] access below if some other path ever leaves
-		# state == TRAVELING with nothing queued.
+		# Should be genuinely unreachable now, not just unlikely --
+		# unqueue_from() refuses to remove index 0 and clear_queue()
+		# always preserves it, so nothing left should be able to empty
+		# this out. Kept as cheap insurance against crashing on the
+		# queued_route[0] access below, not because a real path here
+		# is known.
 		push_warning("TravelSystem: _advance_travel() called while TRAVELING with an empty queue")
 		pause_travel()
 		return
@@ -631,38 +781,76 @@ func _advance_travel(delta: float) -> void:
 
 	while remaining_minutes > 0.0 and _travel_state.state == TravelState.State.TRAVELING and not _travel_state.queued_route.is_empty():
 		var current_coord: String = _travel_state.queued_route[0]
-		if _ensure_hex_logged(current_coord) and requires_river_crossing_now():
-			# Section 3.7's stub: halt, enter PAUSED_BY_EVENT, and go no
-			# further -- the actual minigame/manual-input resolution is
-			# out of scope here. _ensure_hex_logged() having just
-			# returned true (a genuinely FRESH entry) is what stops this
-			# from re-triggering every tick while paused, or immediately
-			# again the instant resume_travel() is called -- the next
-			# time this loop runs for this same coord, it's no longer a
-			# fresh entry, so this branch is skipped and travel proceeds
-			# normally through the hex.
-			_pause_for_event()
-			break
+		_ensure_hex_logged(current_coord)
 
 		var hex_total_minutes := _get_hex_travel_minutes(current_coord)
 		if hex_total_minutes <= 0.0:
 			# An unrecognized/unpassable hex should never have made it
 			# into queued_route via queue_hex()'s own validation -- but
-			# a division by zero below would hang travel silently, so
-			# warn and skip past it rather than freeze.
+			# a division by zero below (in EITHER the reversal or the
+			# forward branch) would hang travel silently, so warn and
+			# bail out unconditionally, before either branch runs.
+			# Clearing reversing_to_center here too -- there's no
+			# meaningful way to reverse through data this broken either.
 			push_warning("TravelSystem: current hex '%s' has zero/invalid travel cost, skipping" % current_coord)
-			_complete_current_hex()
+			_travel_state.reversing_to_center = false
+			if _travel_state.queued_route.size() >= 2:
+				_complete_current_hex()
+				continue
+			else:
+				_halt_at_route_end()
+				break
+
+		if _travel_state.reversing_to_center:
+			var minutes_to_center := (_travel_state.current_hex_progress - 0.5) * hex_total_minutes
+			var minutes_to_apply_rev: float = minf(remaining_minutes, minutes_to_center)
+
+			_travel_state.current_hex_progress -= minutes_to_apply_rev / hex_total_minutes
+			_spend_game_minutes(minutes_to_apply_rev)
+			remaining_minutes -= minutes_to_apply_rev
+
+			if _travel_state.current_hex_progress <= 0.5:
+				_travel_state.current_hex_progress = 0.5  # clamp exactly -- avoid float drift past the threshold
+				_travel_state.reversing_to_center = false
+				_travel_state.midpoint_event_checked = false  # a new direction needs its own crossing check
+				if _travel_state.queued_route.size() >= 2:
+					_travel_state.last_known_exit_hex = _travel_state.queued_route[1]
 			continue
 
-		var minutes_left_in_hex := (1.0 - _travel_state.current_hex_progress) * hex_total_minutes
-		var minutes_to_apply: float = minf(remaining_minutes, minutes_left_in_hex)
+		var has_next_hex := _travel_state.queued_route.size() >= 2
+		var cap := 1.0 if has_next_hex else 0.5
+
+		if _travel_state.current_hex_progress >= cap:
+			if has_next_hex:
+				_complete_current_hex()
+				continue
+			else:
+				# Reached the cap (center) with nothing further queued
+				# -- nowhere to go until more hexes are added. Freeze
+				# here: don't pop, don't touch progress, just stop
+				# ticking against this same dead end.
+				_halt_at_route_end()
+				break
+
+		var target_progress: float = 0.5 if not _travel_state.midpoint_event_checked else cap
+		var minutes_to_target := (target_progress - _travel_state.current_hex_progress) * hex_total_minutes
+		var minutes_to_apply: float = minf(remaining_minutes, minutes_to_target)
 
 		_travel_state.current_hex_progress += minutes_to_apply / hex_total_minutes
 		_spend_game_minutes(minutes_to_apply)
 		remaining_minutes -= minutes_to_apply
 
-		if _travel_state.current_hex_progress >= 1.0:
-			_complete_current_hex()
+		if not _travel_state.midpoint_event_checked and _travel_state.current_hex_progress >= 0.5 and has_next_hex:
+			# Section 3.7's stub, fired at the geometric midpoint
+			# (Cameron: every crossing routes through center) rather
+			# than on entry. Only actually runs -- and only gets marked
+			# done -- once a real next hex is known; see this
+			# function's own header comment for why deferring instead
+			# of skipping matters here.
+			_travel_state.midpoint_event_checked = true
+			if requires_river_crossing_now():
+				_pause_for_event()
+				break
 
 
 ## Section 3.8's log-on-ENTRY contract ("the party's current hex is
@@ -675,19 +863,11 @@ func _advance_travel(delta: float) -> void:
 ## the immediately-preceding entry; a true re-entry (backtracking to a
 ## coord visited earlier, then later, non-consecutively) still
 ## duplicates, per Section 3.8's own allowance for repeats.
-##
-## Returns true only when `coord` was a genuinely NEW entry this call --
-## _advance_travel() uses this to gate the one-time-per-entry
-## river-crossing check (Section 3.7) below, so resuming after a
-## stubbed river pause doesn't immediately re-trigger the same check
-## against the same hex it's already sitting on.
-func _ensure_hex_logged(coord: String) -> bool:
+func _ensure_hex_logged(coord: String) -> void:
 	var path := _travel_state.visited_hex_path
 	if path.is_empty() or path.back() != coord:
 		path.append(coord)
 		hex_entered.emit(coord)
-		return true
-	return false
 
 
 ## Convenience wrapper (Section 5.1) around
@@ -697,14 +877,15 @@ func _ensure_hex_logged(coord: String) -> bool:
 ## (visited_hex_path's second-to-last entry), exit toward wherever
 ## they're heading next (queued_route[1]).
 ##
-## Returns false without querying WorldRegistry at all for either route
-## endpoint -- Section 5.3 resolved this explicitly, not by omission:
-## the FIRST hex of a whole journey was only ever entered (nothing
-## before it to derive entry_edge from), and the LAST hex of the
-## current queue is only ever exited TO, never FROM (the party stops
-## at its center per FINAL_HEX_ARRIVAL_FRACTION, rather than continuing
-## out through a far edge) -- neither endpoint supports or needs this
-## query.
+## Returns false without querying WorldRegistry at all when either edge
+## isn't known yet -- Section 5.3 resolved the "first hex of a journey"
+## case explicitly, not by omission: it was only ever entered, nothing
+## before it to derive entry_edge from. The "no next hex queued yet"
+## case is different in kind, not just in name: _advance_travel()'s own
+## deferred-check logic means this returning false here doesn't mean
+## "never check" the way it used to when a final hex was a genuinely
+## separate, discounted case -- it means "not yet," and the real check
+## still runs later, once a real exit edge actually exists to test.
 func requires_river_crossing_now() -> bool:
 	if _travel_state.queued_route.is_empty():
 		return false
@@ -722,12 +903,13 @@ func requires_river_crossing_now() -> bool:
 
 ## Total in-game minutes required to fully cross `coord` at current
 ## Pace/Trail conditions -- the per-hex denominator current_hex_progress
-## advances against. Mirrors get_eta_minutes()'s per-hex math,
-## including the FINAL_HEX_ARRIVAL_FRACTION discount when `coord` is
-## the LAST entry in queued_route (Cameron's center-of-hex
-## clarification -- this is the consumer that constant's comment
-## reserved room for). Returns 0.0 for an unrecognized coord or unknown
-## terrain type -- defensive only, see the caller's own comment.
+## advances against. Mirrors get_eta_minutes()'s per-hex math. No
+## longer discounted for a "final" hex (Cameron) -- there is no special
+## final-hex case anymore; a hex that runs out of road just freezes at
+## progress 0.5 (see _advance_travel()'s own header comment) rather
+## than being charged half price for a shortened crossing. Returns 0.0
+## for an unrecognized coord or unknown terrain type -- defensive only,
+## see the caller's own comment.
 func _get_hex_travel_minutes(coord: String) -> float:
 	var hex := WorldRegistry.get_hex(coord)
 	if hex == null:
@@ -735,11 +917,7 @@ func _get_hex_travel_minutes(coord: String) -> float:
 	var terrain := WorldRegistry.get_terrain(hex.terrain_type_id)
 	if terrain == null:
 		return 0.0
-
-	var minutes: float = terrain.base_travel_minutes / get_travel_speed_multiplier(coord)
-	if coord == _travel_state.queued_route.back():
-		minutes *= FINAL_HEX_ARRIVAL_FRACTION
-	return minutes
+	return terrain.base_travel_minutes / get_travel_speed_multiplier(coord)
 
 
 ## Feeds `minutes` (a float -- this call's share of one frame's worth
@@ -760,21 +938,58 @@ func _spend_game_minutes(minutes: float) -> void:
 ## current_hex_progress to 0.0 for whatever's now at the front. Does
 ## NOT log the finished hex -- it was already logged by
 ## _ensure_hex_logged() back when it first became current, per Section
-## 3.8's log-on-entry contract. If the pop empties the queue,
-## transitions to PAUSED_BY_PLAYER rather than AT_CAMP -- confirmed by
-## Cameron: there's no Camp system yet to actually pitch camp, and
-## jumping straight to AT_CAMP would have TravelSystem silently
-## pretending that happened. The eventual real flow is: alert the
-## player the queued journey is finished, offer to set up camp, and
-## also allow queuing more hexes and resuming travel from here without
-## ever passing through AT_CAMP at all.
+## 3.8's log-on-entry contract.
+##
+## Only ever called from _advance_travel() when a next hex is ALREADY
+## known (has_next_hex true) -- "the queue ran out" is no longer this
+## function's concern at all; see _halt_at_route_end() below for that
+## case instead. Popping unconditionally is safe here specifically
+## because the caller already confirmed there's something left after
+## the pop.
 func _complete_current_hex() -> void:
 	_travel_state.queued_route.pop_front()
 	_travel_state.current_hex_progress = 0.0
+	_travel_state.midpoint_event_checked = false
+	# The new current hex's exit reference should reflect whatever's
+	# ALREADY known to come next (queued_route[1], if any) -- NOT
+	# unconditionally reset to "". A multi-hex route queued all at once
+	# (B and C both queued before travel even began) already has C
+	# sitting at queued_route[1] well before B ever becomes current --
+	# _on_new_exit_direction_known() only fires once per BATCH (the
+	# queue transitioning from no-real-destination to having one), not
+	# once per hex, so a later hex in the same batch never got a chance
+	# to have its own exit captured. Blindly resetting to "" here threw
+	# that already-known answer away, which is what made the overlay
+	# treat progress past 0.5 as "no exit known" and clamp the render to
+	# center for the entire back half of the crossing -- current_hex_
+	# progress itself was never wrong, only what the overlay had to
+	# render it against.
+	_travel_state.last_known_exit_hex = _travel_state.queued_route[1] if _travel_state.queued_route.size() >= 2 else ""
+	# Defensive only -- _advance_travel()'s reversal branch always
+	# `continue`s, so this function should never actually be reached
+	# while reversing_to_center is true. Reset anyway, same hygiene as
+	# midpoint_event_checked above.
+	_travel_state.reversing_to_center = false
 
-	if _travel_state.queued_route.is_empty():
-		pause_travel()
-		journey_completed.emit()
+
+## Halts travel with the current hex FROZEN exactly where it is -- no
+## next hex is known, so there's nowhere further to advance toward.
+## Deliberately does NOT touch queued_route or current_hex_progress at
+## all: the whole point is that the SAME hex, at the SAME progress,
+## picks back up the instant a real destination gets queued and
+## begin_travel() is called again -- no popping, no resetting, nothing
+## to reconstruct later. Distinct from _complete_current_hex() above,
+## which pops a FULLY-crossed hex and moves on; this one freezes an
+## INCOMPLETE crossing in place. ROUTE_COMPLETE rather than AT_CAMP --
+## there's no Camp system yet to actually pitch camp, and jumping
+## straight to AT_CAMP would have TravelSystem silently pretending that
+## happened. The eventual real flow is: alert the player the queued
+## journey is finished, offer to set up camp, and also allow queuing
+## more hexes and calling begin_travel() again from here without ever
+## passing through AT_CAMP at all.
+func _halt_at_route_end() -> void:
+	_set_state(TravelState.State.ROUTE_COMPLETE)
+	journey_completed.emit()
 
 
 # ---------------------------------------------------------------------------
@@ -785,8 +1000,49 @@ func _complete_current_hex() -> void:
 ## PartyManager.load_roster() -- a load is a restore, not gameplay
 ## time actually passing, so this deliberately does NOT go through
 ## set_pace()/_set_state() and doesn't fire their signals.
+##
+## No inference needed for midpoint_event_checked/reversing_to_center/
+## last_known_exit_hex -- all three are now real fields on TravelState
+## itself, loaded correctly along with everything else. This used to
+## guess midpoint_event_checked from progress/queue-size, which had a
+## genuine blind spot (couldn't tell "checked for the CURRENT direction"
+## from "checked for one that's since been replaced") -- see
+## TravelState.midpoint_event_checked's own comment for the scenario
+## that exposed it.
+## Used only by SaveManager on load. Direct replace, same pattern as
+## PartyManager.load_roster() -- a load is a restore, not gameplay
+## time actually passing, so this deliberately does NOT go through
+## set_pace()/_set_state() and doesn't fire their signals.
+##
+## Duplicates `state` before adopting it -- TravelState is a Resource
+## (a reference type), and load() on a .tres path isn't guaranteed to
+## re-read the file from disk each time: Godot can hand back an
+## already-cached instance from an earlier load of the SAME path,
+## still alive because something (this very field, before the fix)
+## kept holding a reference to it. Without duplicating, every tick
+## afterward would mutate that shared instance directly -- so quitting
+## without saving, then reloading the SAME save file, would silently
+## hand back your own in-memory, unsaved mutations instead of what's
+## actually on disk. Loading a DIFFERENT save first happened to "fix"
+## this by reassigning _travel_state elsewhere, dropping the only
+## reference and letting the stale instance get collected -- a real
+## symptom of the underlying reference-aliasing bug, not a coincidence.
+## get_travel_state() already duplicates on the way OUT for the exact
+## same reason; this was the missing other half of that same principle.
 func load_travel_state(state: TravelState) -> void:
-	_travel_state = state
+	_travel_state = state.duplicate()
+	_pending_game_minutes = 0.0
+
+
+## Called from PartyManager.begin_expedition() -- TravelSystem is a
+## process-lifetime autoload, same as every other system here; without
+## this, starting a new expedition without closing the game window
+## first would inherit whatever travel state (position, queue,
+## progress) is left over from a moment ago, the same class of bug
+## load_travel_state()/get_travel_state() not being wired into
+## SaveManager was -- just triggered by "New Game" instead of "Load."
+func reset_to_fresh_expedition() -> void:
+	_travel_state = TravelState.new()
 	_pending_game_minutes = 0.0
 
 

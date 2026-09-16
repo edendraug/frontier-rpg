@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dv36i3ivm5svj"]
+[gd_scene load_steps=10 format=3 uid="uid://dv36i3ivm5svj"]
 
 [ext_resource type="Theme" uid="uid://beyooei0gsls" path="res://assets/themes/dialogue_window_theme.tres" id="1_m00r5"]
 [ext_resource type="Script" uid="uid://bxj4wvnekjjio" path="res://ui/expedition_hub.gd" id="1_m1pwa"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://8hbyeb6ediqj" path="res://ui/travel_map_panel.gd" id="3_erf46"]
 [ext_resource type="Script" uid="uid://bx21jcdjybxam" path="res://ui/travel_control_panel.gd" id="3_wpls2"]
 [ext_resource type="PackedScene" uid="uid://buyqvajop1glw" path="res://systems/world_generation/scenes/world_map_authoring.tscn" id="4_24yum"]
+[ext_resource type="Script" uid="uid://5q2ba62nwwwm" path="res://ui/travel_map_overlay.gd" id="6_jvxsa"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_24yum"]
 
@@ -211,10 +212,12 @@ size_flags_vertical = 3
 
 [node name="TravelMapOverlay" type="Panel" parent="PanelsLayer"]
 unique_name_in_owner = true
-anchors_preset = 10
+anchors_preset = 15
 anchor_right = 1.0
-offset_bottom = 536.0
+anchor_bottom = 1.0
+offset_bottom = -110.0
 grow_horizontal = 2
+grow_vertical = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelsLayer/TravelMapOverlay"]
 layout_mode = 1
@@ -272,7 +275,7 @@ unique_name_in_owner = true
 transparent_bg = true
 handle_input_locally = false
 canvas_item_default_texture_filter = 3
-size = Vector2i(1128, 396)
+size = Vector2i(1128, 398)
 render_target_update_mode = 4
 
 [node name="MapCamera" type="Camera2D" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer/SubViewportContainer/WorldMapViewport"]
@@ -280,7 +283,9 @@ unique_name_in_owner = true
 
 [node name="WorldMapInstance" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer/SubViewportContainer/WorldMapViewport" instance=ExtResource("4_24yum")]
 unique_name_in_owner = true
-position = Vector2(12, 47)
+
+[node name="Overlay" type="Node2D" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer/SubViewportContainer/WorldMapViewport"]
+script = ExtResource("6_jvxsa")
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -335,7 +340,7 @@ theme_override_styles/separator = SubResource("StyleBoxEmpty_24yum")
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "QueueLabel"
+clip_text = true
 
 [node name="VSeparator5" type="VSeparator" parent="PanelsLayer/TravelMapOverlay/MarginContainer/VBoxContainer/HBoxContainer2"]
 layout_mode = 2

@@ -109,6 +109,7 @@ func _write_save(slug: String, display_name: String) -> String:
 	data.money = InventorySystem.get_money()
 	data.vehicle_capacity = InventorySystem.get_vehicle_capacity()
 	data.total_minutes_elapsed = TimeSystem.get_total_minutes_elapsed()
+	data.travel_state = TravelSystem.get_travel_state()
 
 	var err := ResourceSaver.save(data, path)
 	if err != OK:
@@ -146,6 +147,7 @@ func load_game(slug: String) -> bool:
 	# so the two can never drift apart.
 	InventorySystem.set_party_size(PartyManager.get_party_size())
 	TimeSystem.set_total_minutes_elapsed(data.total_minutes_elapsed)
+	TravelSystem.load_travel_state(data.travel_state)
 
 	_current_save_slug = slug
 	_current_save_name = data.save_name

@@ -15,7 +15,7 @@ extends Control
 ##   %StateLabel            (Label)
 ##   %CurrentHexLabel       (Label)
 ##   %ProgressLabel         (Label) — current_hex_progress as a percentage.
-##   %QueueLabel            (Label) — the queued route, joined into one line.
+##   %QueueLabel            (Label) — upcoming destinations only (queued_route[0], the current/resting hex, is excluded -- see %CurrentHexLabel for that).
 ##   %ETALabel              (Label) — get_eta_minutes() for the current queue.
 ##   %BeginTravelButton     (Button)
 ##   %PauseButton           (Button)
@@ -29,7 +29,7 @@ extends Control
 ## problem, not preemptively.
 
 const PACE_NAMES := ["Careful", "Normal", "Forced"]
-const STATE_NAMES := ["At Camp", "Traveling", "Paused (Player)", "Paused (Event)"]
+const STATE_NAMES := ["At Camp", "Traveling", "Paused (Player)", "Paused (Event)", "Route Complete"]
 
 
 func _ready() -> void:
@@ -65,18 +65,34 @@ func _refresh() -> void:
 	var state := TravelSystem.get_current_state()
 	%StateLabel.text = "State: %s" % STATE_NAMES[state]
 	%CurrentHexLabel.text = "Current hex: %s" % TravelSystem.get_current_hex()
-	%ProgressLabel.text = "Progress: %.0f%%" % (TravelSystem.get_current_hex_progress() * 100.0)
+	%ProgressLabel.text = "Progress: %.0f%%%s" % [
+		TravelSystem.get_current_hex_progress() * 100.0,
+		" (reversing)" if TravelSystem.is_reversing_to_center() else ""
+	]
 
-	var queue := TravelSystem.get_queued_route()
-	if queue.is_empty():
+	# queued_route[0] is always the current/resting hex now (Cameron's
+	# model -- see TravelState's own comment), not a real destination,
+	# so it's excluded from the DISPLAYED queue here even though
+	# get_eta_minutes() below still correctly uses the full array
+	# (including whatever's left of queue[0]'s own crossing).
+	var full_queue := TravelSystem.get_queued_route()
+	var destinations := full_queue.slice(1)
+	if destinations.is_empty():
 		%QueueLabel.text = "Queue: (empty)"
 	else:
-		%QueueLabel.text = "Queue (%d): %s" % [queue.size(), ", ".join(PackedStringArray(queue))]
-	%ETALabel.text = "ETA: %d min" % TravelSystem.get_eta_minutes(queue)
+		%QueueLabel.text = "Queue (%d): %s" % [destinations.size(), ", ".join(PackedStringArray(destinations))]
+	%ETALabel.text = "ETA: %d min" % TravelSystem.get_eta_minutes(full_queue)
 
 	# Buttons reflect what's actually LEGAL right now, per
 	# TravelSystem's own state machine -- rather than letting a press
 	# silently no-op with only a console warning to explain why.
-	%BeginTravelButton.disabled = state != TravelState.State.AT_CAMP
+	# Begin Travel works from EITHER standstill state (AT_CAMP or
+	# ROUTE_COMPLETE); Resume is reserved for an actually-interrupted
+	# crossing (either paused state) -- the two are deliberately
+	# different buttons now, matching TravelSystem's own
+	# begin_travel()/resume_travel() split.
+	var at_standstill := state == TravelState.State.AT_CAMP or state == TravelState.State.ROUTE_COMPLETE
+	var interrupted := state == TravelState.State.PAUSED_BY_PLAYER or state == TravelState.State.PAUSED_BY_EVENT
+	%BeginTravelButton.disabled = not at_standstill
 	%PauseButton.disabled = state != TravelState.State.TRAVELING
-	%ResumeButton.disabled = state == TravelState.State.AT_CAMP or state == TravelState.State.TRAVELING
+	%ResumeButton.disabled = not interrupted

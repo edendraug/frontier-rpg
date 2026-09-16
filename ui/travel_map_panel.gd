@@ -140,7 +140,7 @@ func _on_hex_clicked(is_unqueue: bool) -> void:
 	if is_unqueue:
 		var removed := TravelSystem.unqueue_from(coord)
 		print("TravelMapPanel: right-click '%s' -> unqueue_from() %s" % [
-			coord, "removed it" if removed else "found nothing there to remove"
+			coord, "removed it" if removed else "refused/no-op (see warning above, if any)"
 		])
 	else:
 		var queued := TravelSystem.queue_autopath_to(coord)

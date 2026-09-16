@@ -18,10 +18,14 @@ extends Node2D
 ## (Expedition Hub's panel today, a possible full-screen World Map view
 ## later), not specific to one particular UI panel.
 ##
-## Also exposes get_axial_coord()/get_axial_coord_at_local() below, for
-## resolving a click on the rendered map to a real WorldRegistry coord
-## string -- see their own comments for why the offset<->axial mapping
-## is duplicated from bake_hex_map.gd rather than shared.
+## Also exposes get_axial_coord()/get_axial_coord_at_local()/
+## get_axial_coord_at_mouse() below, for resolving a click on the
+## rendered map to a real WorldRegistry coord string, and
+## get_hex_center()/get_shared_edge_midpoint() for the reverse
+## direction -- turning a coord back into a real pixel position, for a
+## Travel-side overlay to draw against. See HexBakeConstants
+## (hex_bake_constants.gd) for the offset<->axial mapping these share
+## with bake_hex_map.gd.
 
 ## Computes the real pixel-space bounding box of every painted terrain
 ## cell. %TerrainLayer is treated as the authoritative "whole map"
@@ -59,33 +63,26 @@ func get_content_bounds() -> Rect2:
 	return Rect2(min_pos - padding, (max_pos - min_pos) + padding * 2.0)
 
 
-## ANCHOR_OFFSET and CELL_NEIGHBOR_BY_AXIAL_INDEX are duplicated
-## VERBATIM from bake_hex_map.gd, for the identical reason that script
-## gives for duplicating AXIAL_DIRECTIONS from WorldRegistry: an
-## EditorScript can't depend on this file existing, so the values have
-## to live in both places. If the bake step's empirically-confirmed
-## CellNeighbor mapping or anchor cell ever changes, THIS must change
-## to match, or clicks will silently resolve to the wrong hex --
-## silently, because a wrong-but-valid-looking coordinate string is a
-## far worse failure mode than a crash. AXIAL_DIRECTIONS itself is NOT
-## duplicated a third time here -- this script runs in the live game,
-## where WorldRegistry is always a real autoload, so _build_axial_lookup()
-## below reads WorldRegistry.AXIAL_DIRECTIONS directly instead.
-const ANCHOR_OFFSET := Vector2i(0, 0)
-const CELL_NEIGHBOR_BY_AXIAL_INDEX := [
-	TileSet.CELL_NEIGHBOR_RIGHT_SIDE,
-	TileSet.CELL_NEIGHBOR_TOP_RIGHT_SIDE,
-	TileSet.CELL_NEIGHBOR_TOP_LEFT_SIDE,
-	TileSet.CELL_NEIGHBOR_LEFT_SIDE,
-	TileSet.CELL_NEIGHBOR_BOTTOM_LEFT_SIDE,
-	TileSet.CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE,
-]
+## ANCHOR_OFFSET and CELL_NEIGHBOR_BY_AXIAL_INDEX now live in
+## HexBakeConstants (hex_bake_constants.gd), shared with
+## bake_hex_map.gd's own graph-walk -- previously duplicated by hand in
+## both files. See that file's own comment for why sharing these two
+## specifically (unlike AXIAL_DIRECTIONS, still duplicated separately)
+## is safe. If the bake step's empirically-confirmed CellNeighbor
+## mapping or anchor cell ever changes, it changes there and both
+## consumers pick it up automatically -- no second file to remember.
 
-## offset (Vector2i) -> axial q,r (Vector2i). Built once, lazily -- see
-## _build_axial_lookup() -- not in _ready(), so opening/editing this
-## scene directly, or embedding it somewhere that only ever calls
-## get_content_bounds(), never pays to build a lookup nothing asked for.
+## offset (Vector2i) -> axial q,r (Vector2i), and its reverse, axial
+## "q,r" (String) -> offset (Vector2i) -- both built in the SAME walk
+## by _build_axial_lookup() below, since computing one is already
+## computing the other. The reverse direction is what get_hex_center()
+## needs: given an axial coord, find its real pixel position via the
+## offset cell map_to_local() actually understands. Built once, lazily
+## -- not in _ready(), so opening/editing this scene directly, or
+## embedding it somewhere that only ever calls get_content_bounds(),
+## never pays to build a lookup nothing asked for.
 var _axial_by_offset: Dictionary = {}
+var _offset_by_coord: Dictionary = {}
 var _axial_lookup_built := false
 
 
@@ -133,6 +130,45 @@ func get_axial_coord_at_mouse() -> String:
 	return get_axial_coord_at_local(get_local_mouse_position())
 
 
+## GLOBAL 2D position of the center of the hex at `coord` -- the exact
+## inverse direction of get_axial_coord(). Deliberately GLOBAL, not
+## local to this scene: a caller drawing this (e.g. a Travel-side
+## overlay, which is a SEPARATE sibling node, not this one) would
+## otherwise need this scene's position/scale/rotation to exactly match
+## its own for the result to land in the right place -- fragile, and
+## exactly the bug this fixes. to_global() makes the result correct
+## regardless of either node's transform; the caller converts back via
+## to_local() on ITSELF before drawing. Returns Vector2.INF (not
+## Vector2.ZERO -- a hex really could be centered near world origin, so
+## ZERO isn't a safe "not found" signal) for a coord with no
+## corresponding painted hex.
+func get_hex_center(coord: String) -> Vector2:
+	if not _axial_lookup_built:
+		_build_axial_lookup()
+	if not _offset_by_coord.has(coord):
+		return Vector2.INF
+	return %TerrainLayer.to_global(%TerrainLayer.map_to_local(_offset_by_coord[coord]))
+
+
+## GLOBAL 2D midpoint of the shared edge between two ADJACENT hexes --
+## geometrically just the midpoint between their two (now global)
+## centers, true for any regular hex grid regardless of orientation, so
+## no separate edge-geometry math is needed beyond get_hex_center()
+## above. Trusts the caller that `coord`/`neighbor_coord` are actually
+## adjacent -- doesn't verify via WorldRegistry.get_direction_index()
+## itself, since every real caller (TravelSystem's visited_hex_path/
+## queued_route sequences) is adjacent by construction already; a
+## non-adjacent pair would silently produce a geometrically meaningless
+## but plausible-looking point rather than an error. Returns
+## Vector2.INF if either coord has no corresponding painted hex.
+func get_shared_edge_midpoint(coord: String, neighbor_coord: String) -> Vector2:
+	var a := get_hex_center(coord)
+	var b := get_hex_center(neighbor_coord)
+	if a == Vector2.INF or b == Vector2.INF:
+		return Vector2.INF
+	return (a + b) / 2.0
+
+
 ## Runtime mirror of bake_hex_map.gd's Pass 1 graph-walk -- see that
 ## script for the full reasoning behind walking via
 ## get_neighbor_cell() rather than a coordinate-conversion formula.
@@ -142,21 +178,24 @@ func get_axial_coord_at_mouse() -> String:
 ## hit, rather than silently trusting a bake that might be stale.
 func _build_axial_lookup() -> void:
 	_axial_lookup_built = true
-	if %TerrainLayer.get_cell_source_id(ANCHOR_OFFSET) == -1:
-		push_warning("WorldMapAuthoring: no terrain painted at anchor cell %s -- click resolution will find nothing" % ANCHOR_OFFSET)
+	if %TerrainLayer.get_cell_source_id(HexBakeConstants.ANCHOR_OFFSET) == -1:
+		push_warning("WorldMapAuthoring: no terrain painted at anchor cell %s -- click resolution will find nothing" % HexBakeConstants.ANCHOR_OFFSET)
 		return
 
-	_axial_by_offset[ANCHOR_OFFSET] = Vector2i.ZERO
-	var queue: Array[Vector2i] = [ANCHOR_OFFSET]
+	_axial_by_offset[HexBakeConstants.ANCHOR_OFFSET] = Vector2i.ZERO
+	_offset_by_coord["0,0"] = HexBakeConstants.ANCHOR_OFFSET
+	var queue: Array[Vector2i] = [HexBakeConstants.ANCHOR_OFFSET]
 	while not queue.is_empty():
 		var current_offset: Vector2i = queue.pop_front()
 		var current_axial: Vector2i = _axial_by_offset[current_offset]
 
 		for i in 6:
-			var neighbor_offset: Vector2i = %TerrainLayer.get_neighbor_cell(current_offset, CELL_NEIGHBOR_BY_AXIAL_INDEX[i])
+			var neighbor_offset: Vector2i = %TerrainLayer.get_neighbor_cell(current_offset, HexBakeConstants.CELL_NEIGHBOR_BY_AXIAL_INDEX[i])
 			if %TerrainLayer.get_cell_source_id(neighbor_offset) == -1:
 				continue
 			if _axial_by_offset.has(neighbor_offset):
 				continue
-			_axial_by_offset[neighbor_offset] = current_axial + WorldRegistry.AXIAL_DIRECTIONS[i]
+			var neighbor_axial: Vector2i = current_axial + WorldRegistry.AXIAL_DIRECTIONS[i]
+			_axial_by_offset[neighbor_offset] = neighbor_axial
+			_offset_by_coord["%d,%d" % [neighbor_axial.x, neighbor_axial.y]] = neighbor_offset
 			queue.append(neighbor_offset)
