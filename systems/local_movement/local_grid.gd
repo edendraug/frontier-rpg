@@ -243,6 +243,38 @@ func _reconstruct_path(came_from: Dictionary, start: String, goal: String) -> Ar
 	return path
 
 
+# --- Spawn placement (Phase 4, Gather Point support) --------------------
+
+## Finds up to `count` available cells (walkable, in-grid, unoccupied)
+## spreading outward from `origin` — origin itself first if it
+## qualifies, then its neighbors, then their neighbors, and so on
+## (plain BFS ring expansion). For spawning multiple party members at
+## a single Gather Point (Design Doc Section 3.9/4.4) without stacking
+## them on the same cell. May return FEWER than `count` cells if the
+## grid genuinely doesn't have enough open space near origin — callers
+## decide what to do with a shortfall (LocalSceneRoot warns and spawns
+## as many as it got cells for).
+func find_open_cells_near(origin: String, count: int) -> Array[String]:
+	var found: Array[String] = []
+	if not has_cell(origin):
+		return found
+
+	var visited: Dictionary = {origin: true}
+	var queue: Array[String] = [origin]
+
+	while not queue.is_empty() and found.size() < count:
+		var current: String = queue.pop_front()
+		if is_available(current):
+			found.append(current)
+
+		for neighbor in get_neighbors(current):
+			if not visited.has(neighbor):
+				visited[neighbor] = true
+				queue.append(neighbor)
+
+	return found
+
+
 static func _parse_coord(coord: String) -> Vector2i:
 	var parts := coord.split(",")
 	if parts.size() != 2:

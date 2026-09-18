@@ -59,6 +59,9 @@ var occupation_option: OptionButton
 var occupation_preview: RichTextLabel
 var _occupation_ids: Array = []
 
+var sprite_option: OptionButton
+var _sprite_set_ids: Array = []
+
 var confirm_button: Button
 var status_label: RichTextLabel
 
@@ -83,6 +86,8 @@ func _build_ui() -> void:
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_row.add_child(name_edit)
 	root.add_child(name_row)
+
+	_build_appearance_section(root)
 
 	_build_stat_section(root)
 
@@ -179,6 +184,9 @@ func _reset_to_blank() -> void:
 	if not _occupation_ids.is_empty():
 		occupation_option.select(0)
 
+	if not _sprite_set_ids.is_empty():
+		sprite_option.select(0)
+
 
 ## Reconstructs the point-buy BASE score by subtracting the
 ## previously-applied Occupation's bonus back out of the sheet's
@@ -195,6 +203,10 @@ func _load_sheet(sheet: CharacterSheet) -> void:
 	var old_occupation: OccupationDefinition = registry.occupations.get(sheet.occupation_id)
 	if occ_index != -1:
 		occupation_option.select(occ_index)
+
+	var sprite_index: int = _sprite_set_ids.find(sheet.sprite_id)
+	if sprite_index != -1:
+		sprite_option.select(sprite_index)
 
 	for info in STAT_INFO:
 		var final_score: int = sheet.get(info.key)
@@ -218,6 +230,28 @@ func _load_sheet(sheet: CharacterSheet) -> void:
 			cb.set_pressed_no_signal(proficient)
 		if proficient:
 			_selected_skill_ids.append(progress.skill_id)
+
+
+## ============================================================
+## APPEARANCE (sprite set picker)
+## ============================================================
+## Same deliberate "name dropdown, no live preview" simplification as
+## character_creator.gd's copy of this -- see that file for why.
+func _build_appearance_section(parent: VBoxContainer) -> void:
+	var row := HBoxContainer.new()
+	row.add_child(_make_label("Appearance", 14))
+
+	sprite_option = OptionButton.new()
+	if registry.sprite_sets.is_empty():
+		sprite_option.add_item("(none found — author a SpriteSetDefinition .tres first)")
+	else:
+		for sprite_set_id in registry.sprite_sets.keys():
+			_sprite_set_ids.append(sprite_set_id)
+			var sprite_set: SpriteSetDefinition = registry.sprite_sets[sprite_set_id]
+			sprite_option.add_item(sprite_set.display_name)
+	row.add_child(sprite_option)
+
+	parent.add_child(row)
 
 
 ## ============================================================
@@ -525,6 +559,10 @@ func _on_confirm_pressed() -> void:
 		status_label.text = "[color=red]No Occupations loaded — run generate_sample_data.gd first.[/color]"
 		return
 
+	if _sprite_set_ids.is_empty():
+		status_label.text = "[color=red]No sprite sets loaded — author a SpriteSetDefinition .tres in systems/character/data/sprite_sets/ first.[/color]"
+		return
+
 	if _selected_skill_ids.size() != free_skill_count:
 		status_label.text = (
 			"[color=red]Choose exactly %d skill proficiencies before confirming.[/color]" % free_skill_count
@@ -547,6 +585,7 @@ func _build_sheet_from_current_state(scores: Dictionary) -> CharacterSheet:
 	var sheet := _editing_sheet if _editing_sheet != null else CharacterSheet.new()
 
 	sheet.character_name = name_edit.text if name_edit.text != "" else "Unnamed"
+	sheet.sprite_id = _sprite_set_ids[sprite_option.selected]
 
 	# Strip any previously-granted INNATE trait before reapplying —
 	# otherwise re-confirming the same Occupation on an edit would

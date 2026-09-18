@@ -34,9 +34,16 @@ extends Node2D
 ## set a flag on it. If ANY registered check returns true,
 ## set_active_character() refuses the switch and returns false.
 ##
+## switched_active_character fires on every successful switch, passing
+## the actual CharacterController (not just its CharacterSheet) --
+## added specifically so LocalSceneCamera can cache which node to
+## follow rather than polling get_active_character() every frame.
+##
 ## Extends Node2D purely for get_global_mouse_position()'s convenience
 ## (a CanvasItem method) -- this node renders nothing and its own
 ## transform is irrelevant.
+
+signal switched_active_character(controller: CharacterController)
 
 var _grid: LocalGrid
 var _controllers: Array[CharacterController] = []
@@ -93,10 +100,15 @@ func set_active_character(character_sheet: CharacterSheet) -> bool:
 	for controller in _controllers:
 		if controller.character_sheet == character_sheet:
 			_active_controller = controller
+			switched_active_character.emit(controller)
 			return true
 
 	push_warning("PlayerController: no registered controller represents that CharacterSheet")
 	return false
+
+
+func get_active_controller() -> CharacterController:
+	return _active_controller
 
 
 func get_active_character() -> CharacterSheet:

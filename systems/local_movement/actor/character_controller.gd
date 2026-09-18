@@ -11,14 +11,29 @@ extends Node2D
 ## in-between state, even though the VISUAL motion between cells is
 ## tweened).
 ##
-## No real sprite/animation swapping yet (Section 3.2's sprite_id is
-## wired through and queryable, but VisualRoot's Placeholder ColorRect
-## stays as-is until real art exists) — that's the only piece still
-## deferred. This is deliberately the bare shell: given a LocalGrid, it
-## can occupy a cell and be told to walk to another one. All position
-## conversion goes through the grid's own get_world_position() rather
-## than this script holding a separate TileMapLayer reference —
-## LocalGrid is the single source for that.
+## Expected scene shape (hand-authored, not built here):
+##   CharacterController (Node2D, this script)
+##   └── VisualRoot (Node2D)          -- assign to `visual_root` export; still what gets flipped for facing
+##       ├── AnimationPlayer          -- hand-authored "idle"/"walk" clips keyed on BodySprite:frame; assign to `animation_player` export
+##       ├── BodySprite (Sprite2D)    -- assign to `body_sprite` export; texture set at setup() time from a resolved SpriteSetDefinition
+##       └── ArmSprite (Sprite2D)     -- reserved for Combat's future weapon-state layer; no export/reference yet, deliberately untouched by this script
+##
+## Sprite/animation (Section 3.2/4.2): setup() takes an already-resolved
+## Texture2D rather than a CharacterDataRegistry reference -- whoever
+## spawns this controller looks sprite_id up against the registry ONCE
+## and hands over the answer, so this script never needs to know
+## CharacterDataRegistry exists or repeat that lookup per instance.
+## Only one direction is actually drawn (right-facing); left is the
+## same frames mirrored via VisualRoot.scale.x, per Cameron's call to
+## save on art. "idle" and "walk" are the two animation names this
+## script expects AnimationPlayer to have -- hand-author clips under
+## exactly those names for whichever atlas convention you're using.
+##
+## This is deliberately still a bare shell beyond that: given a
+## LocalGrid, it can occupy a cell and be told to walk to another one.
+## All position conversion goes through the grid's own
+## get_world_position() rather than this script holding a separate
+## TileMapLayer reference — LocalGrid is the single source for that.
 ##
 ## Occupancy transfers the INSTANT a step begins, not when its tween
 ## finishes — current_cell always reflects logical position, so two
@@ -28,11 +43,6 @@ extends Node2D
 ## comment in _cancel_current_path() for why that would actually be
 ## wrong. The new path just continues smoothly from wherever the
 ## visual currently is.
-##
-## Expected scene shape (hand-authored, not built here):
-##   CharacterController (Node2D, this script)
-##   └── VisualRoot (Node2D)          -- assign to `visual_root` export
-##       └── Placeholder (ColorRect)  -- stand-in for real sprite art
 ##
 ## Re-planning (Section 3.5, steps 2-5): the cell right before the one
 ## about to be stepped onto is checked lazily -- only immediately
@@ -56,7 +66,7 @@ signal arrived(cell: String)
 
 ## px/sec at Agility score 10 (modifier 0) -- untuned, same posture as
 ## every other placeholder in this project.
-const BASE_SPEED_PLACEHOLDER := 60.0
+const BASE_SPEED_PLACEHOLDER := 30.0
 
 ## +/-10% speed per point of Agility MODIFIER (score_to_modifier),
 ## reusing the project's existing D&D-style stat-to-modifier curve
@@ -67,11 +77,11 @@ const BASE_SPEED_PLACEHOLDER := 60.0
 const AGILITY_SPEED_SCALE_PLACEHOLDER := 0.1
 
 @export var visual_root: Node2D
+@export var body_sprite: Sprite2D
+@export var animation_player: AnimationPlayer
 
 ## Which character this controller represents (Section 3.2). Read for
-## the Agility speed multiplier below; sprite_id on the sheet is
-## wired through for later but has nothing to act on yet, since
-## VisualRoot only holds a placeholder ColorRect for now.
+## the Agility speed multiplier below.
 var character_sheet: CharacterSheet
 
 var current_cell: String = ""
@@ -87,12 +97,20 @@ var _has_replanned_this_move: bool = false
 ## Must be called once, right after instancing, before anything else.
 ## `grid` is the same LocalGrid the scene already built — not looked
 ## up globally, since a local grid is per-scene and ephemeral.
-func setup(grid: LocalGrid, sheet: CharacterSheet, start_cell: String) -> void:
+## `body_texture` is already resolved (SpriteSetDefinition.texture,
+## looked up by whoever's spawning this against sheet.sprite_id) --
+## see class-level note on why this script doesn't do that lookup itself.
+func setup(grid: LocalGrid, sheet: CharacterSheet, start_cell: String, body_texture: Texture2D = null) -> void:
 	_grid = grid
 	character_sheet = sheet
 	current_cell = start_cell
 	_grid.set_occupant(current_cell, self)
 	global_position = _grid.get_world_position(current_cell)
+
+	if body_sprite != null and body_texture != null:
+		body_sprite.texture = body_texture
+
+	_play_animation("idle")
 
 
 func move_to_cell(target_cell: String) -> void:
@@ -142,6 +160,7 @@ func _advance_path() -> void:
 	_path_index += 1
 	if _path_index >= _path.size():
 		_path.clear()
+		_play_animation("idle")
 		arrived.emit(current_cell)
 		return
 
@@ -171,6 +190,7 @@ func _replan() -> void:
 	if new_path.is_empty():
 		push_warning("CharacterController: %s is fully unreachable from %s -- goal and all its neighbors are blocked, stopping" % [_goal_cell, current_cell])
 		_path.clear()
+		_play_animation("idle")
 		return
 
 	_path = new_path
@@ -191,6 +211,7 @@ func _path_to_nearest_reachable_neighbor(goal: String) -> Array[String]:
 
 func _commit_step(next_cell: String) -> void:
 	_face_direction(next_cell)
+	_play_animation("walk")
 
 	# Claim the destination and release the origin immediately -- see
 	# class-level note. current_cell is logical position from this
@@ -229,3 +250,15 @@ func _face_direction(next_cell: String) -> void:
 	# Straight vertical movement (target_position.x == global_position.x)
 	# keeps whichever facing was already set -- no front/back animation
 	# exists yet (Design Doc Section 4.2 only defines left/right sets).
+
+
+## Plays `anim_name` ("idle" or "walk") if AnimationPlayer isn't
+## already on it -- guards against restarting a looping walk cycle
+## from frame 0 on every single hex step, which would look stuttery
+## for a 2-frame cycle. No-ops entirely if animation_player was never
+## assigned (e.g. an older test scene without one yet).
+func _play_animation(anim_name: String) -> void:
+	if animation_player == null:
+		return
+	if animation_player.current_animation != anim_name:
+		animation_player.play(anim_name)

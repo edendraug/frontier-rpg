@@ -1,11 +1,13 @@
-[gd_scene load_steps=8 format=4 uid="uid://vaq1eaixs3l"]
+[gd_scene load_steps=10 format=4 uid="uid://vaq1eaixs3l"]
 
-[ext_resource type="Script" uid="uid://c3jx68j2aknr5" path="res://dev/player_controller_tester.gd" id="1_ksgfp"]
-[ext_resource type="Texture2D" uid="uid://ccmfc7dg805w6" path="res://assets/art/hexes/temp_ground.png" id="2_ksgfp"]
-[ext_resource type="Texture2D" uid="uid://dvtcoo60n4i81" path="res://assets/art/hexes/temp_obstacle.png" id="3_ksgfp"]
+[ext_resource type="Script" uid="uid://buwr6upbwnw1f" path="res://systems/local_movement/local_scene_root.gd" id="1_i4mlx"]
+[ext_resource type="Texture2D" uid="uid://ccmfc7dg805w6" path="res://assets/art/hexes/temp_ground.png" id="2_5dw1m"]
+[ext_resource type="Texture2D" uid="uid://dvtcoo60n4i81" path="res://assets/art/hexes/temp_obstacle.png" id="3_xmygm"]
+[ext_resource type="PackedScene" uid="uid://dl3cpea61afjk" path="res://systems/local_movement/camera/local_scene_camera.tscn" id="4_1u2bu"]
+[ext_resource type="Script" uid="uid://r5a2vpa42s1r" path="res://systems/local_movement/scene_authoring/gather_point.gd" id="5_jwsa0"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_du2kr"]
-texture = ExtResource("2_ksgfp")
+texture = ExtResource("2_5dw1m")
 texture_region_size = Vector2i(32, 25)
 0:0/0 = 0
 1:0/0 = 0
@@ -16,7 +18,7 @@ tile_size = Vector2i(32, 22)
 sources/0 = SubResource("TileSetAtlasSource_du2kr")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_drnqv"]
-texture = ExtResource("3_ksgfp")
+texture = ExtResource("3_xmygm")
 texture_region_size = Vector2i(32, 25)
 0:0/0 = 0
 
@@ -25,8 +27,8 @@ tile_shape = 3
 tile_size = Vector2i(32, 22)
 sources/0 = SubResource("TileSetAtlasSource_drnqv")
 
-[node name="LocalMovementPlayground" type="Node2D"]
-script = ExtResource("1_ksgfp")
+[node name="Whiteroom" type="Node2D"]
+script = ExtResource("1_i4mlx")
 
 [node name="TerrainLayer" type="TileMapLayer" parent="."]
 unique_name_in_owner = true
@@ -38,5 +40,11 @@ unique_name_in_owner = true
 tile_map_data = PackedByteArray("AAD+/wEAAAAAAAAAAAD9//v/AAAAAAAAAAD+//v/AAAAAAAAAAD+//z/AAAAAAAAAAACAP7/AAAAAAAAAAABAP3/AAAAAAAAAAACAP3/AAAAAAAAAAACAP//AAAAAAAAAAABAP//AAAAAAAAAAA=")
 tile_set = SubResource("TileSet_w0ubn")
 
-[node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(2, 2)
+[node name="LocalSceneCamera" parent="." instance=ExtResource("4_1u2bu")]
+zoom = Vector2(1.5, 1.5)
+
+[node name="GatherPoint" type="Node2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(-30, 92)
+script = ExtResource("5_jwsa0")
+metadata/_custom_type_script = "uid://r5a2vpa42s1r"

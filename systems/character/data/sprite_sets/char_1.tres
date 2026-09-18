@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="SpriteSetDefinition" load_steps=3 format=3 uid="uid://2r3xo0ln8oda"]
+
+[ext_resource type="Script" uid="uid://bh1g6w6lroloi" path="res://systems/character/definitions/sprite_set_definition.gd" id="1_p6ijl"]
+[ext_resource type="Texture2D" uid="uid://cnesywr8hfiox" path="res://assets/art/hexes/characters/char_1.png" id="2_2k53p"]
+
+[resource]
+script = ExtResource("1_p6ijl")
+sprite_set_id = "char_1"
+display_name = "1"
+texture = ExtResource("2_2k53p")
+metadata/_custom_type_script = "uid://bh1g6w6lroloi"

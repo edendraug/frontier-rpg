@@ -23,6 +23,9 @@ var _player_controller: PlayerController
 var _lock_registered_on: PlayerController = null
 var _simulated_lock_active: bool = false
 
+var _scene_path_edit: LineEdit
+var _load_status_label: Label
+
 
 func get_tab_title() -> String:
 	return "Local Movement"
@@ -56,6 +59,25 @@ func _ready() -> void:
 
 	_readout = _make_label("")
 	root.add_child(_readout)
+
+	root.add_child(HSeparator.new())
+	root.add_child(_make_label(
+		"Load a local scene into Expedition Hub's content viewport via LocalSceneManager --"
+		+ " nothing real (Travel, an Encounter) triggers this yet, so this is the manual stand-in.",
+		11
+	))
+	var load_row := HBoxContainer.new()
+	_scene_path_edit = LineEdit.new()
+	_scene_path_edit.placeholder_text = "res://path/to/scene.tscn"
+	_scene_path_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	load_row.add_child(_scene_path_edit)
+	var load_button := Button.new()
+	load_button.text = "Load"
+	load_button.pressed.connect(_on_load_scene_pressed)
+	load_row.add_child(load_button)
+	root.add_child(load_row)
+	_load_status_label = _make_label("")
+	root.add_child(_load_status_label)
 
 	refresh()
 
@@ -112,3 +134,19 @@ func _on_character_selected(index: int) -> void:
 		# whichever character is actually active, so it doesn't lie
 		# about what just got picked.
 		_rebuild_character_option()
+
+
+func _on_load_scene_pressed() -> void:
+	var path := _scene_path_edit.text.strip_edges()
+	if path == "":
+		_load_status_label.text = "Enter a scene path first."
+		return
+
+	if LocalSceneManager.load_local_scene(path):
+		_load_status_label.text = "Loaded '%s'." % path
+		# The scene that just loaded has its own fresh PlayerController --
+		# re-find it so the Active Character section above reflects it
+		# instead of whatever was there before (or nothing).
+		refresh()
+	else:
+		_load_status_label.text = "Failed to load '%s' -- check the Output panel." % path

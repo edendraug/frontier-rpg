@@ -1,22 +1,117 @@
-[gd_scene load_steps=2 format=3 uid="uid://chmvd74uck03m"]
+[gd_scene load_steps=7 format=3 uid="uid://chmvd74uck03m"]
 
 [ext_resource type="Script" uid="uid://coruww7pvnacj" path="res://systems/local_movement/actor/character_controller.gd" id="1_wqs36"]
+[ext_resource type="Texture2D" uid="uid://cnesywr8hfiox" path="res://assets/art/hexes/characters/char_1.png" id="2_k62pc"]
 
-[node name="CharacterController" type="Node2D" node_paths=PackedStringArray("visual_root")]
+[sub_resource type="Animation" id="Animation_w0tsm"]
+resource_name = "idle"
+step = 0.0833333
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BodySprite:frame_coords")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_my3oi"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BodySprite:frame_coords")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_k62pc"]
+resource_name = "walk"
+length = 0.666675
+loop_mode = 1
+step = 0.0833333
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BodySprite:frame_coords")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.166667, 0.333333, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [Vector2i(1, 0), Vector2i(0, 0), Vector2i(2, 0), Vector2i(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:position")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.0833333, 0.25, 0.333333, 0.416667, 0.583333),
+"transitions": PackedFloat32Array(0.5, 2, 1, 0.5, 2, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -1.5), Vector2(0, 0), Vector2(0, 0), Vector2(0, -1.5), Vector2(0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_lsay5"]
+_data = {
+&"RESET": SubResource("Animation_my3oi"),
+&"idle": SubResource("Animation_w0tsm"),
+&"walk": SubResource("Animation_k62pc")
+}
+
+[node name="CharacterController" type="Node2D" node_paths=PackedStringArray("visual_root", "body_sprite", "animation_player")]
 script = ExtResource("1_wqs36")
 visual_root = NodePath("VisualRoot")
+body_sprite = NodePath("VisualRoot/BodySprite")
+animation_player = NodePath("VisualRoot/AnimationPlayer")
 
 [node name="VisualRoot" type="Node2D" parent="."]
 
-[node name="ColorRect" type="ColorRect" parent="VisualRoot"]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 8.0
-offset_bottom = 8.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="AnimationPlayer" type="AnimationPlayer" parent="VisualRoot"]
+libraries = {
+&"": SubResource("AnimationLibrary_lsay5")
+}
+
+[node name="BodySprite" type="Sprite2D" parent="VisualRoot"]
+texture = ExtResource("2_k62pc")
+offset = Vector2(0, -10)
+hframes = 3
+
+[node name="ArmSprite" type="Sprite2D" parent="VisualRoot"]
+offset = Vector2(0, -10)

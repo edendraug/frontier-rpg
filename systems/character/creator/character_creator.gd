@@ -9,11 +9,6 @@ extends Control
 ## below — Skills on the left, Occupation on the right — followed
 ## by a Create button and a result summary.
 
-## Sprite selection doesn't exist as real character-creation data yet
-## (Local Movement Design Doc, Section 3.2) -- every created sheet gets
-## this same default until a real art-selection step exists.
-const DEFAULT_SPRITE_ID := "default"
-
 const MAIN_CHARACTER_SKILL_COUNT := 2
 const NPC_SKILL_COUNT := 1
 
@@ -48,6 +43,9 @@ var _selected_skill_ids: Array = []
 var occupation_option: OptionButton
 var occupation_preview: RichTextLabel
 var _occupation_ids: Array = []
+
+var sprite_option: OptionButton
+var _sprite_set_ids: Array = []
 
 var output_label: RichTextLabel
 var _last_created_sheet: CharacterSheet = null
@@ -84,6 +82,8 @@ func _build_ui() -> void:
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_row.add_child(name_edit)
 	root.add_child(name_row)
+
+	_build_appearance_section(root)
 
 	_build_stat_section(root)
 
@@ -151,6 +151,33 @@ func _on_mode_changed(index: int) -> void:
 
 	_update_skill_selection_label()
 	_update_skill_checkbox_states()
+
+
+## ============================================================
+## APPEARANCE (sprite set picker)
+## ============================================================
+## Deliberately just a name dropdown, no live preview -- a real
+## thumbnail would need to crop a single frame out of the shared
+## atlas, which means knowing the shared frame layout somewhere. That
+## convention currently lives entirely in the hand-authored
+## CharacterController scene (Sprite2D/AnimationPlayer setup), not as
+## data on SpriteSetDefinition, so there's nothing here to crop from
+## yet. Worth revisiting if that ever changes.
+func _build_appearance_section(parent: VBoxContainer) -> void:
+	var row := HBoxContainer.new()
+	row.add_child(_make_label("Appearance", 14))
+
+	sprite_option = OptionButton.new()
+	if registry.sprite_sets.is_empty():
+		sprite_option.add_item("(none found — author a SpriteSetDefinition .tres first)")
+	else:
+		for sprite_set_id in registry.sprite_sets.keys():
+			_sprite_set_ids.append(sprite_set_id)
+			var sprite_set: SpriteSetDefinition = registry.sprite_sets[sprite_set_id]
+			sprite_option.add_item(sprite_set.display_name)
+	row.add_child(sprite_option)
+
+	parent.add_child(row)
 
 
 ## ============================================================
@@ -480,8 +507,12 @@ func _on_create_pressed() -> void:
 		output_label.text = "[color=red]Choose exactly %d skill proficiencies before creating.[/color]" % free_skill_count
 		return
 
+	if _sprite_set_ids.is_empty():
+		output_label.text = "[color=red]No sprite sets loaded — author a SpriteSetDefinition .tres in systems/character/data/sprite_sets/ first.[/color]"
+		return
+
 	var sheet := CharacterSheet.new()
-	sheet.sprite_id = DEFAULT_SPRITE_ID
+	sheet.sprite_id = _sprite_set_ids[sprite_option.selected]
 	sheet.character_name = name_edit.text if name_edit.text != "" else "Unnamed"
 	sheet.is_main_character = (creation_mode_option.selected == 0)
 
@@ -510,6 +541,9 @@ func _on_create_pressed() -> void:
 func _display_sheet(sheet: CharacterSheet, occupation: OccupationDefinition) -> void:
 	var lines: Array = []
 	lines.append("[b]%s[/b] — %s" % [sheet.character_name, occupation.display_name])
+
+	var sprite_set: SpriteSetDefinition = registry.sprite_sets.get(sheet.sprite_id)
+	lines.append("Appearance: %s" % (sprite_set.display_name if sprite_set else sheet.sprite_id))
 	lines.append("")
 
 	for info in STAT_INFO:

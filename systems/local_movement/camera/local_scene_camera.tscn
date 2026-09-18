@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://dl3cpea61afjk"]
+
+[ext_resource type="Script" uid="uid://chg580etlx38m" path="res://systems/local_movement/camera/local_scene_camera.gd" id="1_wbcoe"]
+
+[node name="LocalSceneCamera" type="Camera2D"]
+drag_horizontal_enabled = true
+drag_vertical_enabled = true
+drag_left_margin = 0.05
+drag_top_margin = 0.08
+drag_right_margin = 0.05
+drag_bottom_margin = 0.08
+editor_draw_drag_margin = true
+script = ExtResource("1_wbcoe")

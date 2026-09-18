@@ -1,10 +1,10 @@
 class_name CharacterDataRegistry
 extends RefCounted
 
-## Loads every authored Skill / Trait / Occupation .tres file into
-## simple id-keyed dictionaries, so other systems (the character
-## creator, dialogue checks, UI, etc.) can look definitions up by id
-## without each reimplementing its own file-scanning logic.
+## Loads every authored Skill / Trait / Occupation / SpriteSet .tres
+## file into simple id-keyed dictionaries, so other systems (the
+## character creator, dialogue checks, UI, etc.) can look definitions
+## up by id without each reimplementing its own file-scanning logic.
 ##
 ## Usage: var registry := CharacterDataRegistry.new()
 ##        registry.skills["medicine"] -> SkillDefinition
@@ -16,11 +16,13 @@ const SKILL_DIR := "res://systems/character/data/skills/"
 const TRAIT_DIR := "res://systems/character/data/traits/"
 const OCCUPATION_DIR := "res://systems/character/data/occupations/"
 const STAT_PRESET_DIR := "res://systems/character/data/stat_presets/"
+const SPRITE_SET_DIR := "res://systems/character/data/sprite_sets/"
 
 var skills: Dictionary = {}       # skill_id -> SkillDefinition
 var traits: Dictionary = {}       # trait_id -> TraitDefinition
 var occupations: Dictionary = {}  # occupation_id -> OccupationDefinition
 var stat_presets: Dictionary = {} # preset_id -> StatSpreadPreset
+var sprite_sets: Dictionary = {}  # sprite_set_id -> SpriteSetDefinition
 
 
 func _init() -> void:
@@ -28,6 +30,7 @@ func _init() -> void:
 	_load_all(TRAIT_DIR, traits)
 	_load_all(OCCUPATION_DIR, occupations)
 	_load_all(STAT_PRESET_DIR, stat_presets)
+	_load_all(SPRITE_SET_DIR, sprite_sets)
 
 
 func _load_all(dir_path: String, into: Dictionary) -> void:
@@ -49,5 +52,7 @@ func _load_all(dir_path: String, into: Dictionary) -> void:
 				into[res.occupation_id] = res
 			elif res is StatSpreadPreset:
 				into[res.preset_id] = res
+			elif res is SpriteSetDefinition:
+				into[res.sprite_set_id] = res
 		file_name = dir.get_next()
 	dir.list_dir_end()

@@ -16,12 +16,11 @@ extends Resource
 @export var character_name: String = ""
 @export var portrait: Texture2D
 
-## Which sprite/animation set to display (Local Movement Design Doc,
-## Section 3.2). No real character-creation UI for this yet -- every
-## sheet gets stubbed to a single default id via character_creator.gd
-## for now. The controller's contract ("ask the sheet what it looks
-## like") is correct and final from day one even though this source
-## is a stub.
+## Which SpriteSetDefinition to display (Local Movement Design Doc,
+## Section 3.2). References a SpriteSetDefinition.sprite_set_id --
+## set by the player's real Appearance picker in character_creator.gd,
+## resolved against a CharacterDataRegistry by whatever spawns a
+## CharacterController.
 @export var sprite_id: String = ""
 
 ## Reference into an OccupationDefinition data table (not yet built).
