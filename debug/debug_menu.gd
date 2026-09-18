@@ -35,6 +35,7 @@ const LAYER := 20
 const TAB_SCRIPTS: Array[String] = [
 	"res://debug/tabs/time_debug_tab.gd",
 	"res://debug/tabs/party_debug_tab.gd",
+	"res://debug/tabs/local_movement_debug_tab.gd",
 	"res://debug/tabs/health_debug_tab.gd",
 	"res://debug/tabs/skill_check_debug_tab.gd",
 	"res://debug/tabs/inventory_debug_tab.gd",

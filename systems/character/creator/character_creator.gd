@@ -9,6 +9,11 @@ extends Control
 ## below — Skills on the left, Occupation on the right — followed
 ## by a Create button and a result summary.
 
+## Sprite selection doesn't exist as real character-creation data yet
+## (Local Movement Design Doc, Section 3.2) -- every created sheet gets
+## this same default until a real art-selection step exists.
+const DEFAULT_SPRITE_ID := "default"
+
 const MAIN_CHARACTER_SKILL_COUNT := 2
 const NPC_SKILL_COUNT := 1
 
@@ -476,6 +481,7 @@ func _on_create_pressed() -> void:
 		return
 
 	var sheet := CharacterSheet.new()
+	sheet.sprite_id = DEFAULT_SPRITE_ID
 	sheet.character_name = name_edit.text if name_edit.text != "" else "Unnamed"
 	sheet.is_main_character = (creation_mode_option.selected == 0)
 

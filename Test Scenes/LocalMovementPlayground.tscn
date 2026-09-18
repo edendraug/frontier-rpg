@@ -1,0 +1,42 @@
+[gd_scene load_steps=8 format=4 uid="uid://vaq1eaixs3l"]
+
+[ext_resource type="Script" uid="uid://c3jx68j2aknr5" path="res://dev/player_controller_tester.gd" id="1_ksgfp"]
+[ext_resource type="Texture2D" uid="uid://ccmfc7dg805w6" path="res://assets/art/hexes/temp_ground.png" id="2_ksgfp"]
+[ext_resource type="Texture2D" uid="uid://dvtcoo60n4i81" path="res://assets/art/hexes/temp_obstacle.png" id="3_ksgfp"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_du2kr"]
+texture = ExtResource("2_ksgfp")
+texture_region_size = Vector2i(32, 25)
+0:0/0 = 0
+1:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_drnqv"]
+tile_shape = 3
+tile_size = Vector2i(32, 22)
+sources/0 = SubResource("TileSetAtlasSource_du2kr")
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_drnqv"]
+texture = ExtResource("3_ksgfp")
+texture_region_size = Vector2i(32, 25)
+0:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_w0ubn"]
+tile_shape = 3
+tile_size = Vector2i(32, 22)
+sources/0 = SubResource("TileSetAtlasSource_drnqv")
+
+[node name="LocalMovementPlayground" type="Node2D"]
+script = ExtResource("1_ksgfp")
+
+[node name="TerrainLayer" type="TileMapLayer" parent="."]
+unique_name_in_owner = true
+tile_map_data = PackedByteArray("AAAAAAAAAAAAAAAAAAD//wAAAAAAAAAAAAD/////AAAAAAAAAAAAAP//AAAAAAAAAAAAAAEAAAAAAAAAAAD//wEAAAAAAAAAAAD+////AAAAAAAAAAD+/wEAAAAAAAAAAAD+/wAAAAAAAAAAAAABAAAAAAAAAAAAAAD+/wIAAAAAAAAAAAD//wIAAAAAAAAAAAABAAIAAAAAAAAAAAD+//7/AAAAAAAAAAD///7/AAAAAAAAAAAAAP7/AAAAAAAAAAABAP7/AAAAAAAAAAD+//3/AAAAAAAAAAD///3/AAAAAAAAAAAAAP3/AAAAAAAAAAD+//z/AAAAAAAAAAD///z/AAAAAAAAAAAAAPz/AAAAAAAAAAABAPz/AAAAAAAAAAD+/wMAAAAAAAAAAAD//wMAAAAAAAAAAAAAAAMAAAAAAAAAAAD9//r/AAAAAAAAAAD9//v/AAAAAAAAAAD9//z/AAAAAAAAAAD9//3/AAAAAAAAAAD9//7/AAAAAAAAAAD9////AAAAAAAAAAD9/wAAAAAAAAAAAAD9/wEAAAAAAAAAAAD9/wIAAAAAAAAAAAD9/wMAAAAAAAAAAAD9/wQAAAAAAAAAAAD9/wUAAAAAAAAAAAD+//r/AAAAAAAAAAD+//v/AAAAAAAAAAD+/wQAAAAAAAAAAAD+/wUAAAAAAAAAAAD///r/AAAAAAAAAAD///v/AAAAAAAAAAD//wQAAAAAAAAAAAD//wUAAAAAAAAAAAAAAPr/AAAAAAAAAAAAAPv/AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAUAAAAAAAAAAAABAPr/AAAAAAAAAAABAPv/AAAAAAAAAAABAP3/AAAAAAAAAAABAP//AAAAAAAAAAABAAEAAAAAAAAAAAABAAMAAAAAAAAAAAABAAQAAAAAAAAAAAABAAUAAAAAAAAAAAACAPr/AAAAAAAAAAACAPv/AAAAAAAAAAACAPz/AAAAAAAAAAACAP3/AAAAAAAAAAACAP7/AAAAAAAAAAACAP//AAAAAAAAAAACAAAAAAAAAAAAAAACAAEAAAAAAAAAAAACAAIAAAAAAAAAAAACAAMAAAAAAAAAAAACAAQAAAAAAAAAAAACAAUAAAAAAAAAAAAAAAIAAAAAAAAAAAA=")
+tile_set = SubResource("TileSet_drnqv")
+
+[node name="ObstacleLayer" type="TileMapLayer" parent="."]
+unique_name_in_owner = true
+tile_map_data = PackedByteArray("AAD+/wEAAAAAAAAAAAD9//v/AAAAAAAAAAD+//v/AAAAAAAAAAD+//z/AAAAAAAAAAACAP7/AAAAAAAAAAABAP3/AAAAAAAAAAACAP3/AAAAAAAAAAACAP//AAAAAAAAAAABAP//AAAAAAAAAAA=")
+tile_set = SubResource("TileSet_w0ubn")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(2, 2)
