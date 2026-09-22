@@ -1,0 +1,69 @@
+[gd_scene load_steps=4 format=3 uid="uid://c2u2mpfunqg6r"]
+
+[ext_resource type="Script" uid="uid://dsi1iruotwfkj" path="res://ui/travel_prompt/travel_prompt_window.gd" id="1_swbxs"]
+[ext_resource type="Theme" uid="uid://beyooei0gsls" path="res://assets/themes/dialogue_window_theme.tres" id="2_bbeqp"]
+[ext_resource type="FontFile" uid="uid://dpir880syb28q" path="res://assets/fonts/pixelplay.ttf" id="3_gfom4"]
+
+[node name="TravelPromptWindow" type="CanvasLayer" node_paths=PackedStringArray("_message_label", "_positive_button", "_negative_button")]
+layer = 12
+script = ExtResource("1_swbxs")
+_message_label = NodePath("Control/PanelContainer/MarginContainer/VBoxContainer/MessageLabel")
+_positive_button = NodePath("Control/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PositiveButton")
+_negative_button = NodePath("Control/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/NegativeButton")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Control"]
+custom_minimum_size = Vector2(275, 200)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -137.5
+offset_top = -100.0
+offset_right = 137.5
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_bbeqp")
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="MessageLabel" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("3_gfom4")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="PositiveButton" type="Button" parent="Control/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Yes"
+
+[node name="NegativeButton" type="Button" parent="Control/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "No"

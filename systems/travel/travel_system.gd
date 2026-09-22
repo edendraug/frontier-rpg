@@ -32,6 +32,13 @@ extends Node
 ## hazard, the river-crossing minigame's real resolution, Assignment
 ## System integration, the Camp/downtime system, and all final UI/UX
 ## (Section 9) are still nobody's job but a later, separate design pass.
+##
+## Expedition Scene Routing workstream: pause_for_event() and
+## get_hex_travel_minutes() were made public (previously
+## _pause_for_event()/_get_hex_travel_minutes()) so ExpeditionSceneRouter
+## can pause Travel for a bespoke-location arrival and derive an in-hex
+## sector's travel-time cost, respectively -- no other changes to this
+## file's own logic or state shape.
 
 ## Reserved now, consumed starting Phase 4 -- see design doc Section
 ## 3.2/4.2. Matches ModifierResolver's own doc-comment example for the
@@ -650,12 +657,14 @@ func resume_travel() -> void:
 	_set_state(TravelState.State.TRAVELING)
 
 
-## Called internally by _advance_travel() now (Phase 7's
-## river-crossing stub, via requires_river_crossing_now()). Still not
-## exposed publicly -- nothing outside this file decides when to pause
-## for an event yet. A real future Event/Encounter system may need its
-## own public trigger eventually; not designed here.
-func _pause_for_event() -> void:
+## Made public for the Expedition Scene Routing workstream --
+## ExpeditionSceneRouter calls this directly when a bespoke location
+## (settlement/special event) is found at a just-entered hex, same as
+## _advance_travel() already does internally for the river-crossing
+## stub below. _set_state()'s own legal-transition check (only TRAVELING
+## -> PAUSED_BY_EVENT is allowed) already guards both callers, so
+## exposing this publicly adds no new risk of an illegal transition.
+func pause_for_event() -> void:
 	_set_state(TravelState.State.PAUSED_BY_EVENT)
 
 
@@ -783,7 +792,7 @@ func _advance_travel(delta: float) -> void:
 		var current_coord: String = _travel_state.queued_route[0]
 		_ensure_hex_logged(current_coord)
 
-		var hex_total_minutes := _get_hex_travel_minutes(current_coord)
+		var hex_total_minutes := get_hex_travel_minutes(current_coord)
 		if hex_total_minutes <= 0.0:
 			# An unrecognized/unpassable hex should never have made it
 			# into queued_route via queue_hex()'s own validation -- but
@@ -849,7 +858,7 @@ func _advance_travel(delta: float) -> void:
 			# of skipping matters here.
 			_travel_state.midpoint_event_checked = true
 			if requires_river_crossing_now():
-				_pause_for_event()
+				pause_for_event()
 				break
 
 
@@ -910,7 +919,12 @@ func requires_river_crossing_now() -> bool:
 ## than being charged half price for a shortened crossing. Returns 0.0
 ## for an unrecognized coord or unknown terrain type -- defensive only,
 ## see the caller's own comment.
-func _get_hex_travel_minutes(coord: String) -> float:
+##
+## Made public for the Expedition Scene Routing workstream --
+## ExpeditionSceneRouter derives an in-hex sector's travel-time cost as
+## a fraction of this same real per-hex rate, rather than inventing a
+## separate number.
+func get_hex_travel_minutes(coord: String) -> float:
 	var hex := WorldRegistry.get_hex(coord)
 	if hex == null:
 		return 0.0

@@ -24,6 +24,17 @@ extends Node
 
 const CONTENT_VIEWPORT_GROUP := "local_scene_content_viewport"
 
+## Fired by the content viewport's own marker script the moment it
+## enters the tree -- lets a caller that tried to load a scene BEFORE
+## Expedition Hub existed (e.g. ExpeditionSceneRouter.boot_new_expedition()/
+## restore_from_save(), both of which can run from a Party Creator or
+## Main Menu screen, before any scene transition into Expedition Hub
+## has happened) retry once there's actually somewhere to load into,
+## rather than the request just silently failing. See
+## local_scene_content_viewport.gd's own comment for where this is
+## emitted from.
+signal content_viewport_ready
+
 var _current_scene_node: Node
 
 
@@ -63,6 +74,12 @@ func unload_current_scene() -> void:
 
 func has_scene_loaded() -> bool:
 	return _current_scene_node != null
+
+
+## Called by the content viewport's own marker script from its
+## _ready() -- see content_viewport_ready's own comment above.
+func notify_content_viewport_ready() -> void:
+	content_viewport_ready.emit()
 
 
 func _find_content_viewport() -> SubViewport:

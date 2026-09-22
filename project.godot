@@ -27,6 +27,7 @@ RelationsSystem="*res://systems/dialogue/relations_system.gd"
 WorldRegistry="*res://systems/world_generation/world_registry.gd"
 TravelSystem="*res://systems/travel/travel_system.gd"
 LocalSceneManager="*res://systems/local_movement/scene_authoring/local_scene_manager.gd"
+ExpeditionSceneRouter="*res://systems/expedition/expedition_scene_router.gd"
 
 [editor_plugins]
 

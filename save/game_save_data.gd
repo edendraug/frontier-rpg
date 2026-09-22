@@ -39,3 +39,19 @@ extends Resource
 ## Which Events have already fired will need its own field once an
 ## Event/Encounter system exists -- not this one's job.
 @export var travel_state: TravelState = TravelState.new()
+
+## --- Expedition Scene Routing ---
+## "" = no bespoke scene active (an ambient Travel/Camp scene shows
+## instead, resolved from travel_state.state on load). Restoring always
+## resolves to that scene's own Gather Point, never an exact prior
+## position -- consistent with Local Movement's own existing save/load
+## posture. See Expedition Scene Routing design doc, Section 4.3.
+@export var current_local_scene_path: String = ""
+
+## Every location_id the player has been shown an arrival prompt for,
+## regardless of whether they chose to visit -- see
+## ExpeditionSceneRouter.is_discovered()'s own comment for what
+## "discovered" means here and how this is expected to grow into a
+## richer (unknown / known / discovered) model later without needing a
+## save-format migration.
+@export var discovered_location_ids: Array[String] = []

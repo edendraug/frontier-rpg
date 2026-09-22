@@ -110,6 +110,8 @@ func _write_save(slug: String, display_name: String) -> String:
 	data.vehicle_capacity = InventorySystem.get_vehicle_capacity()
 	data.total_minutes_elapsed = TimeSystem.get_total_minutes_elapsed()
 	data.travel_state = TravelSystem.get_travel_state()
+	data.current_local_scene_path = ExpeditionSceneRouter.get_current_scene_path()
+	data.discovered_location_ids = ExpeditionSceneRouter.get_discovered_location_ids()
 
 	var err := ResourceSaver.save(data, path)
 	if err != OK:
@@ -148,6 +150,11 @@ func load_game(slug: String) -> bool:
 	InventorySystem.set_party_size(PartyManager.get_party_size())
 	TimeSystem.set_total_minutes_elapsed(data.total_minutes_elapsed)
 	TravelSystem.load_travel_state(data.travel_state)
+	# Must run AFTER TravelSystem.load_travel_state() above -- an empty
+	# current_local_scene_path falls back to whichever ambient scene
+	# matches the just-restored TravelState.state, so TravelSystem needs
+	# to already be holding the loaded state by the time this runs.
+	ExpeditionSceneRouter.restore_from_save(data.current_local_scene_path, data.discovered_location_ids)
 
 	_current_save_slug = slug
 	_current_save_name = data.save_name

@@ -124,7 +124,17 @@ func _draw_party_marker() -> void:
 ##   - An exit direction IS known (current or remembered): progress
 ##     0.0-0.5 covers entry->center, 0.5-1.0 covers center->exit -- the
 ##     full three-sector crossing.
+## Expedition Scene Routing addition: while ExpeditionSceneRouter is
+## walking an in-hex sector detour ("Approach" -- Cameron's confirmed
+## model, walked over real time rather than an instant teleport), the
+## party marker renders that walk instead of the normal hex-crossing
+## position below. Checked FIRST since a detour only ever happens while
+## TravelSystem is already PAUSED_BY_EVENT with current_hex_progress
+## frozen -- the two are mutually exclusive, never blended.
 func _get_party_pixel_position() -> Vector2:
+	if ExpeditionSceneRouter.is_detouring():
+		return _get_detour_pixel_position()
+
 	var current := TravelSystem.get_current_hex()
 	var queue := TravelSystem.get_queued_route()
 
@@ -151,3 +161,45 @@ func _get_party_pixel_position() -> Vector2:
 	if exit_point == Vector2.INF:
 		return Vector2.INF
 	return hex_center.lerp(exit_point, (progress - 0.5) * 2.0)
+
+
+## Entry point uses the exact same get_shared_edge_midpoint(coord,
+## predecessor) call as the normal crossing above -- a detour always
+## starts from progress 0.0 (the arrival prompt fires the instant a hex
+## is entered, before any further ticking), so this is the party's real
+## on-screen position the moment "Approach" was chosen, not an
+## approximation. The degenerate case (predecessor == coord, the very
+## first hex of the expedition) is handled the same way it already is
+## there -- get_shared_edge_midpoint() itself collapses to the hex's
+## own center.
+##
+## Target point reuses WorldRegistry.get_neighbors() rather than any
+## new map-instance API: LocationSceneDefinition.hex_sector is defined
+## to match AXIAL_DIRECTIONS' own index order (same convention
+## river_edges already uses), so the neighbor AT that index's shared
+## edge midpoint IS the sector's on-screen position -- even though that
+## neighbor hex plays no other role here. CENTER_SECTOR skips this
+## entirely and targets the hex's own center instead.
+func _get_detour_pixel_position() -> Vector2:
+	var coord := ExpeditionSceneRouter.get_detour_coord()
+	var sector := ExpeditionSceneRouter.get_detour_sector()
+	var progress := ExpeditionSceneRouter.get_detour_progress()
+
+	var visited := TravelSystem.get_visited_hex_path()
+	var predecessor: String = visited[-2] if visited.size() >= 2 else TravelSystem.STARTING_HEX_COORD
+	var entry_point: Vector2 = %WorldMapInstance.get_shared_edge_midpoint(coord, predecessor)
+	if entry_point == Vector2.INF:
+		return Vector2.INF
+
+	var target_point: Vector2
+	if sector == LocationSceneDefinition.CENTER_SECTOR:
+		target_point = %WorldMapInstance.get_hex_center(coord)
+	else:
+		var neighbors := WorldRegistry.get_neighbors(coord)
+		if sector < 0 or sector >= neighbors.size():
+			return Vector2.INF
+		target_point = %WorldMapInstance.get_shared_edge_midpoint(coord, neighbors[sector])
+
+	if target_point == Vector2.INF:
+		return Vector2.INF
+	return entry_point.lerp(target_point, progress)

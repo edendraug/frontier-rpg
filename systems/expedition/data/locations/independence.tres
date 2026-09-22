@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="LocationSceneDefinition" load_steps=2 format=3 uid="uid://cdbdwowx4kc0b"]
+
+[ext_resource type="Script" uid="uid://b4nbjcje84mud" path="res://systems/expedition/data/location_scene_definition.gd" id="1_pvcvc"]
+
+[resource]
+script = ExtResource("1_pvcvc")
+location_id = "independence"
+display_name = "Independence"
+scene_path = "res://Test Scenes/whitebox.tscn"
+hex_sector = 1
+agency_type = 0
+metadata/_custom_type_script = "uid://b4nbjcje84mud"

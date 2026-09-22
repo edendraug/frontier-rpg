@@ -12,10 +12,10 @@ extends Node
 ## Register in Project Settings > Autoload AFTER TimeSystem,
 ## ItemRegistry, and InventorySystem — begin_expedition() calls into
 ## InventorySystem directly. Registration order relative to
-## TravelSystem doesn't matter, despite begin_expedition() also calling
-## into it now -- that call happens during actual gameplay, long after
-## every autoload's own _ready() has already run, not during this
-## autoload's own initialization.
+## TravelSystem/ExpeditionSceneRouter doesn't matter, despite
+## begin_expedition() also calling into both now -- those calls happen
+## during actual gameplay, long after every autoload's own _ready() has
+## already run, not during this autoload's own initialization.
 
 signal character_added(index: int)
 signal character_updated(index: int)
@@ -209,6 +209,11 @@ func begin_expedition() -> bool:
 	# load_travel_state()/get_travel_state() not being wired into
 	# SaveManager was; this is the "New Game" side of that same fix.
 	TravelSystem.reset_to_fresh_expedition()
+	# Loads the starting settlement's bespoke scene directly, bypassing
+	# the arrival-prompt flow entirely -- there's nothing to "discover"
+	# on the very first hex, the player simply starts there. See
+	# Expedition Scene Routing design doc, Section 3.8.
+	ExpeditionSceneRouter.boot_new_expedition()
 
 	expedition_begun.emit()
 	return true

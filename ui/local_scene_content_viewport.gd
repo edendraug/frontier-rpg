@@ -12,3 +12,9 @@ extends SubViewport
 
 func _ready() -> void:
 	add_to_group("local_scene_content_viewport")
+	# Lets ExpeditionSceneRouter retry a load attempted before this
+	# viewport existed (boot_new_expedition()/restore_from_save(), both
+	# of which can run from Party Creator or a Main Menu screen, before
+	# Expedition Hub has loaded at all). See LocalSceneManager's own
+	# content_viewport_ready signal comment.
+	LocalSceneManager.notify_content_viewport_ready()
