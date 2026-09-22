@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3 uid="uid://b5d1evcte1tdk"]
+
+[ext_resource type="Script" uid="uid://biodaalkpthmj" path="res://systems/local_movement/scene_authoring/world_interactable.gd" id="1_mldrs"]
+[ext_resource type="Texture2D" uid="uid://cx6wqb1xt3at8" path="res://assets/art/temp/temp_interactable.png" id="2_mldrs"]
+
+[sub_resource type="ConvexPolygonShape2D" id="ConvexPolygonShape2D_mldrs"]
+points = PackedVector2Array(0, -13, 16, -5, 16, 5, 0, 13, -16, 5, -16, -5)
+
+[node name="WorldInteractable" type="Area2D"]
+script = ExtResource("1_mldrs")
+metadata/_custom_type_script = "uid://biodaalkpthmj"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_mldrs")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("ConvexPolygonShape2D_mldrs")

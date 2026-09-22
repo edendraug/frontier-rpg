@@ -32,14 +32,41 @@ extends Node2D
 ## future per-scene SubViewport (each would need its own current
 ## camera regardless).
 ##
+## INTERACTABLES: any WorldInteractable anywhere in the scene tree
+## registers itself with the grid before party spawning happens, so an
+## interactable placed near the Gather Point correctly blocks a
+## character from spawning on top of it.
+##
+## LOCAL TIME PROGRESSION: while this scene is active, advances
+## TimeSystem at a fixed real-seconds-per-in-game-minute rate -- a
+## separate, simpler mechanism from Travel's distance/pace-driven time
+## advancement (a room has no equivalent of terrain
+## base_travel_minutes, so this doesn't touch or reuse any of Travel's
+## own logic, per Cameron's call). Pauses automatically whenever
+## PlayerController.is_control_locked() is true (e.g. a dialogue
+## window open) -- free reuse of the same "something modal is
+## happening" check everything else in this system already respects,
+## rather than a second, parallel one. Set advances_time = false on a
+## scene that should freeze the clock entirely (a scripted/story-only
+## room, say).
+##
 ## Update CONTROLLER_SCENE/CAMERA_SCENE below if your actual file
 ## paths differ.
 
 const CONTROLLER_SCENE := preload("res://systems/local_movement/actor/character_controller.tscn")
 const CAMERA_SCENE := preload("res://systems/local_movement/camera/local_scene_camera.tscn")
 
+## Untuned placeholder, same posture as every other tunable value in
+## this project -- Cameron's own example rate (1 in-game minute per
+## 30 real seconds).
+const REAL_SECONDS_PER_GAME_MINUTE := 10.0
+
+@export var advances_time: bool = true
+
 var _party_override: Array[CharacterSheet] = []
 var _grid: LocalGrid
+var _player_controller: PlayerController
+var _time_accumulator: float = 0.0
 
 
 ## Call BEFORE this node enters the tree if a subset of the roster
@@ -52,12 +79,34 @@ func configure(party_members: Array[CharacterSheet] = []) -> void:
 func _ready() -> void:
 	_grid = LocalGrid.new(%TerrainLayer, %ObstacleLayer)
 
-	var player_controller := PlayerController.new()
-	add_child(player_controller)
-	player_controller.setup(_grid)
+	_player_controller = PlayerController.new()
+	add_child(_player_controller)
+	_player_controller.setup(_grid)
 
-	_spawn_party(player_controller)
+	_register_interactables()
+	_spawn_party(_player_controller)
 	_spawn_camera()
+
+
+func _process(delta: float) -> void:
+	if not advances_time:
+		return
+	if _player_controller != null and _player_controller.is_control_locked():
+		return
+
+	_time_accumulator += delta
+	var whole_minutes := int(_time_accumulator / REAL_SECONDS_PER_GAME_MINUTE)
+	if whole_minutes > 0:
+		_time_accumulator -= whole_minutes * REAL_SECONDS_PER_GAME_MINUTE
+		TimeSystem.pass_minutes(whole_minutes)
+
+
+## Order matters: must run before _spawn_party(), so an interactable
+## near the Gather Point is already occupying its cell by the time
+## find_open_cells_near() looks for spawn placements.
+func _register_interactables() -> void:
+	for interactable in find_children("*", "WorldInteractable", true, false):
+		(interactable as WorldInteractable).register_with_grid(_grid)
 
 
 func _spawn_party(player_controller: PlayerController) -> void:

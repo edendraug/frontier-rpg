@@ -41,6 +41,24 @@ var _state: State = State.IDLE
 var _reveal_tween: Tween
 var _choices_tween: Tween
 
+## Set true only by open_with_tree() -- forces every line, including
+## the LAST one, to require an explicit confirm/click before the
+## window closes. Normal open() conversations leave this false, so
+## the existing "ending doesn't need its own confirm, the choice or
+## close IS the next action" behavior (see _on_reveal_finished()) is
+## unchanged for real NPC dialogue -- only blurb-style content, which
+## has no choices to naturally absorb that same "next action," needed
+## this at all. Reset in _on_conversation_ended() so a later real
+## conversation doesn't inherit it.
+var _require_confirm_before_close: bool = false
+
+## Tracks which PlayerController instance this window has already
+## registered its control-lock check with, so re-opening additional
+## conversations against the SAME live instance (the common case)
+## doesn't pile up duplicate registrations -- same guard shape the
+## Local Movement debug tab's own synthetic lock already uses.
+var _lock_registered_on: PlayerController = null
+
 
 func _ready() -> void:
 	visible = false
@@ -58,6 +76,34 @@ func _ready() -> void:
 ## itself, same reasoning as the debug tab: which CharacterSheet/
 ## registries to use is the caller's decision, not this window's.
 func open(player: DialoguePlayer, actor_id: String) -> void:
+	_connect_player(player)
+	_close_choices_instant()
+	visible = true
+	_player.start_conversation(actor_id)
+
+
+## Parallel entry point for ephemeral, actor-less content (a
+## WorldInteractable's blurb, in particular) -- same signal wiring as
+## open(), but walks `tree` directly via DialoguePlayer.start_with_tree()
+## instead of resolving an actor_id through RelationsSystem/
+## DialogueTreeRegistry. Hides %SpeakerLabel/%PortraitDisplay for the
+## duration, since this kind of content never has a speaker -- restored
+## in _on_conversation_ended() so a real NPC conversation opened
+## afterward isn't left with them hidden.
+func open_with_tree(player: DialoguePlayer, tree: DialogueTree) -> void:
+	speaker_label.visible = false
+	portrait_display.visible = false
+	_require_confirm_before_close = true
+
+	_connect_player(player)
+	_close_choices_instant()
+	visible = true
+	_player.start_with_tree(tree)
+
+
+func _connect_player(player: DialoguePlayer) -> void:
+	_register_control_lock()
+
 	_player = player
 	_player.line_ready.connect(_on_line_ready)
 	_player.choice_ready.connect(_on_choice_ready)
@@ -65,9 +111,24 @@ func open(player: DialoguePlayer, actor_id: String) -> void:
 	_player.skill_check_resolved.connect(_on_skill_check_resolved)
 	_player.conversation_ended.connect(_on_conversation_ended)
 
-	_close_choices_instant()
-	visible = true
-	_player.start_conversation(actor_id)
+
+## Registers this window's own open/closed state as a control lock
+## with whichever PlayerController is currently live in the scene, so
+## an open conversation hijacks movement/interacting/switching --
+## DialogueWindow only covers part of the screen, so nothing else
+## would otherwise stop a click elsewhere in the scene from reaching
+## the local scene underneath while a conversation is up. Looked up
+## fresh (not cached) since the live PlayerController instance changes
+## whenever a scene reloads.
+func _register_control_lock() -> void:
+	var player_controller: PlayerController = get_tree().get_first_node_in_group("player_controller")
+	if player_controller != null and player_controller != _lock_registered_on:
+		player_controller.register_control_lock(Callable(self, "is_conversation_active"))
+		_lock_registered_on = player_controller
+
+
+func is_conversation_active() -> bool:
+	return visible
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -131,6 +192,9 @@ func _on_skill_check_resolved(_result: SkillCheckResult, _branch: SkillCheckBran
 func _on_conversation_ended() -> void:
 	_state = State.ENDED
 	_close_choices_instant()
+	speaker_label.visible = true
+	portrait_display.visible = true
+	_require_confirm_before_close = false
 	_player.line_ready.disconnect(_on_line_ready)
 	_player.choice_ready.disconnect(_on_choice_ready)
 	_player.awaiting_skill_check_started.disconnect(_on_awaiting_skill_check_started)
@@ -191,7 +255,13 @@ func _on_reveal_finished() -> void:
 	# instantly, but no explicit confirm of its own - the player's next
 	# action already IS the choice itself, so requiring a press first
 	# would just be a redundant extra step.
-	if not _player.next_is_another_line():
+	#
+	# _require_confirm_before_close overrides that last part for
+	# blurb-style content (open_with_tree()): there's no choice to
+	# double as "the next action," so without this override, the LAST
+	# line of a blurb would auto-close after POST_LINE_PAUSE instead of
+	# waiting for a click like every other line in it already does.
+	if not _player.next_is_another_line() and not _require_confirm_before_close:
 		get_tree().create_timer(POST_LINE_PAUSE).timeout.connect(_advance_from_line, CONNECT_ONE_SHOT)
 
 

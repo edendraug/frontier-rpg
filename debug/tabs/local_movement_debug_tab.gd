@@ -49,11 +49,11 @@ func _ready() -> void:
 	root.add_child(HSeparator.new())
 	root.add_child(_make_label(
 		"Phase 3c: a synthetic stand-in for a real modal lock (e.g. mid-dialogue) --"
-		+ " proves PlayerController.register_switch_lock() actually blocks switching.",
+		+ " proves PlayerController.register_control_lock() actually blocks movement, interaction, and switching.",
 		11
 	))
 	_lock_checkbox = CheckBox.new()
-	_lock_checkbox.text = "Simulate modal lock (block switching)"
+	_lock_checkbox.text = "Simulate modal lock (block movement/interact/switching)"
 	_lock_checkbox.toggled.connect(func(pressed): _simulated_lock_active = pressed)
 	root.add_child(_lock_checkbox)
 
@@ -90,7 +90,7 @@ func _ready() -> void:
 func refresh() -> void:
 	_player_controller = get_tree().get_first_node_in_group("player_controller")
 	if _player_controller != null and _player_controller != _lock_registered_on:
-		_player_controller.register_switch_lock(func(): return _simulated_lock_active)
+		_player_controller.register_control_lock(func(): return _simulated_lock_active)
 		_lock_registered_on = _player_controller
 	_rebuild_character_option()
 

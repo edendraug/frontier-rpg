@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://chg580etlx38m" path="res://systems/local_movement/camera/local_scene_camera.gd" id="1_wbcoe"]
 
 [node name="LocalSceneCamera" type="Camera2D"]
+zoom = Vector2(2, 2)
 drag_horizontal_enabled = true
 drag_vertical_enabled = true
 drag_left_margin = 0.05

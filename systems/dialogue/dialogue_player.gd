@@ -134,6 +134,28 @@ func get_condition_node(id: String) -> DialogueConditionNode:
 # Entry point
 # ---------------------------------------------------------------------------
 
+## Starts walking `tree` directly, skipping the actor_id ->
+## ActorDefinition -> dialogue_tree_id -> DialogueTreeRegistry lookup
+## chain start_conversation() normally does. For ephemeral, actor-less
+## content that was never authored as a registered Actor's tree and has
+## no reason to be -- a WorldInteractable's blurb, e.g.; a signpost
+## isn't an Actor. _actor_id stays empty throughout: _present_line()
+## already treats an empty node.speaker as a first-class narration case
+## with no RelationsSystem touch, and a tree walked this way is expected
+## to contain only chained Line nodes (no Choices, no Effects) -- the
+## one place _actor_id would otherwise matter (_offer_choices()'s
+## consume_once check) is simply never reached by a tree shaped that
+## way. Not validated/enforced here; a tree containing a Choice node
+## would still technically walk, just with RelationsSystem.get_actor_state("")
+## bookkeeping that was never the intent of this entry point.
+func start_with_tree(tree: DialogueTree) -> void:
+	_actor_id = ""
+	_current_tree = tree
+	_call_stack.clear()
+	_last_offered_ids.clear()
+	_navigate_to(tree.start_node_id)
+
+
 func start_conversation(actor_id: String) -> void:
 	var def := RelationsSystem.get_actor_definition(actor_id)
 	if def == null:
