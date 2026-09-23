@@ -6,8 +6,9 @@
 [sub_resource type="ConvexPolygonShape2D" id="ConvexPolygonShape2D_mldrs"]
 points = PackedVector2Array(0, -13, 16, -5, 16, 5, 0, 13, -16, 5, -16, -5)
 
-[node name="WorldInteractable" type="Area2D"]
+[node name="WorldInteractable" type="Area2D" node_paths=PackedStringArray("visual_sprite")]
 script = ExtResource("1_mldrs")
+visual_sprite = NodePath("Sprite2D")
 metadata/_custom_type_script = "uid://biodaalkpthmj"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

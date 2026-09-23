@@ -112,6 +112,7 @@ func _write_save(slug: String, display_name: String) -> String:
 	data.travel_state = TravelSystem.get_travel_state()
 	data.current_local_scene_path = ExpeditionSceneRouter.get_current_scene_path()
 	data.discovered_location_ids = ExpeditionSceneRouter.get_discovered_location_ids()
+	data.hex_position_override = ExpeditionSceneRouter.get_hex_position_override()
 
 	var err := ResourceSaver.save(data, path)
 	if err != OK:
@@ -154,7 +155,7 @@ func load_game(slug: String) -> bool:
 	# current_local_scene_path falls back to whichever ambient scene
 	# matches the just-restored TravelState.state, so TravelSystem needs
 	# to already be holding the loaded state by the time this runs.
-	ExpeditionSceneRouter.restore_from_save(data.current_local_scene_path, data.discovered_location_ids)
+	ExpeditionSceneRouter.restore_from_save(data.current_local_scene_path, data.discovered_location_ids, data.hex_position_override)
 
 	_current_save_slug = slug
 	_current_save_name = data.save_name

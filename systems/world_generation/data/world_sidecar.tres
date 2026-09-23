@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="WorldSidecarData" load_steps=5 format=3 uid="uid://druwaw6blyygt"]
+[gd_resource type="Resource" script_class="WorldSidecarData" load_steps=4 format=3 uid="uid://druwaw6blyygt"]
 
 [ext_resource type="Script" uid="uid://bjunhggwdrxts" path="res://systems/world_generation/world_sidecar_entry.gd" id="1_kq4ek"]
 [ext_resource type="Script" uid="uid://ce4tped2a6unk" path="res://systems/world_generation/data/world_sidecar_data.gd" id="2_cq0w3"]
@@ -7,19 +7,11 @@
 script = ExtResource("1_kq4ek")
 coord = "0,0"
 settlement_id = "independence"
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-metadata/_custom_type_script = "uid://bjunhggwdrxts"
-
-[sub_resource type="Resource" id="Resource_7j331"]
-script = ExtResource("1_kq4ek")
-coord = "-2,0"
-settlement_id = "newton"
-special_event_ids = Array[String]([])
+special_event_ids = Array[String](["newton"])
 event_frequency_multiplier = 1.0
 metadata/_custom_type_script = "uid://bjunhggwdrxts"
 
 [resource]
 script = ExtResource("2_cq0w3")
-entries = Array[ExtResource("1_kq4ek")]([SubResource("Resource_cq0w3"), SubResource("Resource_7j331")])
+entries = Array[ExtResource("1_kq4ek")]([SubResource("Resource_cq0w3")])
 metadata/_custom_type_script = "uid://ce4tped2a6unk"

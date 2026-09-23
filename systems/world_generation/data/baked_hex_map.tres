@@ -3,417 +3,17 @@
 [ext_resource type="Script" uid="uid://v21o31x4s3qr" path="res://systems/world_generation/hex_instance.gd" id="1_wjwi5"]
 [ext_resource type="Script" uid="uid://corh3y7mj3n0o" path="res://systems/world_generation/data/hex_map_data.gd" id="2_pdwg6"]
 
-[sub_resource type="Resource" id="Resource_frid3"]
-script = ExtResource("1_wjwi5")
-coord = "-1,-1"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([1, 2, 3, 5])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_lgc8r"]
-script = ExtResource("1_wjwi5")
-coord = "-1,-2"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([0, 4, 5])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_a3jg6"]
-script = ExtResource("1_wjwi5")
-coord = "-1,0"
-terrain_type_id = "swamp"
-has_trail = false
-river_edges = Array[int]([2, 4])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_m1mof"]
-script = ExtResource("1_wjwi5")
-coord = "-1,1"
-terrain_type_id = "desert"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_xxp4n"]
-script = ExtResource("1_wjwi5")
-coord = "-1,2"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_71ggr"]
-script = ExtResource("1_wjwi5")
-coord = "-1,3"
-terrain_type_id = "forest"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_7uojb"]
-script = ExtResource("1_wjwi5")
-coord = "-2,-1"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([0, 1])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_2p1la"]
-script = ExtResource("1_wjwi5")
-coord = "-2,-2"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_lbj7o"]
-script = ExtResource("1_wjwi5")
-coord = "-2,0"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = "newton"
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_768ny"]
-script = ExtResource("1_wjwi5")
-coord = "-2,1"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([1, 5])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_ik75e"]
-script = ExtResource("1_wjwi5")
-coord = "-2,2"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([2, 5])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_jro1s"]
-script = ExtResource("1_wjwi5")
-coord = "-2,3"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([2])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_ipvn8"]
-script = ExtResource("1_wjwi5")
-coord = "-3,-1"
-terrain_type_id = "forest"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_k1uej"]
-script = ExtResource("1_wjwi5")
-coord = "-3,-2"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_jq28u"]
-script = ExtResource("1_wjwi5")
-coord = "-3,0"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_8ve0g"]
-script = ExtResource("1_wjwi5")
-coord = "-3,1"
-terrain_type_id = "forest"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_cwed8"]
-script = ExtResource("1_wjwi5")
-coord = "-3,2"
-terrain_type_id = "forest"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_voc5b"]
-script = ExtResource("1_wjwi5")
-coord = "-3,3"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_vu20g"]
-script = ExtResource("1_wjwi5")
-coord = "-4,-1"
-terrain_type_id = "forest"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_f54jr"]
-script = ExtResource("1_wjwi5")
-coord = "-4,-2"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_qpiki"]
-script = ExtResource("1_wjwi5")
-coord = "-4,0"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_vbtwb"]
-script = ExtResource("1_wjwi5")
-coord = "-4,1"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_rx76c"]
-script = ExtResource("1_wjwi5")
-coord = "-4,2"
-terrain_type_id = "forest"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_o2qsm"]
-script = ExtResource("1_wjwi5")
-coord = "-4,3"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_odfif"]
-script = ExtResource("1_wjwi5")
-coord = "-5,-1"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_8n3wg"]
-script = ExtResource("1_wjwi5")
-coord = "-5,0"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_pic78"]
-script = ExtResource("1_wjwi5")
-coord = "-5,1"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_an4x5"]
-script = ExtResource("1_wjwi5")
-coord = "-5,2"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_3y6lq"]
-script = ExtResource("1_wjwi5")
-coord = "-5,3"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_364r4"]
-script = ExtResource("1_wjwi5")
-coord = "-6,0"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_h8q3b"]
-script = ExtResource("1_wjwi5")
-coord = "-6,1"
-terrain_type_id = "forest"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_tamh0"]
-script = ExtResource("1_wjwi5")
-coord = "-6,2"
-terrain_type_id = "forest"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_l2yrv"]
-script = ExtResource("1_wjwi5")
-coord = "-6,3"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_jj1rs"]
-script = ExtResource("1_wjwi5")
-coord = "0,-1"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_0tvc5"]
-script = ExtResource("1_wjwi5")
-coord = "0,-2"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([3, 4])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_510mc"]
+[sub_resource type="Resource" id="Resource_wjwi5"]
 script = ExtResource("1_wjwi5")
 coord = "0,0"
 terrain_type_id = "grassland"
 has_trail = true
 river_edges = Array[int]([])
 settlement_id = "independence"
-special_event_ids = Array[String]([])
+special_event_ids = Array[String](["newton"])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_itnqh"]
-script = ExtResource("1_wjwi5")
-coord = "0,1"
-terrain_type_id = "forest"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_pu153"]
-script = ExtResource("1_wjwi5")
-coord = "0,2"
-terrain_type_id = "forest"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_njp7h"]
-script = ExtResource("1_wjwi5")
-coord = "0,3"
-terrain_type_id = "forest"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_lcfqt"]
-script = ExtResource("1_wjwi5")
-coord = "1,-1"
-terrain_type_id = "mountain"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_h6qbb"]
-script = ExtResource("1_wjwi5")
-coord = "1,-2"
-terrain_type_id = "forest"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_iy4va"]
+[sub_resource type="Resource" id="Resource_pdwg6"]
 script = ExtResource("1_wjwi5")
 coord = "1,0"
 terrain_type_id = "lake"
@@ -423,29 +23,19 @@ settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_vdjcf"]
+[sub_resource type="Resource" id="Resource_510mc"]
 script = ExtResource("1_wjwi5")
-coord = "1,1"
-terrain_type_id = "grassland"
+coord = "1,-1"
+terrain_type_id = "mountain"
 has_trail = true
 river_edges = Array[int]([])
 settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_e6o81"]
+[sub_resource type="Resource" id="Resource_iy4va"]
 script = ExtResource("1_wjwi5")
-coord = "1,2"
-terrain_type_id = "grassland"
-has_trail = true
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_jlusc"]
-script = ExtResource("1_wjwi5")
-coord = "1,3"
+coord = "0,-1"
 terrain_type_id = "grassland"
 has_trail = false
 river_edges = Array[int]([])
@@ -453,19 +43,29 @@ settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_mw0ik"]
+[sub_resource type="Resource" id="Resource_lcfqt"]
 script = ExtResource("1_wjwi5")
-coord = "2,-1"
-terrain_type_id = "grassland"
+coord = "-1,0"
+terrain_type_id = "swamp"
+has_trail = false
+river_edges = Array[int]([2, 4])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_jj1rs"]
+script = ExtResource("1_wjwi5")
+coord = "-1,1"
+terrain_type_id = "desert"
 has_trail = true
 river_edges = Array[int]([])
 settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_h3nry"]
+[sub_resource type="Resource" id="Resource_a3jg6"]
 script = ExtResource("1_wjwi5")
-coord = "2,-2"
+coord = "0,1"
 terrain_type_id = "forest"
 has_trail = false
 river_edges = Array[int]([])
@@ -473,7 +73,7 @@ settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_st3ln"]
+[sub_resource type="Resource" id="Resource_m1mof"]
 script = ExtResource("1_wjwi5")
 coord = "2,0"
 terrain_type_id = "grassland"
@@ -483,9 +83,9 @@ settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_15b1t"]
+[sub_resource type="Resource" id="Resource_itnqh"]
 script = ExtResource("1_wjwi5")
-coord = "2,1"
+coord = "2,-1"
 terrain_type_id = "grassland"
 has_trail = true
 river_edges = Array[int]([])
@@ -493,29 +93,19 @@ settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_s46fh"]
+[sub_resource type="Resource" id="Resource_st3ln"]
 script = ExtResource("1_wjwi5")
-coord = "2,2"
+coord = "1,1"
 terrain_type_id = "grassland"
-has_trail = false
+has_trail = true
 river_edges = Array[int]([])
 settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_ugdjy"]
+[sub_resource type="Resource" id="Resource_mw0ik"]
 script = ExtResource("1_wjwi5")
-coord = "2,3"
-terrain_type_id = "grassland"
-has_trail = false
-river_edges = Array[int]([])
-settlement_id = ""
-special_event_ids = Array[String]([])
-event_frequency_multiplier = 1.0
-
-[sub_resource type="Resource" id="Resource_8fyx8"]
-script = ExtResource("1_wjwi5")
-coord = "3,-1"
+coord = "2,-2"
 terrain_type_id = "forest"
 has_trail = false
 river_edges = Array[int]([])
@@ -523,17 +113,87 @@ settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_atg15"]
+[sub_resource type="Resource" id="Resource_vdjcf"]
 script = ExtResource("1_wjwi5")
-coord = "3,-2"
-terrain_type_id = "grassland"
+coord = "1,-2"
+terrain_type_id = "forest"
 has_trail = false
 river_edges = Array[int]([])
 settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_ide6i"]
+[sub_resource type="Resource" id="Resource_h3nry"]
+script = ExtResource("1_wjwi5")
+coord = "0,-2"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([3, 4])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_h6qbb"]
+script = ExtResource("1_wjwi5")
+coord = "-1,-1"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([1, 2, 3, 5])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_0tvc5"]
+script = ExtResource("1_wjwi5")
+coord = "-2,0"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_frid3"]
+script = ExtResource("1_wjwi5")
+coord = "-2,1"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([1, 5])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_lbj7o"]
+script = ExtResource("1_wjwi5")
+coord = "-2,2"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([2, 5])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_768ny"]
+script = ExtResource("1_wjwi5")
+coord = "-1,2"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_ik75e"]
+script = ExtResource("1_wjwi5")
+coord = "0,2"
+terrain_type_id = "forest"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_xxp4n"]
 script = ExtResource("1_wjwi5")
 coord = "3,0"
 terrain_type_id = "grassland"
@@ -543,9 +203,29 @@ settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_ebm7j"]
+[sub_resource type="Resource" id="Resource_pu153"]
 script = ExtResource("1_wjwi5")
-coord = "3,1"
+coord = "3,-1"
+terrain_type_id = "forest"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_ide6i"]
+script = ExtResource("1_wjwi5")
+coord = "2,1"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_8fyx8"]
+script = ExtResource("1_wjwi5")
+coord = "3,-2"
 terrain_type_id = "grassland"
 has_trail = false
 river_edges = Array[int]([])
@@ -553,37 +233,107 @@ settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_lwhse"]
+[sub_resource type="Resource" id="Resource_15b1t"]
 script = ExtResource("1_wjwi5")
-coord = "3,2"
+coord = "1,2"
 terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_atg15"]
+script = ExtResource("1_wjwi5")
+coord = "-1,-2"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([0, 4, 5])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_e6o81"]
+script = ExtResource("1_wjwi5")
+coord = "-2,-1"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([0, 1])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_lgc8r"]
+script = ExtResource("1_wjwi5")
+coord = "-3,0"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_7uojb"]
+script = ExtResource("1_wjwi5")
+coord = "-3,1"
+terrain_type_id = "forest"
 has_trail = false
 river_edges = Array[int]([])
 settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_q1t74"]
+[sub_resource type="Resource" id="Resource_jq28u"]
 script = ExtResource("1_wjwi5")
-coord = "4,-1"
+coord = "-3,2"
+terrain_type_id = "forest"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_8ve0g"]
+script = ExtResource("1_wjwi5")
+coord = "-3,3"
 terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_cwed8"]
+script = ExtResource("1_wjwi5")
+coord = "-2,3"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([2])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_voc5b"]
+script = ExtResource("1_wjwi5")
+coord = "-1,3"
+terrain_type_id = "forest"
 has_trail = false
 river_edges = Array[int]([])
 settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_5wkjy"]
+[sub_resource type="Resource" id="Resource_jro1s"]
 script = ExtResource("1_wjwi5")
-coord = "4,-2"
-terrain_type_id = "grassland"
+coord = "0,3"
+terrain_type_id = "forest"
 has_trail = false
 river_edges = Array[int]([])
 settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_qkrhj"]
+[sub_resource type="Resource" id="Resource_71ggr"]
 script = ExtResource("1_wjwi5")
 coord = "4,0"
 terrain_type_id = "grassland"
@@ -593,9 +343,259 @@ settlement_id = ""
 special_event_ids = Array[String]([])
 event_frequency_multiplier = 1.0
 
-[sub_resource type="Resource" id="Resource_hjxb1"]
+[sub_resource type="Resource" id="Resource_njp7h"]
+script = ExtResource("1_wjwi5")
+coord = "4,-1"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_qkrhj"]
+script = ExtResource("1_wjwi5")
+coord = "3,1"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_q1t74"]
+script = ExtResource("1_wjwi5")
+coord = "4,-2"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_ebm7j"]
+script = ExtResource("1_wjwi5")
+coord = "2,2"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_5wkjy"]
+script = ExtResource("1_wjwi5")
+coord = "1,3"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_s46fh"]
+script = ExtResource("1_wjwi5")
+coord = "-2,-2"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_jlusc"]
+script = ExtResource("1_wjwi5")
+coord = "-3,-1"
+terrain_type_id = "forest"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_2p1la"]
+script = ExtResource("1_wjwi5")
+coord = "-4,0"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_ipvn8"]
+script = ExtResource("1_wjwi5")
+coord = "-4,1"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_qpiki"]
+script = ExtResource("1_wjwi5")
+coord = "-4,2"
+terrain_type_id = "forest"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_vbtwb"]
+script = ExtResource("1_wjwi5")
+coord = "-4,3"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_rx76c"]
 script = ExtResource("1_wjwi5")
 coord = "4,1"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_o2qsm"]
+script = ExtResource("1_wjwi5")
+coord = "3,2"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_hjxb1"]
+script = ExtResource("1_wjwi5")
+coord = "2,3"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_lwhse"]
+script = ExtResource("1_wjwi5")
+coord = "-3,-2"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_ugdjy"]
+script = ExtResource("1_wjwi5")
+coord = "-4,-1"
+terrain_type_id = "forest"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_k1uej"]
+script = ExtResource("1_wjwi5")
+coord = "-5,0"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_vu20g"]
+script = ExtResource("1_wjwi5")
+coord = "-5,1"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_8n3wg"]
+script = ExtResource("1_wjwi5")
+coord = "-5,2"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_pic78"]
+script = ExtResource("1_wjwi5")
+coord = "-5,3"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_an4x5"]
+script = ExtResource("1_wjwi5")
+coord = "-4,-2"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_3y6lq"]
+script = ExtResource("1_wjwi5")
+coord = "-5,-1"
+terrain_type_id = "grassland"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_f54jr"]
+script = ExtResource("1_wjwi5")
+coord = "-6,0"
+terrain_type_id = "grassland"
+has_trail = true
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_odfif"]
+script = ExtResource("1_wjwi5")
+coord = "-6,1"
+terrain_type_id = "forest"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_364r4"]
+script = ExtResource("1_wjwi5")
+coord = "-6,2"
+terrain_type_id = "forest"
+has_trail = false
+river_edges = Array[int]([])
+settlement_id = ""
+special_event_ids = Array[String]([])
+event_frequency_multiplier = 1.0
+
+[sub_resource type="Resource" id="Resource_h8q3b"]
+script = ExtResource("1_wjwi5")
+coord = "-6,3"
 terrain_type_id = "grassland"
 has_trail = false
 river_edges = Array[int]([])
@@ -606,64 +606,64 @@ event_frequency_multiplier = 1.0
 [resource]
 script = ExtResource("2_pdwg6")
 hexes = {
-"-1,-1": SubResource("Resource_frid3"),
-"-1,-2": SubResource("Resource_lgc8r"),
-"-1,0": SubResource("Resource_a3jg6"),
-"-1,1": SubResource("Resource_m1mof"),
-"-1,2": SubResource("Resource_xxp4n"),
-"-1,3": SubResource("Resource_71ggr"),
-"-2,-1": SubResource("Resource_7uojb"),
-"-2,-2": SubResource("Resource_2p1la"),
-"-2,0": SubResource("Resource_lbj7o"),
-"-2,1": SubResource("Resource_768ny"),
-"-2,2": SubResource("Resource_ik75e"),
-"-2,3": SubResource("Resource_jro1s"),
-"-3,-1": SubResource("Resource_ipvn8"),
-"-3,-2": SubResource("Resource_k1uej"),
-"-3,0": SubResource("Resource_jq28u"),
-"-3,1": SubResource("Resource_8ve0g"),
-"-3,2": SubResource("Resource_cwed8"),
-"-3,3": SubResource("Resource_voc5b"),
-"-4,-1": SubResource("Resource_vu20g"),
-"-4,-2": SubResource("Resource_f54jr"),
-"-4,0": SubResource("Resource_qpiki"),
-"-4,1": SubResource("Resource_vbtwb"),
-"-4,2": SubResource("Resource_rx76c"),
-"-4,3": SubResource("Resource_o2qsm"),
-"-5,-1": SubResource("Resource_odfif"),
-"-5,0": SubResource("Resource_8n3wg"),
-"-5,1": SubResource("Resource_pic78"),
-"-5,2": SubResource("Resource_an4x5"),
-"-5,3": SubResource("Resource_3y6lq"),
-"-6,0": SubResource("Resource_364r4"),
-"-6,1": SubResource("Resource_h8q3b"),
-"-6,2": SubResource("Resource_tamh0"),
-"-6,3": SubResource("Resource_l2yrv"),
-"0,-1": SubResource("Resource_jj1rs"),
-"0,-2": SubResource("Resource_0tvc5"),
-"0,0": SubResource("Resource_510mc"),
-"0,1": SubResource("Resource_itnqh"),
-"0,2": SubResource("Resource_pu153"),
-"0,3": SubResource("Resource_njp7h"),
-"1,-1": SubResource("Resource_lcfqt"),
-"1,-2": SubResource("Resource_h6qbb"),
-"1,0": SubResource("Resource_iy4va"),
-"1,1": SubResource("Resource_vdjcf"),
-"1,2": SubResource("Resource_e6o81"),
-"1,3": SubResource("Resource_jlusc"),
-"2,-1": SubResource("Resource_mw0ik"),
-"2,-2": SubResource("Resource_h3nry"),
-"2,0": SubResource("Resource_st3ln"),
-"2,1": SubResource("Resource_15b1t"),
-"2,2": SubResource("Resource_s46fh"),
-"2,3": SubResource("Resource_ugdjy"),
-"3,-1": SubResource("Resource_8fyx8"),
-"3,-2": SubResource("Resource_atg15"),
-"3,0": SubResource("Resource_ide6i"),
-"3,1": SubResource("Resource_ebm7j"),
-"3,2": SubResource("Resource_lwhse"),
-"4,-1": SubResource("Resource_q1t74"),
-"4,-2": SubResource("Resource_5wkjy"),
-"4,0": SubResource("Resource_qkrhj"),
-"4,1": SubResource("Resource_hjxb1")
+"-1,-1": SubResource("Resource_h6qbb"),
+"-1,-2": SubResource("Resource_atg15"),
+"-1,0": SubResource("Resource_lcfqt"),
+"-1,1": SubResource("Resource_jj1rs"),
+"-1,2": SubResource("Resource_768ny"),
+"-1,3": SubResource("Resource_voc5b"),
+"-2,-1": SubResource("Resource_e6o81"),
+"-2,-2": SubResource("Resource_s46fh"),
+"-2,0": SubResource("Resource_0tvc5"),
+"-2,1": SubResource("Resource_frid3"),
+"-2,2": SubResource("Resource_lbj7o"),
+"-2,3": SubResource("Resource_cwed8"),
+"-3,-1": SubResource("Resource_jlusc"),
+"-3,-2": SubResource("Resource_lwhse"),
+"-3,0": SubResource("Resource_lgc8r"),
+"-3,1": SubResource("Resource_7uojb"),
+"-3,2": SubResource("Resource_jq28u"),
+"-3,3": SubResource("Resource_8ve0g"),
+"-4,-1": SubResource("Resource_ugdjy"),
+"-4,-2": SubResource("Resource_an4x5"),
+"-4,0": SubResource("Resource_2p1la"),
+"-4,1": SubResource("Resource_ipvn8"),
+"-4,2": SubResource("Resource_qpiki"),
+"-4,3": SubResource("Resource_vbtwb"),
+"-5,-1": SubResource("Resource_3y6lq"),
+"-5,0": SubResource("Resource_k1uej"),
+"-5,1": SubResource("Resource_vu20g"),
+"-5,2": SubResource("Resource_8n3wg"),
+"-5,3": SubResource("Resource_pic78"),
+"-6,0": SubResource("Resource_f54jr"),
+"-6,1": SubResource("Resource_odfif"),
+"-6,2": SubResource("Resource_364r4"),
+"-6,3": SubResource("Resource_h8q3b"),
+"0,-1": SubResource("Resource_iy4va"),
+"0,-2": SubResource("Resource_h3nry"),
+"0,0": SubResource("Resource_wjwi5"),
+"0,1": SubResource("Resource_a3jg6"),
+"0,2": SubResource("Resource_ik75e"),
+"0,3": SubResource("Resource_jro1s"),
+"1,-1": SubResource("Resource_510mc"),
+"1,-2": SubResource("Resource_vdjcf"),
+"1,0": SubResource("Resource_pdwg6"),
+"1,1": SubResource("Resource_st3ln"),
+"1,2": SubResource("Resource_15b1t"),
+"1,3": SubResource("Resource_5wkjy"),
+"2,-1": SubResource("Resource_itnqh"),
+"2,-2": SubResource("Resource_mw0ik"),
+"2,0": SubResource("Resource_m1mof"),
+"2,1": SubResource("Resource_ide6i"),
+"2,2": SubResource("Resource_ebm7j"),
+"2,3": SubResource("Resource_hjxb1"),
+"3,-1": SubResource("Resource_pu153"),
+"3,-2": SubResource("Resource_8fyx8"),
+"3,0": SubResource("Resource_xxp4n"),
+"3,1": SubResource("Resource_qkrhj"),
+"3,2": SubResource("Resource_o2qsm"),
+"4,-1": SubResource("Resource_njp7h"),
+"4,-2": SubResource("Resource_q1t74"),
+"4,0": SubResource("Resource_71ggr"),
+"4,1": SubResource("Resource_rx76c")
 }

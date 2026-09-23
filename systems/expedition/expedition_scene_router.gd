@@ -46,6 +46,17 @@ extends Node
 ##   save/load (see _detour_active's own comment) -- an accepted gap,
 ##   not a decision. The debug tab's "Travel To" (visit_location())
 ##   deliberately keeps the OLD instant behavior, per Cameron.
+## - Further addition: hex_sector is the party's REAL position once a
+##   detour finishes (Cameron's confirmed model), not just a rendering
+##   detail -- resuming travel continues from wherever the visited
+##   location actually sits (_hex_position_override), not the original
+##   entry edge. Costs nothing extra for a CENTER_SECTOR location (the
+##   entry->center leg was already walked as the detour itself,
+##   skipped via TravelSystem.skip_current_hex_to_center()) and never
+##   discounts anything for a real edge sector, since entry->center and
+##   center->exit are each always exactly half a hex's crossing time
+##   regardless of which edges are involved -- see that method's own
+##   comment for the full reasoning.
 
 ## Placeholder paths -- these ambient scenes don't exist yet (design doc
 ## Section 2: hand-authored placeholders for now, procedural later).
@@ -115,6 +126,26 @@ var _detour_coord: String = ""
 var _detour_progress: float = 0.0
 var _detour_total_minutes: float = 0.0
 var _detour_pending_minutes: float = 0.0
+
+## Sentinel meaning "no visit has happened at the current hex yet --
+## use the geometrically-derived entry edge as normal." Distinct from
+## LocationSceneDefinition.CENTER_SECTOR (-1), which is a real,
+## meaningful position once a visit HAS occurred.
+const NO_POSITION_OVERRIDE := -2
+
+## Cameron's confirmed model: hex_sector is the party's REAL position
+## once a detour finishes, not just a rendering detail -- resuming
+## travel afterward continues from wherever the visited location
+## actually sits, not from the original entry edge. Reset to
+## NO_POSITION_OVERRIDE the instant a NEW hex is entered (top of
+## _on_hex_entered()); set to the just-visited def.hex_sector the
+## instant a detour finishes (_finish_detour()). Consumed in two
+## places: _begin_detour() (a SECOND visit in the same hex costs its
+## detour from wherever the FIRST visit left the party, not the
+## original entry edge) and travel_map_overlay.gd's rendering (the
+## resumed crossing's first-half visual starts from this position, not
+## the geometric entry point).
+var _hex_position_override: int = NO_POSITION_OVERRIDE
 
 
 func _ready() -> void:
@@ -258,6 +289,11 @@ func _on_content_viewport_ready() -> void:
 # ---------------------------------------------------------------------------
 
 func _on_hex_entered(coord: String) -> void:
+	# A new hex means the geometric entry edge takes over as the
+	# position reference again -- any override from a visit at the
+	# PREVIOUS hex is no longer meaningful.
+	_hex_position_override = NO_POSITION_OVERRIDE
+
 	var candidates := get_locations_in_hex(coord)
 	if candidates.is_empty():
 		return
@@ -291,6 +327,13 @@ func _show_next_prompt() -> void:
 	if _pending_prompt_queue.is_empty():
 		_pending_prompt_coord = ""
 		_pending_entry_edge = -1
+		# The entry->center leg was already walked as part of the
+		# detour itself if the party's real position is center -- see
+		# skip_current_hex_to_center()'s own comment for why this
+		# doesn't apply to a real edge sector (that leg is always 0.5
+		# regardless of which edge, so there's nothing to skip there).
+		if _hex_position_override == LocationSceneDefinition.CENTER_SECTOR:
+			TravelSystem.skip_current_hex_to_center()
 		TravelSystem.resume_travel()  # fires state_changed -> ambient scene swap handles itself above
 		return
 
@@ -324,13 +367,21 @@ func _on_prompt_choice(accepted: bool, def: LocationSceneDefinition) -> void:
 ## SAME pending prompt sequence afterward (further locations at this
 ## hex, or resuming Travel once none remain), exactly as it already does
 ## for a plain (non-detour) visit.
+##
+## Costs from _hex_position_override when one is set (a PRIOR visit at
+## this same hex already moved the party somewhere other than the
+## original entry edge -- Cameron's confirmed "hex_sector is real
+## position" model applies to every visit in sequence, not just the
+## first), falling back to the geometric _pending_entry_edge otherwise.
 func _begin_detour(def: LocationSceneDefinition) -> void:
+	var from_position := _hex_position_override if _hex_position_override != NO_POSITION_OVERRIDE else _pending_entry_edge
+
 	_detour_active = true
 	_detour_def = def
 	_detour_coord = _pending_prompt_coord
 	_detour_progress = 0.0
 	_detour_pending_minutes = 0.0
-	_detour_total_minutes = _sector_fraction(_pending_entry_edge, def.hex_sector) * TravelSystem.get_hex_travel_minutes(_detour_coord)
+	_detour_total_minutes = _sector_fraction(from_position, def.hex_sector) * TravelSystem.get_hex_travel_minutes(_detour_coord)
 
 
 ## Mirrors TravelSystem._advance_travel()'s single-step timing math --
@@ -374,6 +425,9 @@ func _finish_detour() -> void:
 	_detour_active = false
 	var def := _detour_def
 	_detour_def = null
+	# The party's real position within this hex is now wherever this
+	# location sits -- see _hex_position_override's own comment.
+	_hex_position_override = def.hex_sector
 	_load_scene(def.scene_path)
 
 
@@ -399,6 +453,13 @@ func get_detour_progress() -> float:
 	return _detour_progress
 
 
+## NO_POSITION_OVERRIDE (no visit at the current hex yet -- render the
+## normal geometric entry point), CENTER_SECTOR, or a real edge (0-5).
+## See _hex_position_override's own comment.
+func get_hex_position_override() -> int:
+	return _hex_position_override
+
+
 ## Cyclic distance between two of a hex's six sides (0-5), the shorter
 ## way around -- e.g. sides 0 and 5 are 1 apart, not 5. Uses absi()
 ## rather than the generic abs() specifically -- abs() is overloaded
@@ -413,41 +474,50 @@ func _sector_distance(a: int, b: int) -> int:
 
 
 ## Fraction of a hex's full crossing time this sector should cost to
-## reach from `entry_edge` -- 0.0 at the entry edge itself, 1.0 at the
-## directly-opposite side (a full crossing), CENTER_SECTOR fixed at 0.5
-## (matching the existing hex-crossing model's own assumption that a
-## hex's center sits at exactly the halfway point regardless of which
-## edge you're measuring from -- see travel_system.gd's own comments on
-## a hexagon's apothem being identical for every edge). Placeholder/
-## approximate, same posture as every other untuned formula in this
-## project.
+## reach FROM `entry_edge` -- 0.0 at the entry edge itself, 1.0 at the
+## directly-opposite side (a full crossing). `entry_edge < 0` covers
+## two cases that happen to share the same answer: CENTER_SECTOR itself
+## (starting from a PRIOR center-sector visit -- center-to-any-edge is
+## exactly 0.5, the same apothem-symmetry fact as edge-to-center) and
+## the genuine "no entry edge known at all" fallback (shouldn't
+## normally happen -- see get_travel_minutes_to()'s own comment).
+## `sector == CENTER_SECTOR` is handled the same way for the reverse
+## direction. Placeholder/approximate, same posture as every other
+## untuned formula in this project.
 func _sector_fraction(entry_edge: int, sector: int) -> float:
 	if sector == LocationSceneDefinition.CENTER_SECTOR:
 		return 0.5
 	if entry_edge < 0:
-		return 0.5  # shouldn't normally happen -- see get_travel_minutes_to()'s own fallback below
+		return 0.5
 	return float(_sector_distance(entry_edge, sector)) / float(OPPOSITE_SECTOR_DISTANCE)
 
 
 ## In-game minutes to reach `location_id` from wherever the party
-## actually entered its hex. Falls back to TravelSystem's CURRENT hex
-## and a freshly-derived entry edge when called outside a live arrival
-## sequence (e.g. the debug tab's "Travel To", which has no
-## _pending_prompt_coord of its own) -- and to CENTER_SECTOR's neutral
-## 0.5 fraction if even that can't be derived (no visited-hex history
-## yet, per _sector_fraction()'s own comment).
+## actually currently is (a prior visit's _hex_position_override, if
+## any -- see that field's own comment -- otherwise the geometric entry
+## edge). Falls back to TravelSystem's CURRENT hex and a freshly-derived
+## entry edge when called outside a live arrival sequence (e.g. the
+## debug tab's "Travel To", which has no _pending_prompt_coord of its
+## own) -- and to CENTER_SECTOR's neutral 0.5 fraction if even that
+## can't be derived (no visited-hex history yet, per _sector_fraction()'s
+## own comment). Kept in sync with _begin_detour()'s own from-position
+## logic on purpose -- this is what the debug tab previews, and it
+## should never disagree with what actually gets charged.
 func get_travel_minutes_to(location_id: String) -> int:
 	var def: LocationSceneDefinition = _locations.get(location_id)
 	if def == null:
 		return 0
 
 	var coord := _pending_prompt_coord if _pending_prompt_coord != "" else TravelSystem.get_current_hex()
+
 	var entry_edge := _pending_entry_edge
 	if _pending_prompt_coord == "":
 		var visited := TravelSystem.get_visited_hex_path()
 		entry_edge = WorldRegistry.get_direction_index(coord, visited[-2]) if visited.size() >= 2 else -1
 
-	var fraction := _sector_fraction(entry_edge, def.hex_sector)
+	var from_position := _hex_position_override if _hex_position_override != NO_POSITION_OVERRIDE else entry_edge
+
+	var fraction := _sector_fraction(from_position, def.hex_sector)
 	return int(round(fraction * TravelSystem.get_hex_travel_minutes(coord)))
 
 
@@ -535,9 +605,16 @@ func get_current_scene_path() -> String:
 ## convention as TravelSystem.load_travel_state() etc. AFTER
 ## TravelSystem has already restored its own state -- an empty
 ## `scene_path` falls back to whichever ambient scene matches the
-## just-restored TravelState.state.
-func restore_from_save(scene_path: String, discovered_ids: Array[String]) -> void:
+## just-restored TravelState.state. `position_override` is restored
+## unconditionally, regardless of whether `scene_path` is empty --
+## it's just as meaningful mid-crossing (post-visit, progress still
+## ticking from a real edge sector toward center) as it is while
+## actually standing inside a bespoke scene, and harmless even when
+## irrelevant (cleared the instant a new hex is next entered either
+## way).
+func restore_from_save(scene_path: String, discovered_ids: Array[String], position_override: int) -> void:
 	_discovered_location_ids = discovered_ids.duplicate()
+	_hex_position_override = position_override
 
 	if scene_path != "":
 		_load_scene(scene_path)

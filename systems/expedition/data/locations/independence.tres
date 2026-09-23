@@ -7,6 +7,6 @@ script = ExtResource("1_pvcvc")
 location_id = "independence"
 display_name = "Independence"
 scene_path = "res://Test Scenes/whitebox.tscn"
-hex_sector = 1
+hex_sector = 0
 agency_type = 0
 metadata/_custom_type_script = "uid://b4nbjcje84mud"

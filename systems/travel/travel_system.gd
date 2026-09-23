@@ -668,6 +668,23 @@ func pause_for_event() -> void:
 	_set_state(TravelState.State.PAUSED_BY_EVENT)
 
 
+## Called by ExpeditionSceneRouter, exactly once, right before
+## resume_travel(), ONLY when the location just visited sat at
+## LocationSceneDefinition.CENTER_SECTOR. The party's real position
+## after such a visit already IS the hex's center -- by the same
+## apothem-symmetry fact that makes entry->center and center->exit each
+## exactly half of a hex's crossing time regardless of which specific
+## edges are involved (see this file's own header/comments on that),
+## a center-sector visit means the entry->center leg has ALREADY been
+## walked (as part of the detour itself), so re-charging it on resume
+## would double-count minutes never actually spent again. No-op if
+## progress is already past center for any other reason -- this only
+## ever advances progress, never rewinds it.
+func skip_current_hex_to_center() -> void:
+	if _travel_state.current_hex_progress < 0.5:
+		_travel_state.current_hex_progress = 0.5
+
+
 ## Single choke point for every state change -- validates against
 ## _LEGAL_TRANSITIONS rather than trusting callers, and is the only
 ## place state_changed fires from. An illegal transition (e.g. pausing

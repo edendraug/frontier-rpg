@@ -55,3 +55,14 @@ extends Resource
 ## richer (unknown / known / discovered) model later without needing a
 ## save-format migration.
 @export var discovered_location_ids: Array[String] = []
+
+## The party's real in-hex position (Cameron's confirmed "hex_sector is
+## real position" model) at the moment of saving -- ExpeditionSceneRouter's
+## NO_POSITION_OVERRIDE (-2) if no visit has happened at the current hex
+## since it was entered, LocationSceneDefinition.CENTER_SECTOR (-1), or
+## a real edge (0-5). Bug found in testing: without this field, a full
+## relaunch-and-load correctly restored the scene and discovered list
+## but lost this entirely, so the map rendered the party back at the
+## geometric entry point regardless of where a visited location actually
+## put them -- wrong for a real edge sector exactly the same as center.
+@export var hex_position_override: int = -2

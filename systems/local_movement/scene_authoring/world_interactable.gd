@@ -70,6 +70,24 @@ extends Area2D
 ## clicked the same pickup before either arrived) -- PlayerController's
 ## pending-arrival callback checks is_instance_valid() before calling
 ## interact() specifically to guard against this.
+##
+## BLOCKS_MOVEMENT: defaults true (existing behavior, unchanged) --
+## register_with_grid() occupies this node's own cell, so
+## PlayerController.request_interact() paths to the nearest open
+## NEIGHBOR, never on top of it (correct for a solid object). Set
+## false for something meant to be walked ONTO instead -- a doorway or
+## exit marker (e.g. LeaveLocationBehavior's own Leave interactable),
+## which should never have occupied the cell in the first place.
+##
+## HOVER_HIGHLIGHT: opt-in, off by default, so nothing existing
+## changes. When enabled, visual_sprite (the same field CONSUME_IN_PLACE
+## already uses) starts at hover_opacity_default's alpha and tweens to
+## hover_opacity_hovered on Area2D's own native mouse_entered/
+## mouse_exited signals -- no custom hover polling needed, Godot
+## already provides this for any Area2D with input_pickable on.
+## Cameron's use case: a Leave marker that reads as slightly
+## transparent/unobtrusive by default, brightening under the cursor to
+## confirm it's clickable.
 
 enum ConsumeMode {
 	REPEATABLE,
@@ -85,6 +103,13 @@ enum ConsumeMode {
 @export var texture_after_consume: Texture2D
 @export var visual_sprite: Sprite2D
 
+@export var blocks_movement: bool = true
+
+@export var hover_highlight: bool = false
+@export var hover_opacity_default: float = 0.5
+@export var hover_opacity_hovered: float = 1.0
+@export var hover_tween_duration: float = 0.15
+
 var _grid: LocalGrid
 var _coord: String = ""
 var _consumed: bool = false
@@ -92,6 +117,22 @@ var _consumed: bool = false
 
 func _ready() -> void:
 	input_event.connect(_on_input_event)
+
+	if hover_highlight:
+		mouse_entered.connect(_on_mouse_entered)
+		mouse_exited.connect(_on_mouse_exited)
+		if visual_sprite != null:
+			visual_sprite.modulate.a = hover_opacity_default
+
+
+func _on_mouse_entered() -> void:
+	if visual_sprite != null:
+		create_tween().tween_property(visual_sprite, "modulate:a", hover_opacity_hovered, hover_tween_duration)
+
+
+func _on_mouse_exited() -> void:
+	if visual_sprite != null:
+		create_tween().tween_property(visual_sprite, "modulate:a", hover_opacity_default, hover_tween_duration)
 
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
@@ -109,7 +150,8 @@ func register_with_grid(grid: LocalGrid) -> void:
 	if _coord == "":
 		push_warning("WorldInteractable '%s' doesn't land on any cell in this scene's grid" % name)
 		return
-	grid.set_occupant(_coord, self)
+	if blocks_movement:
+		grid.set_occupant(_coord, self)
 
 
 ## Called by PlayerController once the approaching character arrives.
@@ -131,7 +173,7 @@ func _apply_consumption() -> void:
 			if texture_after_consume != null and visual_sprite != null:
 				visual_sprite.texture = texture_after_consume
 		ConsumeMode.CONSUME_AND_REMOVE:
-			if _grid != null and _coord != "":
+			if blocks_movement and _grid != null and _coord != "":
 				_grid.clear_occupant(_coord)
 			queue_free()
 

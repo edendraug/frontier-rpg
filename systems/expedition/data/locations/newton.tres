@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_g3l6u")
-location_id = "newotn"
+location_id = "newton"
 display_name = "Newton"
 scene_path = "res://Test Scenes/newton.tscn"
 hex_sector = -1

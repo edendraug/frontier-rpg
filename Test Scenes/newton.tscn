@@ -1,10 +1,14 @@
-[gd_scene load_steps=10 format=4 uid="uid://bcsj64x3aqujm"]
+[gd_scene load_steps=15 format=4 uid="uid://bcsj64x3aqujm"]
 
 [ext_resource type="Script" uid="uid://buwr6upbwnw1f" path="res://systems/local_movement/local_scene_root.gd" id="1_rfcgi"]
 [ext_resource type="Texture2D" uid="uid://ccmfc7dg805w6" path="res://assets/art/hexes/temp_ground.png" id="2_it6t0"]
 [ext_resource type="Texture2D" uid="uid://dvtcoo60n4i81" path="res://assets/art/hexes/temp_obstacle.png" id="3_hndi5"]
 [ext_resource type="PackedScene" uid="uid://dl3cpea61afjk" path="res://systems/local_movement/camera/local_scene_camera.tscn" id="4_kqk30"]
 [ext_resource type="Script" uid="uid://r5a2vpa42s1r" path="res://systems/local_movement/scene_authoring/gather_point.gd" id="5_kq0v5"]
+[ext_resource type="PackedScene" uid="uid://b5d1evcte1tdk" path="res://systems/local_movement/scene_authoring/world_interactable.tscn" id="6_dndud"]
+[ext_resource type="Texture2D" uid="uid://c16yhisui2mus" path="res://assets/art/temp/leave.png" id="7_nbedb"]
+[ext_resource type="Script" uid="uid://cnf5cfkg4n77q" path="res://systems/local_movement/interactions/interaction_behavior.gd" id="7_rfcgi"]
+[ext_resource type="Script" uid="uid://jbbnxdfg22s4" path="res://systems/local_movement/interactions/leave_location_behavior.gd" id="8_it6t0"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_du2kr"]
 texture = ExtResource("2_it6t0")
@@ -27,6 +31,10 @@ tile_shape = 3
 tile_size = Vector2i(32, 22)
 sources/0 = SubResource("TileSetAtlasSource_drnqv")
 
+[sub_resource type="Resource" id="Resource_hndi5"]
+script = ExtResource("8_it6t0")
+metadata/_custom_type_script = "uid://jbbnxdfg22s4"
+
 [node name="Whiteroom" type="Node2D"]
 script = ExtResource("1_rfcgi")
 
@@ -43,6 +51,18 @@ tile_set = SubResource("TileSet_w0ubn")
 
 [node name="GatherPoint" type="Node2D" parent="."]
 unique_name_in_owner = true
-position = Vector2(-30, 92)
+position = Vector2(0, 63)
 script = ExtResource("5_kq0v5")
 metadata/_custom_type_script = "uid://r5a2vpa42s1r"
+
+[node name="WorldInteractable2" parent="." node_paths=PackedStringArray("visual_sprite") instance=ExtResource("6_dndud")]
+position = Vector2(-32, 94)
+custom_behaviors = Array[ExtResource("7_rfcgi")]([SubResource("Resource_hndi5")])
+visual_sprite = NodePath("Sprite2D")
+blocks_movement = false
+hover_highlight = true
+
+[node name="Sprite2D" parent="WorldInteractable2" index="0"]
+texture = ExtResource("7_nbedb")
+
+[editable path="WorldInteractable2"]

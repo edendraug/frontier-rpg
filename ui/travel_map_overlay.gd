@@ -130,7 +130,17 @@ func _draw_party_marker() -> void:
 ## party marker renders that walk instead of the normal hex-crossing
 ## position below. Checked FIRST since a detour only ever happens while
 ## TravelSystem is already PAUSED_BY_EVENT with current_hex_progress
-## frozen -- the two are mutually exclusive, never blended.
+## frozen -- the two are mutually exclusive, never blended. A SECOND,
+## separate addition below: once a detour finishes, the resumed
+## crossing's first half renders from the visited location's real
+## position (ExpeditionSceneRouter.get_hex_position_override()), not
+## the geometric entry point -- see that method's own comment. Real bug
+## fixed here: this MUST check against NO_POSITION_OVERRIDE explicitly,
+## not `>= 0` -- CENTER_SECTOR is -1, so a sign check silently treated a
+## center-sector visit as "no visit happened at all" and rendered the
+## stale geometric entry point for as long as the override was active
+## (visibly wrong the whole time the player was inside the visited
+## scene, not just a one-frame glitch).
 func _get_party_pixel_position() -> Vector2:
 	if ExpeditionSceneRouter.is_detouring():
 		return _get_detour_pixel_position()
@@ -144,10 +154,33 @@ func _get_party_pixel_position() -> Vector2:
 		# always preserves it), but cheap insurance costs nothing.
 		return %WorldMapInstance.get_hex_center(current)
 
-	var visited := TravelSystem.get_visited_hex_path()
-	var predecessor: String = visited[-2] if visited.size() >= 2 else TravelSystem.STARTING_HEX_COORD
-	var entry_point: Vector2 = %WorldMapInstance.get_shared_edge_midpoint(current, predecessor)
 	var hex_center: Vector2 = %WorldMapInstance.get_hex_center(current)
+
+	# Expedition Scene Routing addition: if a visit at THIS hex already
+	# moved the party (Cameron's confirmed "hex_sector is real position"
+	# model), the resumed crossing's first half starts from THERE, not
+	# the geometric entry point -- same neighbor-lookup trick
+	# _get_detour_pixel_position() already uses below. Checked against
+	# the actual NO_POSITION_OVERRIDE sentinel, NOT `>= 0` -- CENTER_SECTOR
+	# is -1, which would otherwise be indistinguishable from
+	# NO_POSITION_OVERRIDE's own -2 and silently fall through to the
+	# "no visit happened" branch, which was exactly the bug: a
+	# real-edge override rendered correctly (>= 0 caught it), but a
+	# CENTER_SECTOR override was being treated as if no visit had
+	# occurred at all.
+	var entry_point: Vector2
+	var position_override := ExpeditionSceneRouter.get_hex_position_override()
+	if position_override != ExpeditionSceneRouter.NO_POSITION_OVERRIDE:
+		if position_override == LocationSceneDefinition.CENTER_SECTOR:
+			entry_point = hex_center
+		else:
+			var neighbors := WorldRegistry.get_neighbors(current)
+			entry_point = %WorldMapInstance.get_shared_edge_midpoint(current, neighbors[position_override]) if position_override < neighbors.size() else Vector2.INF
+	else:
+		var visited := TravelSystem.get_visited_hex_path()
+		var predecessor: String = visited[-2] if visited.size() >= 2 else TravelSystem.STARTING_HEX_COORD
+		entry_point = %WorldMapInstance.get_shared_edge_midpoint(current, predecessor)
+
 	var progress := TravelSystem.get_current_hex_progress()
 
 	if entry_point == Vector2.INF or hex_center == Vector2.INF:
