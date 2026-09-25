@@ -69,25 +69,34 @@ func _ready() -> void:
 	root.add_child(HSeparator.new())
 
 	var vehicle_row := HBoxContainer.new()
-	vehicle_row.add_child(_make_label("Vehicle Capacity:", 12))
+	vehicle_row.add_child(_make_label("Caravan Capacity Bonus:", 12))
 	_vehicle_spin = SpinBox.new()
 	_vehicle_spin.min_value = 0
 	_vehicle_spin.max_value = 5000
 	_vehicle_spin.value = 400
 	vehicle_row.add_child(_vehicle_spin)
 
+	# Design Doc v0.4, Section 4.8: this is a raw debug knob for testing
+	# weight math directly, independent of a real CaravanSystem vehicle/
+	# animal roster -- same purpose the old "Set Vehicle"/"Clear Vehicle"
+	# buttons served under the retired override model, just additive now
+	# (InventorySystem.set_caravan_capacity_bonus() has no opinion on
+	# where the number came from). A real playthrough's bonus comes from
+	# CaravanSystem.get_total_carry_capacity() instead, pushed
+	# automatically on acquire/abandon/role-change -- this tab bypasses
+	# that entirely, on purpose, for isolated testing.
 	var set_vehicle_button := Button.new()
-	set_vehicle_button.text = "Set Vehicle"
+	set_vehicle_button.text = "Set Bonus"
 	set_vehicle_button.pressed.connect(func():
-		InventorySystem.set_vehicle_capacity(_vehicle_spin.value)
+		InventorySystem.set_caravan_capacity_bonus(_vehicle_spin.value)
 		refresh()
 	)
 	vehicle_row.add_child(set_vehicle_button)
 
 	var clear_vehicle_button := Button.new()
-	clear_vehicle_button.text = "Clear Vehicle"
+	clear_vehicle_button.text = "Clear Bonus"
 	clear_vehicle_button.pressed.connect(func():
-		InventorySystem.clear_vehicle()
+		InventorySystem.set_caravan_capacity_bonus(0.0)
 		refresh()
 	)
 	vehicle_row.add_child(clear_vehicle_button)
@@ -123,11 +132,9 @@ func refresh() -> void:
 	if _readout == null:
 		return
 	var status_names := ["Unencumbered", "Encumbered", "OVERLOADED"]
-	var vehicle_text := "none"
-	if InventorySystem.has_vehicle():
-		vehicle_text = "%.0f lbs" % InventorySystem.get_vehicle_capacity()
+	var vehicle_text := "%.0f lbs" % InventorySystem.get_caravan_capacity_bonus()
 
-	_readout.text = "Money: $%.2f\nWeight: %.1f / %.1f lbs (%s)\nVehicle: %s" % [
+	_readout.text = "Money: $%.2f\nWeight: %.1f / %.1f lbs (%s)\nCaravan Bonus: %s" % [
 		InventorySystem.get_money(),
 		InventorySystem.get_total_weight(),
 		InventorySystem.get_max_capacity(),

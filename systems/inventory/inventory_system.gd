@@ -36,11 +36,22 @@ var _stock: Dictionary = {}  # item_id (String) -> int, non-perishables only
 var _batches: Dictionary = {}  # item_id (String) -> Array[InventoryBatch], perishables only
 var _money: float = 0.0
 
-# Externally fed -- InventorySystem never queries a party roster or a vehicle
-# system directly (neither exists yet). Whatever eventually owns "the party"
-# is responsible for keeping these current. See set_party_size/set_vehicle_capacity.
+# Externally fed -- InventorySystem never queries a party roster or
+# CaravanSystem directly. Whatever owns "the party" (PartyManager) and
+# whatever owns the caravan (CaravanSystem, Vehicles & Animals Design
+# Doc v0.4) are each responsible for keeping their own side current.
+# See set_party_size/set_caravan_capacity_bonus.
 var _party_size: int = 0
-var _vehicle_capacity: float = -1.0  # -1 means "no vehicle", falls back to per-person carry
+
+## Design Doc v0.4, Section 4.8 -- ADDITIVE, not an override. Previously
+## `_vehicle_capacity`, a sentinel field (-1.0 = "no vehicle") that
+## REPLACED per-person carry entirely whenever a vehicle was owned.
+## Retired: a vehicle (and pack animals) now add to per-person carry
+## rather than replace it -- a person can carry supplies on their back
+## AND have more stowed in the wagon. 0.0 is a genuine "nothing extra
+## to add" value here, not a special case needing its own sentinel, the
+## way -1.0 was.
+var _caravan_capacity_bonus: float = 0.0
 
 var _last_weight_status: WeightStatus = WeightStatus.UNENCUMBERED
 
@@ -290,32 +301,36 @@ func set_party_size(count: int) -> void:
 	_check_weight_status_changed()
 
 
-## A vehicle OVERRIDES per-person carry entirely -- it does not add to it.
-func set_vehicle_capacity(capacity: float) -> void:
-	_vehicle_capacity = capacity
+## Design Doc v0.4, Section 4.8. Replaces the old set_vehicle_capacity()/
+## clear_vehicle() pair -- there's no separate "clear" step anymore,
+## CaravanSystem just calls this with 0.0 when it has nothing to
+## contribute (no vehicle, no PACK animals). `bonus` is the ADDITIVE
+## total CaravanSystem.get_total_carry_capacity() computes (vehicle
+## base_carry_capacity, if any owned, plus every PACK-role animal's own
+## base_carry_capacity) -- this method itself has no opinion on where
+## that number came from, same "externally fed" posture as
+## set_party_size() above.
+func set_caravan_capacity_bonus(bonus: float) -> void:
+	_caravan_capacity_bonus = bonus
 	_check_weight_status_changed()
 
 
-func clear_vehicle() -> void:
-	_vehicle_capacity = -1.0
-	_check_weight_status_changed()
+## Raw stored value, distinct from get_max_capacity()'s computed
+## result -- SaveManager needs the former to round-trip the actual
+## state, not the latter's derived number. Renamed from
+## get_vehicle_capacity() -- same round-trip purpose, additive meaning.
+func get_caravan_capacity_bonus() -> float:
+	return _caravan_capacity_bonus
 
 
-func has_vehicle() -> bool:
-	return _vehicle_capacity >= 0.0
-
-
-## Raw stored value (-1.0 if none), distinct from get_max_capacity()'s
-## computed result -- SaveManager needs the former to round-trip the
-## actual state, not the latter's derived number.
-func get_vehicle_capacity() -> float:
-	return _vehicle_capacity
-
-
+## ADDITIVE as of Design Doc v0.4, Section 4.8 -- always both terms, no
+## branch. Previously returned EITHER the vehicle's override value OR
+## per-person carry, never both; has_vehicle() (which that branch relied
+## on) is retired along with it -- nothing outside this file needs to
+## know whether the bonus came from a vehicle, animals, or both, only
+## the total.
 func get_max_capacity() -> float:
-	if has_vehicle():
-		return _vehicle_capacity
-	return DEFAULT_PER_PERSON_CARRY * _party_size
+	return DEFAULT_PER_PERSON_CARRY * _party_size + _caravan_capacity_bonus
 
 
 ## Capacity is never enforced here -- this is purely a status report.
@@ -363,11 +378,11 @@ func get_batches_snapshot() -> Dictionary:
 ## something during play, not restoring a prior state. Emits the same
 ## signals a normal change would, so anything listening (a future HUD)
 ## reacts correctly to a load the same way it would to gameplay.
-func load_state(stock: Dictionary, batches: Dictionary, new_money: float, new_vehicle_capacity: float) -> void:
+func load_state(stock: Dictionary, batches: Dictionary, new_money: float, new_caravan_capacity_bonus: float) -> void:
 	_stock = stock.duplicate(true)
 	_batches = batches.duplicate(true)
 	_money = new_money
-	_vehicle_capacity = new_vehicle_capacity
+	_caravan_capacity_bonus = new_caravan_capacity_bonus
 
 	money_changed.emit(_money)
 	_last_weight_status = get_weight_status()
@@ -384,7 +399,7 @@ func reset() -> void:
 	_stock.clear()
 	_batches.clear()
 	_money = 0.0
-	_vehicle_capacity = -1.0
+	_caravan_capacity_bonus = 0.0
 	_party_size = 0
 
 	money_changed.emit(_money)

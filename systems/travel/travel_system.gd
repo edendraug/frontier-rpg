@@ -174,6 +174,18 @@ signal hex_entered(coord: String)
 ## caused by running out of queue" from state_changed's arguments.
 signal journey_completed
 
+## Vehicles & Animals Design Doc v0.4, Section 4.7. Fired from
+## _spend_game_minutes() below -- the single choke point every
+## game-minute of travel already flows through, in both the
+## forward-progress and direction-reversal branches of
+## _advance_travel(). Only emitted when whole_minutes > 0, same guard
+## _spend_game_minutes() already applies before calling
+## TimeSystem.pass_minutes(). Deliberately separate from TimeSystem's
+## own time_advanced -- that fires for ANY elapsed time (a settlement
+## visit, AT_CAMP), and CaravanSystem needs to decay vehicle
+## condition/animal vitals only while actually TRAVELING.
+signal travel_time_passed(minutes: int)
+
 ## Live, in-memory travel state. Defaults to a fresh TravelState
 ## (AT_CAMP / Normal / empty route) -- SaveManager overwrites this via
 ## load_travel_state() on an actual load; a brand-new expedition just
@@ -189,6 +201,14 @@ var _travel_state: TravelState = TravelState.new()
 ## this is pure real-time frame-timing bookkeeping, not meaningful save
 ## data.
 var _pending_game_minutes: float = 0.0
+
+## Vehicles & Animals Design Doc v0.4, Section 4.7. Pull-based
+## registration for hazard/speed contributions from external systems --
+## same pattern as VitalsSystem._environmental_sources, same reasoning:
+## keeps the dependency pointing FROM the caller (CaravanSystem) TO
+## Travel rather than the reverse. Callable(coord: String) -> Array[ModifierEntry].
+var _hazard_modifier_sources: Array[Callable] = []
+var _speed_modifier_sources: Array[Callable] = []
 
 func _ready() -> void:
 	VitalsSystem.register_environmental_source(_get_pace_fatigue_entries)
@@ -281,27 +301,61 @@ func _get_trail_speed_entry() -> ModifierEntry:
 ## TerrainTypeDefinition.base_travel_minutes into an actual elapsed-
 ## time number is Phase 5/6's job (get_eta_minutes() and the real-time
 ## tick), not this method's.
+## Lets an external system (e.g. CaravanSystem, for a below-threshold
+## vehicle condition speed debuff) contribute per-coord modifiers into
+## get_travel_speed_multiplier() below, without this file needing to
+## know CaravanSystem exists. Design Doc v0.4, Section 4.7.
+func register_speed_modifier_source(source: Callable) -> void:
+	_speed_modifier_sources.append(source)
+
+
+## Same reasoning as register_speed_modifier_source() above, feeding
+## get_travel_hazard_multiplier() instead. Design Doc v0.4, Section 4.7.
+func register_hazard_modifier_source(source: Callable) -> void:
+	_hazard_modifier_sources.append(source)
+
+
 func get_travel_speed_multiplier(coord: String) -> float:
 	var entries: Array[ModifierEntry] = [_get_pace_speed_entry()]
 	var hex := WorldRegistry.get_hex(coord)
 	if hex != null and hex.has_trail:
 		entries.append(_get_trail_speed_entry())
+	for source in _speed_modifier_sources:
+		entries.append_array(source.call(coord))
 	var result := ModifierResolver.aggregate(entries, [TRAVEL_SPEED_TARGET])
 	return result.multiplicative_total
 
 
-## Effective hazard multiplier for THIS hex under current Pace.
-## `_coord` is currently unused -- Trail deliberately contributes
-## nothing to hazard yet (see TRAIL_SPEED_MULTIPLIER's comment above)
-## and Pace is the only real input right now -- but the parameter
-## stays in the signature so a future caller iterating per-hex doesn't
-## need to change once Trail's hazard contribution (or terrain's own
-## hazard_level) actually gets folded in here. Exposed, not consumed
-## (Section 5.4) -- nothing rolls against this yet.
-func get_travel_hazard_multiplier(_coord: String) -> float:
+## Effective hazard multiplier for THIS hex under current Pace, plus
+## anything registered sources contribute (Design Doc v0.4, Section
+## 4.7 -- CaravanSystem is the first real one). `coord` was long unused
+## -- Trail deliberately contributes nothing to hazard (see
+## TRAIL_SPEED_MULTIPLIER's comment above) -- but is genuinely used now
+## that registered sources receive it. Terrain's own hazard_level is
+## still NOT folded in here; see get_effective_hazard() below for that.
+func get_travel_hazard_multiplier(coord: String) -> float:
 	var entries: Array[ModifierEntry] = [_get_pace_hazard_entry()]
+	for source in _hazard_modifier_sources:
+		entries.append_array(source.call(coord))
 	var result := ModifierResolver.aggregate(entries, [TRAVEL_HAZARD_TARGET])
 	return result.multiplicative_total
+
+
+## Vehicles & Animals Design Doc v0.4, Section 4.7. Closes a real gap:
+## get_travel_hazard_multiplier() above only ever reflected Pace (plus,
+## as of this addition, registered modifier sources) -- terrain's own
+## hazard_level was never folded in anywhere. Mirrors
+## get_hex_travel_minutes()'s existing relationship to the speed
+## multiplier exactly. Returns 0.0 for an unrecognized coord or unknown
+## terrain type, same defensive posture as get_hex_travel_minutes().
+func get_effective_hazard(coord: String) -> float:
+	var hex := WorldRegistry.get_hex(coord)
+	if hex == null:
+		return 0.0
+	var terrain := WorldRegistry.get_terrain(hex.terrain_type_id)
+	if terrain == null:
+		return 0.0
+	return terrain.hazard_level * get_travel_hazard_multiplier(coord)
 
 
 # ---------------------------------------------------------------------------
@@ -963,6 +1017,7 @@ func _spend_game_minutes(minutes: float) -> void:
 	if whole_minutes > 0:
 		_pending_game_minutes -= whole_minutes
 		TimeSystem.pass_minutes(whole_minutes)
+		travel_time_passed.emit(whole_minutes)
 
 
 ## Pops the just-finished hex off the front of queued_route and resets

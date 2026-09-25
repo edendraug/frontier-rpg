@@ -1,0 +1,76 @@
+[gd_scene load_steps=7 format=3 uid="uid://dplidgoxcofti"]
+
+[ext_resource type="Texture2D" uid="uid://bldujdsgvpp54" path="res://assets/art/vehicles/wagon_1.png" id="1_ea1mp"]
+[ext_resource type="Script" uid="uid://b6kdj87loq0jw" path="res://systems/caravan/vehicle_visual_controller.gd" id="1_qtea1"]
+
+[sub_resource type="Animation" id="Animation_ea1mp"]
+resource_name = "idle"
+step = 0.0833333
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BodySprite:frame_coords")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_qtea1"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BodySprite:frame_coords")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Vector2i(1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_2owv4"]
+resource_name = "roll"
+length = 0.333342
+loop_mode = 1
+step = 0.0833333
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BodySprite:frame_coords")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.166667),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [Vector2i(0, 0), Vector2i(1, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_2owv4"]
+_data = {
+&"RESET": SubResource("Animation_qtea1"),
+&"idle": SubResource("Animation_ea1mp"),
+&"roll": SubResource("Animation_2owv4")
+}
+
+[node name="VehicleVisualController" type="Node2D"]
+script = ExtResource("1_qtea1")
+
+[node name="VisualRoot" type="Node2D" parent="."]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="VisualRoot"]
+libraries = {
+&"": SubResource("AnimationLibrary_2owv4")
+}
+
+[node name="BodySprite" type="Sprite2D" parent="VisualRoot"]
+texture = ExtResource("1_ea1mp")
+offset = Vector2(0, -16.5)
+hframes = 2
+frame = 1

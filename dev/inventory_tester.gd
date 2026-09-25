@@ -135,15 +135,15 @@ func _build_ui() -> void:
 	capacity_row.add_child(_party_size_spin)
 
 	var vehicle_label := Label.new()
-	vehicle_label.text = "Vehicle Capacity (-1 = none, override not additive):"
+	vehicle_label.text = "Caravan Capacity Bonus (additive, 0 = none):"
 	capacity_row.add_child(vehicle_label)
 
 	_vehicle_capacity_spin = SpinBox.new()
-	_vehicle_capacity_spin.min_value = -1
+	_vehicle_capacity_spin.min_value = 0
 	_vehicle_capacity_spin.max_value = 2000
-	_vehicle_capacity_spin.value = -1
+	_vehicle_capacity_spin.value = 0
 	_vehicle_capacity_spin.value_changed.connect(func(v):
-		InventorySystem.set_vehicle_capacity(v)
+		InventorySystem.set_caravan_capacity_bonus(v)
 		_refresh()
 	)
 	capacity_row.add_child(_vehicle_capacity_spin)

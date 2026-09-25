@@ -25,7 +25,7 @@ extends Resource
 @export var inventory_stock: Dictionary = {}      # item_id -> int
 @export var inventory_batches: Dictionary = {}     # item_id -> Array[InventoryBatch]
 @export var money: float = 0.0
-@export var vehicle_capacity: float = -1.0         # -1 = no vehicle, matches InventorySystem's own convention
+@export var caravan_capacity_bonus: float = 0.0    # additive, matches InventorySystem's own convention (Design Doc v0.4, Section 4.8) -- previously vehicle_capacity, an override with -1.0 = no vehicle
 
 ## --- Time ---
 @export var total_minutes_elapsed: int = 0
@@ -66,3 +66,11 @@ extends Resource
 ## geometric entry point regardless of where a visited location actually
 ## put them -- wrong for a real edge sector exactly the same as center.
 @export var hex_position_override: int = -2
+
+## --- Vehicles & Animals ---
+## Mirrors how travel_state slotted into this file's already-reserved
+## expedition-progress block. null vehicle = none owned. Design Doc
+## v0.4, Section 4.6.
+@export var caravan_vehicle: VehicleInstance = null
+@export var caravan_animals: Array[AnimalInstance] = []
+@export var caravan_abandoned_vehicles: Dictionary = {}  # String (coord) -> VehicleInstance

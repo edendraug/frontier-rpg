@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="VehiclePartDefinition" load_steps=2 format=3 uid="uid://6hdko148vwep"]
+
+[ext_resource type="Script" uid="uid://pj5kdkq8jged" path="res://systems/caravan/definitions/vehicle_part_definition.gd" id="1_ox4j4"]
+
+[resource]
+script = ExtResource("1_ox4j4")
+part_id = "wheel"
+max_durability = 0.0
+wear_rate_multiplier = 1.0
+is_critical = true
+metadata/_custom_type_script = "uid://pj5kdkq8jged"

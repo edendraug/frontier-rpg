@@ -165,24 +165,15 @@ func reset() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Vehicle — thin pass-through to InventorySystem, no local copy stored here.
-# InventorySystem already owns what capacity means for weight math;
-# duplicating the number here would just invite the two disagreeing.
-# PartyManager is the CONCEPTUAL home for "does this party have a vehicle"
-# (and later, a real VehicleDefinition reference), without owning the
-# capacity number itself.
+# Vehicle -- retired. This used to be a thin pass-through to
+# InventorySystem's vehicle-capacity field, with a comment noting
+# PartyManager was only a placeholder "conceptual home for does this
+# party have a vehicle" until something real existed to own that.
+# CaravanSystem (Vehicles & Animals Design Doc v0.4) is now that real
+# home -- see CaravanSystem.has_vehicle()/acquire_vehicle()/
+# abandon_vehicle(). No callers of the old has_vehicle()/set_vehicle()/
+# clear_vehicle() trio existed anywhere in the project at removal time.
 # ---------------------------------------------------------------------------
-
-func has_vehicle() -> bool:
-	return InventorySystem.has_vehicle()
-
-
-func set_vehicle(capacity: float) -> void:
-	InventorySystem.set_vehicle_capacity(capacity)
-
-
-func clear_vehicle() -> void:
-	InventorySystem.clear_vehicle()
 
 
 # ---------------------------------------------------------------------------

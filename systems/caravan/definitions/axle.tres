@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="VehiclePartDefinition" load_steps=2 format=3 uid="uid://db5id4qodnuof"]
+
+[ext_resource type="Script" uid="uid://pj5kdkq8jged" path="res://systems/caravan/definitions/vehicle_part_definition.gd" id="1_rwve2"]
+
+[resource]
+script = ExtResource("1_rwve2")
+part_id = "axle"
+max_durability = 0.0
+wear_rate_multiplier = 1.0
+is_critical = true
+metadata/_custom_type_script = "uid://pj5kdkq8jged"

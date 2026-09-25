@@ -107,12 +107,15 @@ func _write_save(slug: String, display_name: String) -> String:
 	data.inventory_stock = InventorySystem.get_stock_snapshot()
 	data.inventory_batches = InventorySystem.get_batches_snapshot()
 	data.money = InventorySystem.get_money()
-	data.vehicle_capacity = InventorySystem.get_vehicle_capacity()
+	data.caravan_capacity_bonus = InventorySystem.get_caravan_capacity_bonus()
 	data.total_minutes_elapsed = TimeSystem.get_total_minutes_elapsed()
 	data.travel_state = TravelSystem.get_travel_state()
 	data.current_local_scene_path = ExpeditionSceneRouter.get_current_scene_path()
 	data.discovered_location_ids = ExpeditionSceneRouter.get_discovered_location_ids()
 	data.hex_position_override = ExpeditionSceneRouter.get_hex_position_override()
+	data.caravan_vehicle = CaravanSystem.get_vehicle_for_save()
+	data.caravan_animals = CaravanSystem.get_animals_for_save()
+	data.caravan_abandoned_vehicles = CaravanSystem.get_abandoned_vehicles_for_save()
 
 	var err := ResourceSaver.save(data, path)
 	if err != OK:
@@ -143,7 +146,7 @@ func load_game(slug: String) -> bool:
 
 	PartyManager.load_roster(data.party)
 	InventorySystem.load_state(
-		data.inventory_stock, data.inventory_batches, data.money, data.vehicle_capacity
+		data.inventory_stock, data.inventory_batches, data.money, data.caravan_capacity_bonus
 	)
 	# party_size is deliberately not a saved field -- always re-derive
 	# from the loaded roster, same as begin_expedition() already does,
@@ -156,6 +159,7 @@ func load_game(slug: String) -> bool:
 	# matches the just-restored TravelState.state, so TravelSystem needs
 	# to already be holding the loaded state by the time this runs.
 	ExpeditionSceneRouter.restore_from_save(data.current_local_scene_path, data.discovered_location_ids, data.hex_position_override)
+	CaravanSystem.load_state(data.caravan_vehicle, data.caravan_animals, data.caravan_abandoned_vehicles)
 
 	_current_save_slug = slug
 	_current_save_name = data.save_name

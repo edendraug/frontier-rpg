@@ -57,6 +57,19 @@ extends Node
 ##   center->exit are each always exactly half a hex's crossing time
 ##   regardless of which edges are involved -- see that method's own
 ##   comment for the full reasoning.
+## - Vehicles & Animals Design Doc v0.4, Section 4.9/5.2: the arrival-
+##   prompt queue (_pending_prompt_queue) is now Array[HexPromptSource],
+##   not Array[LocationSceneDefinition] -- LocationSceneDefinition now
+##   EXTENDS HexPromptSource rather than declaring display_name/
+##   hex_sector itself, and a rediscovered abandoned vehicle
+##   (CaravanSystem.get_abandoned_vehicle_prompt_at()) can share the
+##   same queue/sort/prompt-window plumbing. Its "Approach" choice is
+##   currently a placeholder no-op (see _on_prompt_choice()'s own
+##   comment) -- reclaiming a still-broken vehicle needs a repair-or-
+##   abandon UI that doesn't exist anywhere in the project yet.
+##   _begin_detour()/_advance_detour()/_finish_detour() stay
+##   LocationSceneDefinition-only and untouched, since a vehicle entry
+##   never reaches them.
 
 ## Placeholder paths -- these ambient scenes don't exist yet (design doc
 ## Section 2: hand-authored placeholders for now, procedural later).
@@ -106,7 +119,15 @@ var _pending_scene_path: String = ""
 ## empty" (leave_current_location()) from "leaving a scene the debug
 ## tab jumped to directly, where Travel's state was never touched and
 ## shouldn't be resumed."
-var _pending_prompt_queue: Array[LocationSceneDefinition] = []
+##
+## Array[HexPromptSource] as of Vehicles & Animals Design Doc v0.4,
+## Section 4.9 -- was Array[LocationSceneDefinition]. A candidate can
+## now also be an AbandonedVehiclePromptEntry (systems/caravan/
+## abandoned_vehicle_prompt_entry.gd), so every consumer that pops from
+## this queue checks concrete type before touching a
+## LocationSceneDefinition-only field (location_id, scene_path) -- see
+## _show_next_prompt()/_on_prompt_choice() below.
+var _pending_prompt_queue: Array[HexPromptSource] = []
 var _pending_prompt_coord: String = ""
 var _pending_entry_edge: int = -1
 
@@ -294,7 +315,17 @@ func _on_hex_entered(coord: String) -> void:
 	# PREVIOUS hex is no longer meaningful.
 	_hex_position_override = NO_POSITION_OVERRIDE
 
-	var candidates := get_locations_in_hex(coord)
+	# Design Doc v0.4, Section 4.9/5.2 -- an abandoned vehicle at this
+	# hex joins the same candidate list as catalogued locations, now
+	# that both share the HexPromptSource base. append_array() from the
+	# LocationSceneDefinition-typed result is a valid widening append
+	# (every LocationSceneDefinition IS a HexPromptSource).
+	var candidates: Array[HexPromptSource] = []
+	candidates.append_array(get_locations_in_hex(coord))
+	var vehicle_entry := CaravanSystem.get_abandoned_vehicle_prompt_at(coord)
+	if vehicle_entry != null:
+		candidates.append(vehicle_entry)
+
 	if candidates.is_empty():
 		return
 
@@ -311,8 +342,11 @@ func _on_hex_entered(coord: String) -> void:
 
 	# Nearest-first (Cameron's confirmed ordering) -- ascending cyclic
 	# distance from the edge the party actually walked in through.
+	# Generalized to HexPromptSource -- hex_sector is the shared field
+	# both concrete types carry, so this sort doesn't care which kind of
+	# candidate it's comparing.
 	candidates.sort_custom(
-		func(a: LocationSceneDefinition, b: LocationSceneDefinition) -> bool:
+		func(a: HexPromptSource, b: HexPromptSource) -> bool:
 			return _sector_distance(entry_edge, a.hex_sector) < _sector_distance(entry_edge, b.hex_sector)
 	)
 
@@ -332,13 +366,17 @@ func _show_next_prompt() -> void:
 		# skip_current_hex_to_center()'s own comment for why this
 		# doesn't apply to a real edge sector (that leg is always 0.5
 		# regardless of which edge, so there's nothing to skip there).
-		if _hex_position_override == LocationSceneDefinition.CENTER_SECTOR:
+		if _hex_position_override == HexPromptSource.CENTER_SECTOR:
 			TravelSystem.skip_current_hex_to_center()
 		TravelSystem.resume_travel()  # fires state_changed -> ambient scene swap handles itself above
 		return
 
-	var def: LocationSceneDefinition = _pending_prompt_queue.pop_front()
-	_mark_discovered(def.location_id)
+	var def: HexPromptSource = _pending_prompt_queue.pop_front()
+	# Discovery is a LocationSceneDefinition-only concept (location_id
+	# doesn't exist on the base) -- rediscovering an abandoned vehicle
+	# isn't a new "unlock," it's the same vehicle showing up again.
+	if def is LocationSceneDefinition:
+		_mark_discovered((def as LocationSceneDefinition).location_id)
 
 	# add_child() MUST happen before setup() -- @onready vars (including
 	# %MessageLabel etc.) are only resolved once a node actually enters
@@ -350,11 +388,29 @@ func _show_next_prompt() -> void:
 	prompt.setup("You see %s up ahead. Approach or keep moving?" % def.display_name, "Approach", "Keep Moving")
 
 
-func _on_prompt_choice(accepted: bool, def: LocationSceneDefinition) -> void:
-	if accepted:
-		_begin_detour(def)
-	else:
+## Design Doc v0.4, Section 4.9/5.2 -- AbandonedVehiclePromptEntry gets
+## a placeholder no-op "Approach" rather than the real detour/reclaim
+## flow the original doc sketched. Reasoning: Section 3.5 means a
+## vehicle can ONLY ever be abandoned from a full stop (a part at 0%),
+## so every abandoned vehicle is still broken when rediscovered.
+## Reclaiming it here would need to immediately re-present the same
+## repair-or-abandon choice a live breakdown gives (CaravanSystem's
+## vehicle_halted signal) -- but NO UI anywhere in the project actually
+## consumes that signal yet (Section 5.4's repair() is a reserved stub
+## with no caller). Building the reclaim half now would land the party
+## back in PAUSED_BY_EVENT with nothing able to resolve it -- a genuine
+## dead end, strictly worse than not offering it. Revisit once a real
+## repair/reclaim system exists to drive the choice properly.
+func _on_prompt_choice(accepted: bool, def: HexPromptSource) -> void:
+	if not accepted:
 		_show_next_prompt()
+		return
+
+	if def is AbandonedVehiclePromptEntry:
+		_show_next_prompt()
+		return
+
+	_begin_detour(def as LocationSceneDefinition)
 
 
 # ---------------------------------------------------------------------------

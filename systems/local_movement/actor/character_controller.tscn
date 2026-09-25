@@ -3,9 +3,8 @@
 [ext_resource type="Script" uid="uid://coruww7pvnacj" path="res://systems/local_movement/actor/character_controller.gd" id="1_wqs36"]
 [ext_resource type="Texture2D" uid="uid://cnesywr8hfiox" path="res://assets/art/hexes/characters/char_1.png" id="2_k62pc"]
 
-[sub_resource type="Animation" id="Animation_w0tsm"]
-resource_name = "idle"
-step = 0.0833333
+[sub_resource type="Animation" id="Animation_my3oi"]
+length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -31,8 +30,9 @@ tracks/1/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_my3oi"]
-length = 0.001
+[sub_resource type="Animation" id="Animation_w0tsm"]
+resource_name = "idle"
+step = 0.0833333
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -79,11 +79,11 @@ tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
 tracks/1/path = NodePath(".:position")
-tracks/1/interp = 2
+tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.0833333, 0.25, 0.333333, 0.416667, 0.583333),
-"transitions": PackedFloat32Array(0.5, 2, 1, 0.5, 2, 1),
+"times": PackedFloat32Array(0, 0.166667, 0.25, 0.416667, 0.501044, 0.666667),
+"transitions": PackedFloat32Array(0.5, 2, 0.5, 0.5, 2, 0.5),
 "update": 0,
 "values": [Vector2(0, 0), Vector2(0, -1.5), Vector2(0, 0), Vector2(0, 0), Vector2(0, -1.5), Vector2(0, 0)]
 }
